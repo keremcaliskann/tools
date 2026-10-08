@@ -1,0 +1,20 @@
+{
+  "name": "MEB Uyumlu BEP Dosyası ve Plan Hazırlayıcı",
+  "short_name": "MEB BEP",
+  "description": "MEB standartlarında Bireyselleştirilmiş Eğitim Programı (BEP), Toplantı Tutanağı ve İzleme Formu hazırlama uygulaması.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#1e3a8a",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

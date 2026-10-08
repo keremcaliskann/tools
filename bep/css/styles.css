@@ -1,0 +1,122 @@
+/* Özel Stiller ve Resmî A4 Yazdırma / Baskı Kuralları */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Özel kaydırma çubuğu */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Canlı A4 Baskı Önizleme Konteynerleri */
+.a4-preview-page {
+  width: 297mm; /* A4 Yatay Standart Genişlik */
+  min-height: 210mm;
+  padding: 15mm;
+  margin: 0 auto;
+  background: white;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.a4-preview-page.portrait-page {
+  width: 210mm; /* A4 Dikey Standart Genişlik */
+  min-height: 297mm;
+  padding: 15mm;
+}
+
+/* Baskı (Print / PDF) Modu Kuralları */
+@page {
+  margin: 10mm;
+}
+
+@page landscape-mode {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@page portrait-mode {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Yazdırma anında arayüz elemanlarını gizle */
+  .no-print,
+  nav,
+  header,
+  footer,
+  #tabButtons,
+  #formView,
+  #ogrencilerView,
+  .action-buttons,
+  #modalKazanim,
+  .toast-notification {
+    display: none !important;
+  }
+
+  #baskiView {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .a4-preview-page {
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Sayfa yönlendirmesi */
+  .print-landscape {
+    page: landscape-mode;
+  }
+
+  .print-portrait {
+    page: portrait-mode;
+  }
+
+  /* Tablo bölünme optimizasyonu */
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+
+  .print-break-before {
+    page-break-before: always;
+  }
+}

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEB Uyumlu BEP Planı Hazırlayıcı | Bireyselleştirilmiş Eğitim Programı</title>
+  
+  <!-- Favicon & PWA Manifest -->
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MEB BEP" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- docx.js & FileSaver.js (Word .docx Üretimi İçin) -->
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  
+  <!-- Özel Stiller ve Baskı CSS -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col">
+
+  <!-- Üst Bar / Header -->
+  <header class="no-print bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl border-b border-indigo-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center text-2xl shadow-inner">
+            🎓
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 bg-red-600/90 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full">MEB Standart Format</span>
+              <span class="text-xs text-blue-200/80 font-medium">Özel Eğitim & Rehberlik</span>
+            </div>
+            <h1 class="text-xl md:text-2xl font-black tracking-tight text-white mt-0.5">BEP Planı & Dosya Hazırlayıcı</h1>
+            <p class="text-xs text-blue-200/70">BEP Planı, Toplantı Tutanağı ve İzleme Formu (Word/PDF Çıktı Sistemi)</p>
+          </div>
+        </div>
+
+        <!-- Hızlı İşlem Düğmeleri -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="hizliDoldur()" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl border border-white/20 transition flex items-center gap-1.5 shadow-sm">
+            ⚡ Örnek Doldur
+          </button>
+          <button type="button" onclick="yeniPlanBaslat()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
+            ➕ Yeni Boş Plan
+          </button>
+          <button type="button" onclick="planiKaydet()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center gap-1.5">
+            💾 Öğrenciyi Kaydet
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigasyon Sekmeleri -->
+      <nav id="tabButtons" class="flex items-center gap-1 mt-6 border-b border-white/10 text-xs font-semibold">
+        <button id="tabBtnForm" onclick="sekmeDegistir('form')" class="px-4 py-2 text-sm font-bold text-white border-b-2 border-white transition flex items-center gap-2">
+          📝 BEP Dosyası Formu (Düzenle)
+        </button>
+        <button id="tabBtnBaski" onclick="sekmeDegistir('baski')" class="px-4 py-2 text-sm font-semibold text-blue-200 hover:text-white border-b-2 border-transparent transition flex items-center gap-2">
+          👁️ A4 Resmî Baskı / PDF Önizleme
+        </button>
+        <button id="tabBtnOgrenciler" onclick="sekmeDegistir('ogrenciler')" class="px-4 py-2 text-sm font-semibold text-blue-200 hover:text-white border-b-2 border-transparent transition flex items-center gap-2">
+          👥 Kayıtlı Öğrencilerim
+          <span id="kayitliOgrenciSayisi" class="px-2 py-0.5 bg-blue-500/40 text-blue-100 text-[10px] rounded-full font-bold">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Ana İçerik -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== SEKME 1: BEP FORMU ==================== -->
+    <div id="formView" class="space-y-6">
+      
+      <!-- Bilgilendirme Kutusu -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+        <div class="text-blue-600 text-lg">ℹ️</div>
+        <div class="text-xs text-blue-900 leading-relaxed">
+          <p class="font-bold">MEB Özel Eğitim ve Rehberlik Hizmetleri Yönetmeliği standartlarına uygundur.</p>
+          <p class="text-blue-700 mt-0.5">Bu sistemle yalnızca BEP planı değil; okul idaresine teslim edeceğiniz <strong>BEP Toplantı Tutanağı</strong> ve <strong>BEP İzleme-Değerlendirme Formu</strong> da tek tıkla otomatik olarak hazırlanır. Tüm veriler yalnızca tarayıcınızda saklanır.</p>
+        </div>
+      </div>
+
+      <!-- Aktif Düzenlenen Kayıt Bildirimi -->
+      <div id="aktifDuzenlemeBanner" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-3.5 flex items-center justify-between text-xs text-amber-900 shadow-sm animate-pulse">
+        <div class="flex items-center gap-2">
+          <span class="text-base">✏️</span>
+          <span>Şu an arşivdeki <strong id="aktifOgrenciEtiketi" class="text-amber-950 underline">...</strong> öğrencisinin planını düzenliyorsunuz. Değişiklikler bu kaydı güncelleyecektir.</span>
+        </div>
+        <button type="button" onclick="yeniPlanBaslat()" class="px-3 py-1 bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold rounded-lg transition whitespace-nowrap text-[11px]">
+          ➕ Yeni Boş Plana Geç
+        </button>
+      </div>
+
+      <form id="bepForm" class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden divide-y divide-slate-200" onsubmit="event.preventDefault(); docxTamDosyaIndir();">
+        
+        <!-- BÖLÜM 1: GENEL VE ÖĞRENCİ BİLGİLERİ -->
+        <section class="p-6 md:p-8 space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-blue-500/20">1</span>
+              Okul, Öğrenci ve Aile Bilgileri
+            </h2>
+            <span class="text-xs text-slate-400 font-medium">* Zorunlu Alanlar</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Okul Adı *</label>
+              <input type="text" id="okulAdi" required placeholder="Örn: Mehmet Akif Ersoy Ortaokulu" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Eğitim - Öğretim Yılı *</label>
+              <input type="text" id="egitimYili" required value="2026-2027" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Dönem</label>
+              <select id="donem" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                <option value="1. ve 2. Dönem (Yıllık)">1. ve 2. Dönem (Yıllık)</option>
+                <option value="1. Dönem">1. Dönem</option>
+                <option value="2. Dönem">2. Dönem</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Öğrencinin Adı Soyadı *</label>
+              <input type="text" id="ogrenciAdi" required placeholder="Öğrencinin Adı ve Soyadı" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-slate-900" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">T.C. Kimlik No</label>
+              <input type="text" id="tcNo" maxlength="11" placeholder="11 haneli T.C." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Sınıfı / Şubesi & No *</label>
+              <input type="text" id="sinifSube" required placeholder="Örn: 5/B - No: 142" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Doğum Tarihi</label>
+              <input type="text" id="dogumTarihi" placeholder="Örn: 15.04.2014" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Ders / Gelişim Alanı *</label>
+              <input type="text" id="dersAdi" list="dersListesi" required placeholder="Örn: Türkçe, Matematik..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-blue-900" />
+              <datalist id="dersListesi">
+                <option value="Türkçe">
+                <option value="Matematik">
+                <option value="Hayat Bilgisi">
+                <option value="Fen Bilimleri">
+                <option value="Sosyal Bilgiler">
+                <option value="İngilizce">
+                <option value="Din Kültürü ve Ahlak Bilgisi">
+                <option value="Bilişsel Beceriler (ÖÖG/Disleksi)">
+                <option value="İletişim ve Dil Becerileri">
+                <option value="Öz Bakım ve Günlük Yaşam Becerileri">
+                <option value="Görsel Sanatlar">
+                <option value="Müzik">
+                <option value="Beden Eğitimi ve Oyun">
+              </datalist>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Eğitsel Tanı / Yetersizlik</label>
+              <input type="text" id="taniTuru" list="taniListesi" placeholder="Örn: Özel Öğrenme Güçlüğü..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+              <datalist id="taniListesi">
+                <option value="Özel Öğrenme Güçlüğü (Disleksi / Diskalkuli / Disgrafi)">
+                <option value="Hafif Düzey Zihinsel Yetersizlik">
+                <option value="Orta Düzey Zihinsel Yetersizlik">
+                <option value="Otizm Spektrum Bozukluğu (OSB)">
+                <option value="Dikkat Eksikliği ve Hiperaktivite Bozukluğu (DEHB)">
+                <option value="Dil ve Konuşma Güçlüğü">
+                <option value="İşitme Yetersizliği">
+                <option value="Görme Yetersizliği">
+                <option value="Bedensel Yetersizlik">
+                <option value="Süreğen Hastalık">
+              </datalist>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">RAM Rapor Sayı & Tarihi</label>
+              <input type="text" id="ramRapor" placeholder="Örn: 2026/894 - 12.09.2026" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">BEP Başlama</label>
+                <input type="text" id="bepBaslangic" placeholder="01.10.2026" class="w-full px-2.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">BEP Bitiş</label>
+                <input type="text" id="bepBitis" placeholder="15.06.2027" class="w-full px-2.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Aile & Sağlık Bilgileri -->
+          <div class="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Anne Adı</label>
+              <input type="text" id="anneAdi" placeholder="Örn: Emel Şen" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Baba Adı</label>
+              <input type="text" id="babaAdi" placeholder="Örn: Murat Şen" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Veli İletişim Telefonu</label>
+              <input type="text" id="veliTel" placeholder="Örn: 0555 123 45 67" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Kullandığı Cihaz / Sağlık</label>
+              <input type="text" id="saglikCihaz" placeholder="Örn: Gözlük, İşitme Cihazı..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+          </div>
+
+          <!-- Toplantı Bilgileri -->
+          <div class="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">BEP Toplantı Türü / No</label>
+              <select id="toplantiNo" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs outline-none bg-white">
+                <option value="1. Toplantı (Sene Başı BEP Hazırlama)">1. Toplantı (Sene Başı BEP Hazırlama)</option>
+                <option value="2. Toplantı (Ara Dönem BEP Değerlendirme)">2. Toplantı (Ara Dönem BEP Değerlendirme)</option>
+                <option value="3. Toplantı (Yıl Sonu BEP Tamamlama)">3. Toplantı (Yıl Sonu BEP Tamamlama)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Toplantı Tarihi</label>
+              <input type="text" id="toplantiTarihi" placeholder="Örn: 05.10.2026" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Toplantı Yeri</label>
+              <input type="text" id="toplantiYeri" placeholder="Örn: Rehberlik Servisi / BEP Odası" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+          </div>
+        </section>
+
+        <!-- BÖLÜM 2: EĞİTSEL PERFORMANS DÜZEYİ -->
+        <section class="p-6 md:p-8 space-y-4 bg-slate-50/50">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-blue-500/20">2</span>
+              Öğrencinin Şimdiki Eğitsel Performans Düzeyi
+            </h2>
+            <span class="text-xs text-slate-500">Mevcut yapabildikleri ve gelişim gereksinimleri</span>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+              Öğrencinin bu dersteki mevcut performansı, yapabildiği beceriler, ön koşul eksiklikleri ve güçlü yönleri:
+            </label>
+            <textarea id="egitselPerformans" rows="4" placeholder="Örnek: Öğrenci ses temelli okuma çalışmalarında temel sesleri tanımakta, hece oluşturabilmektedir. Ancak 3 ve daha fazla heceli kelimeleri okumakta zorlanmaktadır. Dinlediği hikâyeleri anlama ve özetlemede başarılıdır..." class="w-full p-3.5 border border-slate-300 rounded-xl text-xs leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none bg-white"></textarea>
+          </div>
+        </section>
+
+        <!-- BÖLÜM 3: BEP AMAÇ VE KAZANIM TABLOSU -->
+        <section class="p-6 md:p-8 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+            <div>
+              <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-blue-500/20">3</span>
+                BEP Amaç ve Kazanım Tablosu (Bireyselleştirilmiş Öğretim Planı)
+              </h2>
+              <p class="text-[11px] text-slate-500 mt-0.5">Satırları sağdaki ▲ ▼ butonlarıyla yeniden sıralayabilir veya 📋 ile kopyalayabilirsiniz.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="kazanimModaliniAc()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
+                📚 Hazır Kazanım Havuzundan Seç
+              </button>
+              <button type="button" onclick="satirEkle()" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
+                + Boş Satır Ekle
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
+            <table class="w-full text-left text-xs" id="bepTablosu">
+              <thead class="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3 min-w-[200px]">Uzun Dönemli Amaç (ÜDA)</th>
+                  <th class="p-3 min-w-[240px]">Kısa Dönemli Amaç (KDA) / Davranışlar</th>
+                  <th class="p-3 min-w-[120px]">Başlama - Bitiş</th>
+                  <th class="p-3 min-w-[150px]">Yöntem ve Teknik</th>
+                  <th class="p-3 min-w-[140px]">Araç ve Gereç</th>
+                  <th class="p-3 min-w-[140px]">Değerlendirme & Ölçüt</th>
+                  <th class="p-3 text-center min-w-[100px]">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody id="tabloGovde" class="divide-y divide-slate-100 bg-white">
+                <!-- Dinamik satırlar app.js tarafından yönetilir -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- BÖLÜM 4: DESTEK EĞİTİM & SINAV TEDBİRLERİ -->
+        <section class="p-6 md:p-8 space-y-5 bg-slate-50/50">
+          <div class="border-b border-slate-200 pb-3">
+            <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-blue-500/20">4</span>
+              Destek Eğitim Hizmetleri ve Sınav Tedbirleri
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Destek Eğitim -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-700">Destek Eğitim Odası Hizmetleri</label>
+                <span class="text-[11px] text-slate-400">Hızlı Rozetler</span>
+              </div>
+              <textarea id="destekEgitim" rows="3" placeholder="Örn: Haftada 4 ders saati Destek Eğitim Odasından yararlanacaktır." class="w-full p-3 border border-slate-300 rounded-xl text-xs leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none bg-white"></textarea>
+              <div class="flex flex-wrap gap-1.5 pt-1">
+                <button type="button" onclick="hizliDestekEkle('Haftada 2 saat Destek Eğitim Odası')" class="px-2 py-1 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[10px] font-medium transition">+ 2 Saat</button>
+                <button type="button" onclick="hizliDestekEkle('Haftada 4 saat Destek Eğitim Odası')" class="px-2 py-1 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[10px] font-medium transition">+ 4 Saat</button>
+                <button type="button" onclick="hizliDestekEkle('Bire bir özel eğitim öğretmeni eşliğinde')" class="px-2 py-1 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[10px] font-medium transition">+ Bire bir Eğitim</button>
+              </div>
+            </div>
+
+            <!-- Sınav Tedbirleri -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-700">Sınav Hizmetleri ve Ölçme-Değerlendirme Tedbirleri</label>
+                <span class="text-[11px] text-slate-400">Tıkla & Ekle</span>
+              </div>
+              <textarea id="sinavTedbirleri" rows="3" placeholder="Örn: Yazılı sınavlarda 15 dk ek süre, okuyucu desteği verilmesi, ayrı salonda sınav yapılması..." class="w-full p-3 border border-slate-300 rounded-xl text-xs leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none bg-white"></textarea>
+              <div class="flex flex-wrap gap-1.5 pt-1">
+                <button type="button" onclick="hizliTedbirEkle('Yazılı sınavlarda 15 dakika ek süre verilmesi.')" class="px-2 py-1 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[10px] font-medium transition">+ 15 Dk Ek Süre</button>
+                <button type="button" onclick="hizliTedbirEkle('Ayrı salonda tek başına sınava alınması.')" class="px-2 py-1 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[10px] font-medium transition">+ Ayrı Salon</button>
+                <button type="button" onclick="hizliTedbirEkle('Okuyucu desteği sağlanması.')" class="px-2 py-1 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[10px] font-medium transition">+ Okuyucu Desteği</button>
+                <button type="button" onclick="hizliTedbirEkle('Kodlayıcı / işaretleyici desteği verilmesi.')" class="px-2 py-1 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[10px] font-medium transition">+ Kodlayıcı</button>
+                <button type="button" onclick="hizliTedbirEkle('Büyük puntolu (16-18 punto) soru kağıdı hazırlanması.')" class="px-2 py-1 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[10px] font-medium transition">+ Büyük Punto</button>
+                <button type="button" onclick="hizliTedbirEkle('Kısa cevaplı ve somut adımlı soru kağıdı düzenlenmesi.')" class="px-2 py-1 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[10px] font-medium transition">+ Sade Soru Kağıdı</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- BÖLÜM 5: BEP BİRİM KARARLARI -->
+        <section class="p-6 md:p-8 space-y-4">
+          <div class="border-b border-slate-200 pb-3">
+            <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-blue-500/20">5</span>
+              BEP Geliştirme Birimi Kararları ve Açıklamalar
+            </h2>
+          </div>
+          <div>
+            <textarea id="birimKararlari" rows="3" placeholder="Örn: Öğrencinin gelişim durumu her dönem sonunda birim üyelerince değerlendirilecek, veli ile düzenli bilgilendirme toplantıları yapılacaktır." class="w-full p-3 border border-slate-300 rounded-xl text-xs leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none bg-white"></textarea>
+          </div>
+        </section>
+
+        <!-- BÖLÜM 6: BEP GELİŞTİRME BİRİMİ İMZA YETKİLİLERİ -->
+        <section class="p-6 md:p-8 space-y-4 bg-slate-50/50">
+          <div class="border-b border-slate-200 pb-3">
+            <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-blue-500/20">6</span>
+              BEP Geliştirme Birimi (Resmî İmza Alanları)
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Ders Öğretmeni</label>
+              <input type="text" id="imzaDersOgr" placeholder="Adı Soyadı" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Sınıf Rehber Öğretmeni</label>
+              <input type="text" id="imzaSinifOgr" placeholder="Adı Soyadı" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Özel Eğitim Öğretmeni</label>
+              <input type="text" id="imzaOzelEgitim" placeholder="Adı Soyadı" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Rehber Öğretmen / Psk. Dan.</label>
+              <input type="text" id="imzaRehberlik" placeholder="Adı Soyadı" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Öğrenci Velisi</label>
+              <input type="text" id="imzaVeli" placeholder="Adı Soyadı" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Birim Bşk. / Okul Müdürü</label>
+              <input type="text" id="imzaMudur" placeholder="Adı Soyadı" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+            </div>
+          </div>
+        </section>
+
+        <!-- ALT İŞLEM PANELİ & ÇOKLU BELGE DIŞA AKTARMA -->
+        <div class="p-6 md:p-8 bg-slate-100 flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-2 w-full lg:w-auto">
+            <button type="button" onclick="planiKaydet()" class="flex-1 lg:flex-none px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+              💾 Bu Dosyayı Kaydet
+            </button>
+            <button type="button" onclick="sekmeDegistir('baski')" class="flex-1 lg:flex-none px-5 py-3 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+              👁️ Canlı Önizleme
+            </button>
+          </div>
+
+          <!-- Çoklu İndirme Seçenekleri -->
+          <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end">
+            <button type="button" onclick="docxIndir()" class="px-4 py-2.5 bg-white hover:bg-blue-50 text-blue-700 border border-blue-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="Yalnızca BEP Planı Tablosunu İndir">
+              📄 BEP Planı (.docx)
+            </button>
+            <button type="button" onclick="docxTutanakIndir()" class="px-4 py-2.5 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="BEP Toplantı Tutanağını İndir">
+              📋 Toplantı Tutanağı (.docx)
+            </button>
+            <button type="button" onclick="docxIzlemeIndir()" class="px-4 py-2.5 bg-white hover:bg-teal-50 text-teal-700 border border-teal-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="Dönem Sonu İzleme Formunu İndir">
+              📊 İzleme Formu (.docx)
+            </button>
+            <button type="button" onclick="docxTamDosyaIndir()" class="px-6 py-3 bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white font-extrabold rounded-xl shadow-lg hover:shadow-xl transition flex items-center gap-2 text-xs transform active:scale-95">
+              📂 Tam BEP Dosyası İndir
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- ==================== SEKME 2: A4 CANLI BASKI / PDF ÖNİZLEME ==================== -->
+    <div id="baskiView" class="hidden space-y-4">
+      <!-- Baskı Önizleme Araç Çubuğu -->
+      <div class="no-print bg-white p-4 rounded-2xl shadow-md border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <!-- Belge Seçici Butonları -->
+        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+          <button id="btnBaskiPlan" type="button" onclick="baskiBelgeTuruDegistir('plan')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-sm transition">
+            📄 1. BEP Planı
+          </button>
+          <button id="btnBaskiTutanak" type="button" onclick="baskiBelgeTuruDegistir('tutanak')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">
+            📋 2. Toplantı Tutanağı
+          </button>
+          <button id="btnBaskiIzleme" type="button" onclick="baskiBelgeTuruDegistir('izleme')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">
+            📊 3. İzleme Formu
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="sekmeDegistir('form')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
+            ✏️ Forma Geri Dön
+          </button>
+          <button type="button" onclick="docxTamDosyaIndir()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+            📂 Tam Dosya (.docx)
+          </button>
+          <button type="button" onclick="yazdir()" class="px-5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+            🖨️ Bu Sayfayı Yazdır / PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Canlı Şablon Konteyneri -->
+      <div class="overflow-x-auto pb-8">
+        <div id="baskiIcerik" class="a4-preview-page border border-slate-300">
+          <!-- app.js tarafından doldurulur -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SEKME 3: KAYITLI ÖĞRENCİLER & YEDEK ==================== -->
+    <div id="ogrencilerView" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-md border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-extrabold text-slate-800">Kayıtlı Öğrenci BEP Planları Arşivi</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Tarayıcınızın yerel hafızasında saklanan kayıtlar. İstediğiniz zaman düzenleyebilir veya Tam Dosya olarak indirebilirsiniz.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <input type="text" oninput="ogrencileriListele(this.value)" placeholder="Öğrenci, ders veya sınıf ara..." class="px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 w-full sm:w-60" />
+          <button type="button" onclick="BepStorage.exportToJsonFile()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+            📥 Yedek İndir (JSON)
+          </button>
+          <label class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-300">
+            📤 Yedek Yükle
+            <input type="file" id="yedekDosyaInput" accept=".json" class="hidden" onchange="yedekYukle(this)" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Öğrenci Kartları Listesi -->
+      <div id="ogrenciListesiContainer">
+        <!-- app.js tarafından doldurulur -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Alt Bilgi / Footer -->
+  <footer class="no-print mt-auto bg-slate-900 border-t border-slate-800 text-slate-400 py-6 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-base">
+          🎓
+        </div>
+        <div>
+          <p class="font-bold text-slate-200">MEB Uyumlu BEP Dosyası Hazırlama Sistemi</p>
+          <p class="text-[11px] text-slate-400">Özel Eğitim ve Rehberlik Hizmetleri Genel Müdürlüğü Standartlarına Uygundur</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-4 text-[11px] text-slate-400">
+        <span class="flex items-center gap-1.5 text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          100% İstemci Taraflı (KVKK Uyumlu)
+        </span>
+        <span>•</span>
+        <span>Word (.docx) & A4 PDF Destekli</span>
+        <span>•</span>
+        <a href="https://github.com/keremcaliskann/bep" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-300 underline">Açık Kaynak Kod</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== MODAL: HAZIR KAZANIM HAVUZU ==================== -->
+  <div id="modalKazanim" class="no-print hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Modal Başlık -->
+      <div class="p-5 bg-gradient-to-r from-blue-800 to-indigo-900 text-white flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-extrabold">MEB Özel Eğitim Hazır Amaç & Kazanım Havuzu</h3>
+          <p class="text-xs text-blue-200 mt-0.5">Seçtiğiniz amaç ve kazanımları tek tıkla mevcut plana ekleyin.</p>
+        </div>
+        <button type="button" onclick="kazanimModaliniKapat()" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition text-sm">
+          ✕
+        </button>
+      </div>
+
+      <!-- Filtreleme ve Arama -->
+      <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Ders / Alan Filtresi</label>
+          <select id="modalDersFiltre" onchange="kazanimlariListele()" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs outline-none bg-white">
+            <!-- Dinamik doldurulacak -->
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Kazanım veya Konu Ara</label>
+          <input type="text" id="modalArama" oninput="kazanimlariListele()" placeholder="Örn: ritmik sayma, okuma..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs outline-none bg-white" />
+        </div>
+      </div>
+
+      <!-- Kazanım Listesi -->
+      <div id="modalKazanimListesi" class="p-5 overflow-y-auto space-y-3 flex-1">
+        <!-- Dinamik liste app.js tarafından doldurulur -->
+      </div>
+
+      <!-- Modal Alt Kapat -->
+      <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end">
+        <button type="button" onclick="kazanimModaliniKapat()" class="px-5 py-2 bg-slate-600 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition">
+          Kapat
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Yedek Yükleme Yardımcısı -->
+  <script>
+    function yedekYukle(input) {
+      if (input.files && input.files[0]) {
+        BepStorage.importFromJsonFile(input.files[0], (err, count) => {
+          if (err) {
+            alert("Yedek dosyası yüklenirken hata oluştu: " + err.message);
+          } else {
+            alert(`${count} adet öğrenci planı başarıyla içe aktarıldı!`);
+            ogrencileriListele();
+          }
+        });
+      }
+    }
+  </script>
+
+  <!-- Uygulama Scriptleri -->
+  <script src="js/data/kazanimlar.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/docx-generator.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

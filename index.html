@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Araçlar Portalı | Kerem Çalışkan</title>
+  <meta name="description" content="Ücretsiz, güvenli, %100 istemci taraflı çalışan web araçları koleksiyonu.">
+  <link rel="icon" type="image/svg+xml" href="./pdf/icon.svg">
+  <style>
+    :root {
+      --primary: #ef4444;
+      --primary-hover: #dc2626;
+      --bg-main: #0f172a;
+      --bg-surface: #1e293b;
+      --bg-surface-elevated: #334155;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.3);
+      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg-main: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f1f5f9;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.25rem 1.5rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.35rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .badge-secure {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .hero {
+      padding: 3.5rem 1rem 2rem;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.75rem;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .tool-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    .tool-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary);
+      box-shadow: 0 16px 32px rgba(239, 68, 68, 0.15);
+    }
+
+    .tool-icon-wrapper {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .pdf-icon-bg {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .bep-icon-bg {
+      background: rgba(59, 130, 246, 0.15);
+      color: #3b82f6;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .tool-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tool-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      flex: 1;
+      margin-bottom: 1.5rem;
+    }
+
+    .tool-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tool-tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--bg-surface-elevated);
+      color: var(--text-muted);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+    }
+
+    .tool-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.8rem 1.25rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: var(--radius-md);
+      background: var(--primary);
+      color: #ffffff;
+      transition: background 0.2s ease;
+      margin-top: auto;
+    }
+
+    .tool-card:hover .tool-btn {
+      background: var(--primary-hover);
+    }
+
+    .footer {
+      margin-top: auto;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-color);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header-content">
+      <a href="./" class="logo">
+        <span>🛠️ Araçlar Portalı</span>
+      </a>
+      <div class="badge-secure">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>%100 Sunucusuz & Güvenli</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <h1>Web Tabanlı Araçlar Portalı</h1>
+      <p>Tamamen tarayıcınızda çalışan, dosyalarınızı hiçbir sunucuya yüklemeyen, gizlilik odaklı ve ücretsiz araçlar.</p>
+    </div>
+
+    <div class="grid">
+      <!-- 1. PDF Araçları -->
+      <a href="./pdf/" class="tool-card">
+        <div class="tool-icon-wrapper pdf-icon-bg">📄</div>
+        <div class="tool-title">
+          <span>PDF Araçları</span>
+          <span style="font-size: 1.2rem;">➔</span>
+        </div>
+        <p class="tool-desc">
+          Fotoğraflardan PDF oluşturma, PDF birleştirme, sayfa bölme, görsele dönüştürme, sayfa döndürme/düzenleme ve filigran ekleme araç seti.
+        </p>
+        <div class="tool-features">
+          <span class="tool-tag">Görsel ➔ PDF</span>
+          <span class="tool-tag">PDF Birleştir</span>
+          <span class="tool-tag">PDF Böl</span>
+          <span class="tool-tag">PDF ➔ Görsel</span>
+          <span class="tool-tag">Sayfa Düzenle</span>
+          <span class="tool-tag">Filigran</span>
+        </div>
+        <div class="tool-btn">
+          Uygulamayı Aç
+        </div>
+      </a>
+
+      <!-- 2. BEP Planı Hazırlayıcı -->
+      <a href="./bep/" class="tool-card">
+        <div class="tool-icon-wrapper bep-icon-bg">🎓</div>
+        <div class="tool-title">
+          <span>BEP Dosyası Hazırlayıcı</span>
+          <span style="font-size: 1.2rem;">➔</span>
+        </div>
+        <p class="tool-desc">
+          MEB Özel Eğitim standartlarına tam uyumlu BEP Planı, Toplantı Tutanağı ve İzleme Formu oluşturma, arşivleme ve Word (.docx)/PDF çıktı alma sistemi.
+        </p>
+        <div class="tool-features">
+          <span class="tool-tag">MEB Standart</span>
+          <span class="tool-tag">BÖP / BEP Planı</span>
+          <span class="tool-tag">Toplantı Tutanağı</span>
+          <span class="tool-tag">İzleme Formu</span>
+          <span class="tool-tag">Word .docx</span>
+        </div>
+        <div class="tool-btn" style="background: #2563eb;">
+          Uygulamayı Aç
+        </div>
+      </a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div>Kerem Çalışkan &copy; 2026 | Tüm hakları saklıdır.</div>
+      <div style="margin-top: 0.35rem;">
+        <a href="https://keremcaliskann.github.io/tools/" style="color: inherit; text-decoration: underline;">keremcaliskann.github.io/tools/</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
