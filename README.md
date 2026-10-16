@@ -7,6 +7,7 @@ Bu depo, modern web standartlarıyla geliştirilmiş, **%100 istemci tarafında 
 ## 🌐 Canlı Web Uygulamaları
 
 - 🏠 **Ana Araçlar Portalı:** 👉 **[http://keremcaliskann.github.io/tools/](http://keremcaliskann.github.io/tools/)**
+- 🛡️ **GüvenliBelge Stüdyosu:** 👉 **[http://keremcaliskann.github.io/tools/guvenli-belge/](http://keremcaliskann.github.io/tools/guvenli-belge/)**
 - 📄 **PDF Araçları:** 👉 **[http://keremcaliskann.github.io/tools/pdf/](http://keremcaliskann.github.io/tools/pdf/)**
 - 🎓 **MEB BEP Dosyası Hazırlayıcı:** 👉 **[http://keremcaliskann.github.io/tools/bep/](http://keremcaliskann.github.io/tools/bep/)**
 
@@ -20,6 +21,12 @@ tools/
 ├── .nojekyll                # GitHub Pages Jekyll bypass
 ├── .github/workflows/       # GitHub Pages otomatik dağıtım
 │   └── deploy.yml
+├── guvenli-belge/           # GüvenliBelge resmi belge & PDF stüdyosu
+│   ├── index.html
+│   ├── _astro/
+│   ├── workers/
+│   ├── icon.svg
+│   └── manifest.json
 ├── pdf/                     # PDF Araçları uygulaması
 │   ├── index.html
 │   ├── css/

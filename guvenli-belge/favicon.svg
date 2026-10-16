@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="favShieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+    <linearGradient id="favDocGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Base Dark Pill for High Contrast -->
+  <rect width="64" height="64" rx="14" fill="#0f172a" />
+
+  <!-- Protective Heraldic Shield Outline & Body -->
+  <path d="M 32 7 
+           C 44 7 53 11 53 16 
+           C 53 34 43 49 32 57 
+           C 21 49 11 34 11 16 
+           C 11 11 20 7 32 7 Z" 
+        fill="url(#favShieldGrad)" />
+
+  <!-- Inner Dark Shield Recess -->
+  <path d="M 32 10 
+           C 42 10 49 13.5 49 18 
+           C 49 33 40 46 32 53 
+           C 24 46 15 33 15 18 
+           C 15 13.5 22 10 32 10 Z" 
+        fill="#0f172a" />
+
+  <!-- Document Silhouette with Folded Corner -->
+  <path d="M 23 16 
+           H 37 
+           L 43 22 
+           V 42 
+           C 43 43.5 42 44.5 40.5 44.5 
+           H 23 
+           C 21.5 44.5 20.5 43.5 20.5 42 
+           V 18.5 
+           C 20.5 17 21.5 16 23 16 Z" 
+        fill="url(#favDocGrad)" />
+
+  <!-- Corner Fold -->
+  <path d="M 37 16 V 22 H 43 Z" fill="#94a3b8" />
+
+  <!-- Redaction Bar on Document -->
+  <rect x="24" y="27" width="13" height="3.5" rx="1" fill="#0f172a" />
+  <rect x="24" y="32.5" width="15" height="2" rx="0.8" fill="#64748b" />
+  <rect x="24" y="36.5" width="10" height="2" rx="0.8" fill="#94a3b8" />
+
+  <!-- Security Checkmark / Privacy Seal -->
+  <circle cx="37" cy="41" r="7" fill="#10b981" stroke="#0f172a" stroke-width="1.5" />
+  <path d="M 34 41 L 36 43 L 40 39" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

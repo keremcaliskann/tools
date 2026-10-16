@@ -1,0 +1,99 @@
+{
+  "name": "GüvenliBelge - Gizlilik Odaklı Resmî Belge ve Kimlik Güvenliği",
+  "short_name": "GüvenliBelge",
+  "description": "%100 tarayıcı belleğinde çalışan, sıfır-sunucu mimarili akıllı kimlik filigranlama, kalıcı karartma ve hedef boyutlu PDF sıkıştırma aracı.",
+  "id": "guvenli-belge-pwa-v1",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "tr-TR",
+  "dir": "ltr",
+  "categories": [
+    "productivity",
+    "utilities",
+    "security"
+  ],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "64x64 32x32 16x16",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Kimlik Fotokopisi Filigranlama",
+      "short_name": "Filigran",
+      "url": "./kimlik-fotokopisi-filigran-ekleme",
+      "description": "Resmî kimlik ve ehliyet görsellerini A4'te otomatik hizalayıp güvenlik filigranı ekleyin.",
+      "icons": [
+        {
+          "src": "favicon.svg",
+          "sizes": "64x64",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Hassas Bilgi Karartma",
+      "short_name": "Karartma",
+      "url": "./pdf-hassas-bilgi-karartma",
+      "description": "TCKN, imza ve hassas verileri kalıcı olarak piksel düzeyinde silip düzleştirin.",
+      "icons": [
+        {
+          "src": "favicon.svg",
+          "sizes": "64x64",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "e-Devlet PDF Boyut Küçültme (1 MB)",
+      "short_name": "Sıkıştırma",
+      "url": "./e-devlet-pdf-boyut-kucultme-1mb",
+      "description": "Resmî kurumlar için 1 MB altı garantili akıllı ikili arama PDF sıkıştırma.",
+      "icons": [
+        {
+          "src": "favicon.svg",
+          "sizes": "64x64",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Kira Sözleşmesi & Belge Birleştirme",
+      "short_name": "Birleştirici",
+      "url": "./kira-sozlesmesi-belge-birlestirme",
+      "description": "Çok sayfalı sözleşme ve evrakları tek bir PDF belgesinde birleştirin.",
+      "icons": [
+        {
+          "src": "favicon.svg",
+          "sizes": "64x64",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}

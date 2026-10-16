@@ -63,3 +63,25 @@ bep/
     └── data/
         └── kazanimlar.js    # MEB hazır UDA / KDA amaç kütüphanesi (10 branş)
 ```
+
+---
+
+## 📢 Google AdSense Yapılandırması
+
+Sayfa üstünde yer alan responsive reklam alanını aktif etmek için `index.html` dosyasında yer alan iki alanı kendi Google AdSense hesabınızla eşleştiriniz:
+
+1. **Yayıncı Kimliği (`<head>` içi):**
+   ```html
+   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+   ```
+2. **Reklam Slotu (`<main>` içerisindeki `.ad-banner-slot`):**
+   ```html
+   <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+        data-ad-slot="XXXXXXXXXX"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+   ```
+*Not: Reklam alanı `@media print` kuralları ve `.no-print` sınıfıyla korunmuştur; A4 resmî çıktılarda ve Word/PDF indirmelerinde asla görünmez.*
+

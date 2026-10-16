@@ -18,6 +18,9 @@
       window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
   </script>
+
+  <!-- Google AdSense (Kendi ca-pub-XXXXXXXXXXXXXXXX kodunuz ile değiştirin) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -60,6 +63,34 @@
 
   <!-- App Main Content -->
   <main class="app-main">
+    <!-- Google AdSense Reklam Alanı (Sayfa Üstü) -->
+    <div class="ad-banner-wrapper no-print" aria-label="Sponsorlu İçerik / Reklam">
+      <div class="ad-banner-header">
+        <span class="ad-banner-tag">REKLAM</span>
+      </div>
+      <div class="ad-banner-slot">
+        <!-- Google AdSense Duyarlı Banner Kodu -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="XXXXXXXXXX"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        <!-- AdSense yüklenene kadar veya taslak modunda görünecek zarif yer tutucu -->
+        <div class="ad-placeholder-note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>Google AdSense Reklam Alanı (Sayfa Üstü Banner &bull; Yayıncı Kimliği tanımlandığında canlı reklam gösterilir)</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Tool Navigation Tabs -->
     <nav class="tool-nav" aria-label="PDF Araçları Menüsü">
       <button class="tool-tab-btn active" data-tool="image-to-pdf">

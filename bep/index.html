@@ -22,6 +22,9 @@
   
   <!-- Özel Stiller ve Baskı CSS -->
   <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Google AdSense (Kendi ca-pub-XXXXXXXXXXXXXXXX kodunuz ile değiştirin) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col">
 
@@ -75,6 +78,32 @@
 
   <!-- Ana İçerik -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== GOOGLE ADSENSE REKLAM ALANI (SAYFA ÜSTÜ) ==================== -->
+    <div class="ad-banner-wrapper no-print mb-6" aria-label="Sponsorlu İçerik / Reklam">
+      <div class="ad-banner-header">
+        <span class="ad-banner-tag">REKLAM</span>
+      </div>
+      <div class="ad-banner-slot">
+        <!-- Google AdSense Duyarlı Banner Kodu -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="XXXXXXXXXX"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        <!-- AdSense yüklenene kadar veya taslak modunda görünecek zarif yer tutucu -->
+        <div class="ad-placeholder-note">
+          <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Google AdSense Reklam Alanı (Sayfa Üstü Banner &bull; Yayıncı Kimliği tanımlandığında canlı reklam gösterilir)</span>
+        </div>
+      </div>
+    </div>
 
     <!-- ==================== SEKME 1: BEP FORMU ==================== -->
     <div id="formView" class="space-y-6">
