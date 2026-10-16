@@ -7,7 +7,7 @@
 
 ---
 
-## 📌 Modüller (5 Profesyonel Araç)
+## 📌 Modüller (6 Profesyonel Araç)
 
 1. **🪪 Biyometrik, Vesikalık & e-Okul Fotoğraf Stüdyosu (`vesikalik-biyometrik-boyutlandirma.html`):**
    - e-Okul (`133×171 px`, `<100 KB`), Biyometrik Pasaport/Ehliyet (`50×60 mm`), ÖSYM (`400×520 px`), ABD Vizesi (`600×600 px`) ve CV şablonları.
@@ -20,3 +20,6 @@
    - URL, Wi-Fi, vCard ve WhatsApp için özel renkli ve merkez ikonlu `PNG` / vektörel `SVG` QR kod üretimi ve görselden QR kod çözümleme.
 5. **🎨 Renk Paleti, Canlı Damlalık & Tarih/Telif Damgası (`gorsel-renk-paleti-exif-araci.html`):**
    - Fotoğraftan baskın 6 rengi (`HEX/RGB`) çıkarma, canlı piksel damlalığı ve köşe tarih/telif imzası basma.
+6. **📐 En-Boy Oranı (1.91:1, 4:5, Özel) & Formatlayıcı (`gorsel-oran-boyut-formatlayici.html`):**
+   - `1.91:1` (Yatay/OG), `4:5` (Dikey Post), `1:1`, `9:16`, `16:9` hazır oranları veya tamamen serbest `X:Y` en-boy oranı ve özel piksel çözünürlüğüyle kırpma (`Cover`), bulanık arka planla kırpmadan sığdırma (`Blur Fit`), düz renk kenarlıkla sığdırma (`Solid Fit`) ve esnetme (`Stretch`) stüdyosu.
+

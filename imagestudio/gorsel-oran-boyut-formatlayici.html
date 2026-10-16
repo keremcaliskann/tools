@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>En-Boy Oranı (1.91:1, 4:5, Özel Oran) & Görsel Formatlayıcı | ImageStudio</title>
+  <meta name="description" content="%100 tarayıcı içi görsel en-boy oranı ayarlama stüdyosu. 1.91:1, 4:5, 1:1, 9:16, 16:9 veya tamamen özel oran/piksel ile kırpma, bulanık arka planla sığdırma ve boyutlandırma.">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="../shared/portal-ui.css">
+  <link rel="stylesheet" href="./css/studio.css">
+  <script src="../shared/portal-ui.js"></script>
+  <script src="./js/studio-core.js"></script>
+  <style>
+    .ratio-pills {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem;
+      margin-bottom: 0.85rem;
+    }
+    .ratio-pill {
+      padding: 0.45rem 0.4rem;
+      border-radius: 9px;
+      border: 1px solid var(--wp-border);
+      background: var(--wp-bg-secondary);
+      color: var(--wp-text-secondary);
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .ratio-pill:hover {
+      border-color: var(--is-accent);
+      color: var(--wp-text);
+    }
+    .ratio-pill.active {
+      background: rgba(139, 92, 246, 0.18);
+      border-color: var(--is-accent);
+      color: var(--is-accent);
+    }
+    .ratio-pill span {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--wp-text-muted);
+      margin-top: 1px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ortak Portal Üst Barı & Breadcrumb (Katman 3: Alt Özellik Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <a href="./index.html" class="wp-crumb-link" title="ImageStudio Ana Sayfasına Dön">
+          <span>🖼️</span>
+          <span>ImageStudio Ana Sayfa</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>📐</span>
+          <span>Oran &amp; Boyut Formatlayıcı</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • 0 B Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="is-container">
+    <!-- Modüller Arası Hızlı Geçiş -->
+    <nav class="is-subnav" aria-label="ImageStudio Modülleri">
+      <a href="./index.html" class="is-subnav-link">🏠 Tüm Modüller</a>
+      <a href="./gorsel-oran-boyut-formatlayici.html" class="is-subnav-link active">📐 Oran &amp; Kadraj (1.91:1 / 4:5)</a>
+      <a href="./vesikalik-biyometrik-boyutlandirma.html" class="is-subnav-link">🪪 Vesikalık &amp; e-Okul</a>
+      <a href="./toplu-gorsel-format-donusturucu.html" class="is-subnav-link">🔄 Format Dönüştürücü</a>
+      <a href="./gorsel-sikistirma-boyut-kucultme.html" class="is-subnav-link">📉 Hedef KB Sıkıştırıcı</a>
+      <a href="./qr-kod-olusturucu-okuyucu.html" class="is-subnav-link">🔳 QR Kod Stüdyosu</a>
+      <a href="./gorsel-renk-paleti-exif-araci.html" class="is-subnav-link">🎨 Renk Paleti &amp; Damga</a>
+    </nav>
+
+    <section class="is-hero">
+      <div class="is-badge">📐 1.91:1 • 4:5 • 9:16 • 16:9 • Tamamen Özelleştirilebilir Oran &amp; Piksel</div>
+      <h1>En-Boy Oranı &amp; Özel Boyut Formatlayıcı</h1>
+      <p>Görselinizi <strong>1.91:1</strong> (yatay reklam/link), <strong>4:5</strong> (Instagram dikey), <strong>1:1</strong>, <strong>9:16</strong> veya istediğiniz herhangi bir özel orana kırparak ya da bulanık/renkli arka planla kesmeden sığdırarak formatlayın.</p>
+    </section>
+
+    <div class="is-studio-grid">
+      <!-- Sol Kontrol Paneli -->
+      <div class="is-panel">
+        <div class="is-panel-title">
+          <span>1. Görsel Yükle</span>
+          <span id="ratioOrigMeta" style="color:var(--wp-emerald);">-</span>
+        </div>
+        <label id="ratioDropzone" class="is-dropzone" style="margin-bottom: 1.15rem; padding: 1.25rem 1rem;">
+          <input type="file" id="ratioFileInput" accept="image/*" style="display:none;">
+          <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">📐</div>
+          <div id="ratioFileName" style="font-weight: 700; font-size: 0.86rem;">Görsel Seçin veya Sürükleyin</div>
+          <div style="font-size: 0.73rem; color: var(--wp-text-muted); margin-top: 0.15rem;">Önizleme üzerinde fareyle sürükleyerek kadrajı kaydırabilirsiniz</div>
+        </label>
+
+        <!-- Hazır Oran Seçici -->
+        <div class="is-panel-title" style="margin-bottom:0.5rem;">
+          <span>2. En-Boy Oranı (Aspect Ratio)</span>
+        </div>
+        <div class="ratio-pills" id="ratioPills">
+          <button type="button" class="ratio-pill active" data-rx="1.91" data-ry="1" data-w="1200" data-h="628">
+            1.91 : 1
+            <span>Yatay Link / OG</span>
+          </button>
+          <button type="button" class="ratio-pill" data-rx="4" data-ry="5" data-w="1080" data-h="1350">
+            4 : 5
+            <span>IG Dikey Post</span>
+          </button>
+          <button type="button" class="ratio-pill" data-rx="1" data-ry="1" data-w="1080" data-h="1080">
+            1 : 1
+            <span>Kare Post</span>
+          </button>
+          <button type="button" class="ratio-pill" data-rx="9" data-ry="16" data-w="1080" data-h="1920">
+            9 : 16
+            <span>Story / Reels</span>
+          </button>
+          <button type="button" class="ratio-pill" data-rx="16" data-ry="9" data-w="1920" data-h="1080">
+            16 : 9
+            <span>YouTube / HD</span>
+          </button>
+          <button type="button" class="ratio-pill" data-rx="3" data-ry="2" data-w="1800" data-h="1200">
+            3 : 2
+            <span>Klasik Kamera</span>
+          </button>
+          <button type="button" class="ratio-pill" data-rx="4" data-ry="3" data-w="1600" data-h="1200">
+            4 : 3
+            <span>Standart Ekran</span>
+          </button>
+          <button type="button" class="ratio-pill" data-rx="2" data-ry="3" data-w="1000" data-h="1500">
+            2 : 3
+            <span>Pinterest / Afiş</span>
+          </button>
+          <button type="button" class="ratio-pill" data-rx="custom" data-ry="custom" data-w="1200" data-h="800">
+            ✏️ Özel
+            <span>Serbest Oran</span>
+          </button>
+        </div>
+
+        <!-- Tamamen Ayarlanabilir Özel Oran ve Piksel Kutuları -->
+        <div class="is-field" style="padding:0.8rem; border-radius:12px; background:var(--wp-bg-secondary); border:1px solid var(--wp-border);">
+          <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:0.45rem; align-items:end; margin-bottom:0.65rem;">
+            <div>
+              <label class="is-label" style="font-size:0.73rem;">Oran Genişlik (X)</label>
+              <input type="number" id="customRatioX" class="is-input" step="0.01" min="0.1" value="1.91">
+            </div>
+            <div style="padding-bottom:0.5rem; font-weight:800; color:var(--wp-text-muted);">:</div>
+            <div>
+              <label class="is-label" style="font-size:0.73rem;">Oran Yükseklik (Y)</label>
+              <input type="number" id="customRatioY" class="is-input" step="0.01" min="0.1" value="1">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:0.45rem; align-items:end;">
+            <div>
+              <label class="is-label" style="font-size:0.73rem;">Çıktı Genişlik (px)</label>
+              <input type="number" id="outWidthInput" class="is-input" min="32" max="6000" value="1200">
+            </div>
+            <div style="padding-bottom:0.45rem;">
+              <button type="button" id="lockRatioBtn" title="Oran Kilidi" style="background:none; border:none; cursor:pointer; font-size:1rem;">🔒</button>
+            </div>
+            <div>
+              <label class="is-label" style="font-size:0.73rem;">Çıktı Yükseklik (px)</label>
+              <input type="number" id="outHeightInput" class="is-input" min="32" max="6000" value="628">
+            </div>
+          </div>
+        </div>
+
+        <!-- Yerleştirme (Fit / Crop) Modu -->
+        <div class="is-field">
+          <label class="is-label" for="fitModeSelect">3. Formatlama &amp; Sığdırma Modu</label>
+          <select id="fitModeSelect" class="is-select">
+            <option value="cover">✂️ Doldur &amp; Kırp (Cover — Tam Çerçeve)</option>
+            <option value="blur">✨ Kırpmadan Sığdır (Bulanık Görsel Arka Planlı)</option>
+            <option value="contain">🎨 Kırpmadan Sığdır (Düz Renk / Şeffaf Kenarlık)</option>
+            <option value="stretch">↔️ Esneterek Oturt (Stretch)</option>
+          </select>
+        </div>
+
+        <!-- Arka Plan Dolgu Rengi (Contain modunda) -->
+        <div class="is-field" id="padColorGroup" style="display:none;">
+          <label class="is-label">Kenar Boşluğu Rengi</label>
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <input type="color" id="padColorInput" value="#0f172a" style="width:44px; height:36px; border-radius:8px; border:1px solid var(--wp-border); cursor:pointer;">
+            <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; cursor:pointer;">
+              <input type="checkbox" id="transparentBgCheck" style="accent-color:var(--is-accent);">
+              <span>Şeffaf Arka Plan (PNG/WebP)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Yakınlaştırma, Kaydırma & Döndürme -->
+        <div class="is-field">
+          <div style="display:flex; justify-content:space-between; font-size:0.76rem; margin-bottom:0.2rem;">
+            <span class="is-label" style="margin:0;">Yakınlaştırma / Ölçek (Zoom)</span>
+            <span id="fmtZoomVal" style="font-family:monospace; color:var(--is-accent);">100%</span>
+          </div>
+          <input type="range" id="fmtZoomRange" min="30" max="300" value="100" style="width:100%; accent-color:var(--is-accent);">
+        </div>
+
+        <div class="is-field" style="display:grid; grid-template-columns:1fr 1fr; gap:0.65rem;">
+          <div>
+            <label class="is-label" style="font-size:0.73rem;">Yatay Hiza (X)</label>
+            <input type="range" id="fmtPanX" min="-150" max="150" value="0" style="width:100%; accent-color:var(--is-accent);">
+          </div>
+          <div>
+            <label class="is-label" style="font-size:0.73rem;">Dikey Hiza (Y)</label>
+            <input type="range" id="fmtPanY" min="-150" max="150" value="0" style="width:100%; accent-color:var(--is-accent);">
+          </div>
+        </div>
+
+        <div class="is-field" style="display:flex; gap:0.5rem;">
+          <button type="button" id="rotLeftBtn" class="is-btn is-btn-secondary" style="padding:0.45rem; font-size:0.78rem;">↺ 90° Sol</button>
+          <button type="button" id="rotRightBtn" class="is-btn is-btn-secondary" style="padding:0.45rem; font-size:0.78rem;">↻ 90° Sağ</button>
+          <button type="button" id="flipHBtn" class="is-btn is-btn-secondary" style="padding:0.45rem; font-size:0.78rem;">↔️ Aynala</button>
+          <button type="button" id="resetPosBtn" class="is-btn is-btn-secondary" style="padding:0.45rem; font-size:0.78rem;">Sıfırla</button>
+        </div>
+
+        <div class="is-field" style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
+          <div>
+            <label class="is-label" style="font-size:0.74rem;">Çıktı Formatı</label>
+            <select id="fmtOutputMime" class="is-select">
+              <option value="image/jpeg">JPG</option>
+              <option value="image/png">PNG</option>
+              <option value="image/webp">WebP</option>
+            </select>
+          </div>
+          <div>
+            <label class="is-label" style="font-size:0.74rem;">Kalite</label>
+            <select id="fmtOutputQuality" class="is-select">
+              <option value="0.95">Maksimum (%95)</option>
+              <option value="0.90" selected>Yüksek (%90)</option>
+              <option value="0.80">Dengeli (%80)</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" id="fmtDownloadBtn" class="is-btn is-btn-primary" disabled>
+          <span>⬇ Formatlanmış Görseli İndir</span>
+        </button>
+      </div>
+
+      <!-- Sağ Canlı Önizleme Alanı -->
+      <div class="is-panel" style="min-height:520px; display:flex; flex-direction:column;">
+        <div class="is-panel-title">
+          <span>Canlı Kadraj Önizlemesi (Sürükleyerek Konumlandırın)</span>
+          <span id="liveSpecBadge" style="font-family:monospace; color:var(--is-accent);">1.91:1 • 1200 × 628 px</span>
+        </div>
+
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); border-radius:16px; padding:1.5rem; overflow:hidden; position:relative;">
+          <canvas id="fmtCanvas" width="1200" height="628" style="max-width:100%; max-height:430px; width:auto; height:auto; border-radius:8px; box-shadow:0 14px 34px rgba(0,0,0,0.35); cursor:grab; background:#0f172a;"></canvas>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.85rem; font-size:0.78rem; color:var(--wp-text-muted); flex-wrap:wrap; gap:0.5rem;">
+          <span>💡 Görselin üzerine tıklayıp sürükleyerek kadrajı istediğiniz yöne kaydırabilirsiniz.</span>
+          <span id="swapRatioLink" style="color:var(--is-accent); font-weight:700; cursor:pointer;">🔄 Yatay / Dikey Oranı Çevir (Swap)</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>© 2026 ImageStudio &bull; Kerem Çalışkan | %100 İstemci Taraflı Görsel İşleme Stüdyosu</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı</a>
+        <a href="./index.html">🖼️ ImageStudio Ana Sayfa</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      let loadedImg = null;
+      let rotation = 0;
+      let flipH = 1;
+      let ratioLocked = true;
+
+      const dropzone = document.getElementById('ratioDropzone');
+      const fileInput = document.getElementById('ratioFileInput');
+      const fileNameEl = document.getElementById('ratioFileName');
+      const origMeta = document.getElementById('ratioOrigMeta');
+
+      const pills = document.querySelectorAll('.ratio-pill');
+      const customRatioX = document.getElementById('customRatioX');
+      const customRatioY = document.getElementById('customRatioY');
+      const outWidthInput = document.getElementById('outWidthInput');
+      const outHeightInput = document.getElementById('outHeightInput');
+      const lockRatioBtn = document.getElementById('lockRatioBtn');
+
+      const fitModeSelect = document.getElementById('fitModeSelect');
+      const padColorGroup = document.getElementById('padColorGroup');
+      const padColorInput = document.getElementById('padColorInput');
+      const transparentBgCheck = document.getElementById('transparentBgCheck');
+
+      const zoomRange = document.getElementById('fmtZoomRange');
+      const zoomVal = document.getElementById('fmtZoomVal');
+      const panX = document.getElementById('fmtPanX');
+      const panY = document.getElementById('fmtPanY');
+      const rotLeftBtn = document.getElementById('rotLeftBtn');
+      const rotRightBtn = document.getElementById('rotRightBtn');
+      const flipHBtn = document.getElementById('flipHBtn');
+      const resetPosBtn = document.getElementById('resetPosBtn');
+
+      const fmtOutputMime = document.getElementById('fmtOutputMime');
+      const fmtOutputQuality = document.getElementById('fmtOutputQuality');
+      const fmtDownloadBtn = document.getElementById('fmtDownloadBtn');
+
+      const canvas = document.getElementById('fmtCanvas');
+      const ctx = canvas.getContext('2d');
+      const liveSpecBadge = document.getElementById('liveSpecBadge');
+      const swapRatioLink = document.getElementById('swapRatioLink');
+
+      ImageStudio.setupDropzone(dropzone, fileInput, async (files) => {
+        try {
+          const res = await ImageStudio.loadImageFromFile(files[0]);
+          loadedImg = res.img;
+          fileNameEl.textContent = files[0].name;
+          origMeta.textContent = `${res.width}×${res.height}px`;
+          fmtDownloadBtn.disabled = false;
+          resetTransform();
+          render();
+          ImageStudio.showToast('Görsel yüklendi', '📐');
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      function resetTransform() {
+        zoomRange.value = 100;
+        zoomVal.textContent = '100%';
+        panX.value = 0;
+        panY.value = 0;
+        rotation = 0;
+        flipH = 1;
+      }
+
+      // Preset Pill Selection
+      pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          pills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          const rx = pill.dataset.rx;
+          const ry = pill.dataset.ry;
+          const w = parseInt(pill.dataset.w, 10);
+          const h = parseInt(pill.dataset.h, 10);
+          if (rx !== 'custom') {
+            customRatioX.value = rx;
+            customRatioY.value = ry;
+            outWidthInput.value = w;
+            outHeightInput.value = h;
+          } else {
+            customRatioX.focus();
+          }
+          render();
+        });
+      });
+
+      function syncHeightFromRatio() {
+        const rx = parseFloat(customRatioX.value) || 1;
+        const ry = parseFloat(customRatioY.value) || 1;
+        const w = Math.max(32, parseInt(outWidthInput.value, 10) || 1080);
+        outHeightInput.value = Math.max(32, Math.round((w * ry) / rx));
+        render();
+      }
+
+      function syncWidthFromRatio() {
+        const rx = parseFloat(customRatioX.value) || 1;
+        const ry = parseFloat(customRatioY.value) || 1;
+        const h = Math.max(32, parseInt(outHeightInput.value, 10) || 1080);
+        outWidthInput.value = Math.max(32, Math.round((h * rx) / ry));
+        render();
+      }
+
+      customRatioX.addEventListener('input', () => {
+        setCustomPillActive();
+        syncHeightFromRatio();
+      });
+      customRatioY.addEventListener('input', () => {
+        setCustomPillActive();
+        syncHeightFromRatio();
+      });
+
+      outWidthInput.addEventListener('input', () => {
+        if (ratioLocked) syncHeightFromRatio();
+        else render();
+      });
+
+      outHeightInput.addEventListener('input', () => {
+        if (ratioLocked) syncWidthFromRatio();
+        else render();
+      });
+
+      lockRatioBtn.addEventListener('click', () => {
+        ratioLocked = !ratioLocked;
+        lockRatioBtn.textContent = ratioLocked ? '🔒' : '🔓';
+      });
+
+      swapRatioLink.addEventListener('click', () => {
+        const tx = customRatioX.value;
+        customRatioX.value = customRatioY.value;
+        customRatioY.value = tx;
+        const tw = outWidthInput.value;
+        outWidthInput.value = outHeightInput.value;
+        outHeightInput.value = tw;
+        setCustomPillActive();
+        render();
+      });
+
+      function setCustomPillActive() {
+        pills.forEach(p => p.classList.toggle('active', p.dataset.rx === 'custom'));
+      }
+
+      fitModeSelect.addEventListener('change', () => {
+        padColorGroup.style.display = fitModeSelect.value === 'contain' ? 'block' : 'none';
+        render();
+      });
+      padColorInput.addEventListener('input', render);
+      transparentBgCheck.addEventListener('change', () => {
+        if (transparentBgCheck.checked && fmtOutputMime.value === 'image/jpeg') {
+          fmtOutputMime.value = 'image/png';
+        }
+        render();
+      });
+
+      zoomRange.addEventListener('input', () => {
+        zoomVal.textContent = zoomRange.value + '%';
+        render();
+      });
+      panX.addEventListener('input', render);
+      panY.addEventListener('input', render);
+
+      rotLeftBtn.addEventListener('click', () => { rotation = (rotation + 270) % 360; render(); });
+      rotRightBtn.addEventListener('click', () => { rotation = (rotation + 90) % 360; render(); });
+      flipHBtn.addEventListener('click', () => { flipH *= -1; render(); });
+      resetPosBtn.addEventListener('click', () => { resetTransform(); render(); });
+
+      // Drag to pan on canvas
+      let isDragging = false;
+      let startX = 0, startY = 0;
+      let startPanX = 0, startPanY = 0;
+
+      canvas.addEventListener('mousedown', (e) => {
+        if (!loadedImg) return;
+        isDragging = true;
+        canvas.style.cursor = 'grabbing';
+        startX = e.clientX;
+        startY = e.clientY;
+        startPanX = parseFloat(panX.value);
+        startPanY = parseFloat(panY.value);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = ((e.clientX - startX) / canvas.clientWidth) * 200;
+        const dy = ((e.clientY - startY) / canvas.clientHeight) * 200;
+        panX.value = Math.max(-150, Math.min(150, startPanX + dx));
+        panY.value = Math.max(-150, Math.min(150, startPanY + dy));
+        render();
+      });
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+        canvas.style.cursor = 'grab';
+      });
+
+      function render() {
+        const targetW = Math.max(32, Math.min(6000, parseInt(outWidthInput.value, 10) || 1200));
+        const targetH = Math.max(32, Math.min(6000, parseInt(outHeightInput.value, 10) || 628));
+        const rx = customRatioX.value;
+        const ry = customRatioY.value;
+
+        canvas.width = targetW;
+        canvas.height = targetH;
+        liveSpecBadge.textContent = `${rx}:${ry} • ${targetW} × ${targetH} px`;
+
+        ctx.clearRect(0, 0, targetW, targetH);
+
+        const mode = fitModeSelect.value;
+
+        if (!loadedImg) {
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(0, 0, targetW, targetH);
+          ctx.strokeStyle = '#6366f1';
+          ctx.lineWidth = Math.max(2, Math.round(Math.min(targetW, targetH) * 0.006));
+          ctx.strokeRect(20, 20, targetW - 40, targetH - 40);
+
+          ctx.fillStyle = '#f8fafc';
+          const fSize = Math.max(18, Math.round(Math.min(targetW, targetH) * 0.055));
+          ctx.font = `bold ${fSize}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillText(`Hedef Oran: ${rx} : ${ry} (${targetW} × ${targetH} px)`, targetW / 2, targetH / 2);
+          return;
+        }
+
+        // Effective source dimensions considering 90/270 deg rotation
+        const isRotated90 = rotation % 180 !== 0;
+        const srcW = isRotated90 ? loadedImg.naturalHeight : loadedImg.naturalWidth;
+        const srcH = isRotated90 ? loadedImg.naturalWidth : loadedImg.naturalHeight;
+
+        // 1. Background Fill
+        if (mode === 'blur') {
+          ctx.save();
+          const bgScale = Math.max(targetW / srcW, targetH / srcH) * 1.15;
+          ctx.filter = 'blur(36px) brightness(72%)';
+          drawTransformedImage(loadedImg, targetW / 2, targetH / 2, bgScale);
+          ctx.restore();
+        } else if (mode === 'contain' && !transparentBgCheck.checked) {
+          ctx.fillStyle = padColorInput.value;
+          ctx.fillRect(0, 0, targetW, targetH);
+        } else if (mode !== 'contain') {
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(0, 0, targetW, targetH);
+        }
+
+        // 2. Main Image
+        const zoom = parseInt(zoomRange.value, 10) / 100;
+        const offsetX = (parseFloat(panX.value) / 100) * targetW * 0.5;
+        const offsetY = (parseFloat(panY.value) / 100) * targetH * 0.5;
+
+        if (mode === 'stretch') {
+          ctx.save();
+          ctx.translate(targetW / 2 + offsetX, targetH / 2 + offsetY);
+          ctx.rotate((rotation * Math.PI) / 180);
+          ctx.scale(flipH * zoom, zoom);
+          ctx.drawImage(loadedImg, -targetW / 2, -targetH / 2, targetW, targetH);
+          ctx.restore();
+        } else {
+          const baseScale = mode === 'cover'
+            ? Math.max(targetW / srcW, targetH / srcH)
+            : Math.min(targetW / srcW, targetH / srcH);
+          const finalScale = baseScale * zoom;
+          drawTransformedImage(loadedImg, targetW / 2 + offsetX, targetH / 2 + offsetY, finalScale);
+        }
+      }
+
+      function drawTransformedImage(img, centerX, centerY, scale) {
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.scale(flipH * scale, scale);
+        ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+        ctx.restore();
+      }
+
+      fmtDownloadBtn.addEventListener('click', async () => {
+        if (!loadedImg) return;
+        const mime = fmtOutputMime.value;
+        const quality = parseFloat(fmtOutputQuality.value) || 0.90;
+        const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+        const rx = String(customRatioX.value).replace('.', '_');
+        const ry = String(customRatioY.value).replace('.', '_');
+        const blob = await ImageStudio.canvasToBlob(canvas, mime, quality);
+        ImageStudio.downloadBlob(blob, `imagestudio_${rx}x${ry}_${canvas.width}x${canvas.height}.${ext}`);
+        ImageStudio.showToast(`Görsel indirildi (${canvas.width}×${canvas.height}px)`, '✅');
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
