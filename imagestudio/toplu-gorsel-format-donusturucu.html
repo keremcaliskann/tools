@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toplu Görsel Format Dönüştürücü (WebP, PNG, JPG) | ImageStudio</title>
+  <meta name="description" content="%100 tarayıcı içi toplu görsel format dönüştürme stüdyosu. WebP, PNG, JPG, BMP ve SVG dosyalarını sunucuya yüklemeden dönüştürün ve ZIP indirin.">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="../shared/portal-ui.css">
+  <link rel="stylesheet" href="./css/studio.css">
+  <script src="../shared/portal-ui.js"></script>
+  <script src="./js/studio-core.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+
+  <!-- Ortak Portal Üst Barı & Breadcrumb (Katman 3: Alt Özellik Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <a href="./index.html" class="wp-crumb-link" title="ImageStudio Ana Sayfasına Dön">
+          <span>🖼️</span>
+          <span>ImageStudio Ana Sayfa</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>🔄</span>
+          <span>Toplu Format Dönüştürücü</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • 0 B Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="is-container">
+    <nav class="is-subnav" aria-label="ImageStudio Modülleri">
+      <a href="./index.html" class="is-subnav-link">🏠 Tüm Modüller</a>
+      <a href="./vesikalik-biyometrik-boyutlandirma.html" class="is-subnav-link">🪪 Vesikalık &amp; e-Okul</a>
+      <a href="./toplu-gorsel-format-donusturucu.html" class="is-subnav-link active">🔄 Format Dönüştürücü</a>
+      <a href="./gorsel-sikistirma-boyut-kucultme.html" class="is-subnav-link">📉 Hedef KB Sıkıştırıcı</a>
+      <a href="./qr-kod-olusturucu-okuyucu.html" class="is-subnav-link">🔳 QR Kod Stüdyosu</a>
+      <a href="./gorsel-renk-paleti-exif-araci.html" class="is-subnav-link">🎨 Renk Paleti &amp; Damga</a>
+    </nav>
+
+    <section class="is-hero">
+      <div class="is-badge">🔄 WebP ⇄ JPG ⇄ PNG • Şeffaf Arka Plan Yönetimi • Toplu ZIP</div>
+      <h1>Toplu Görsel Format Dönüştürücü</h1>
+      <p>Birden fazla WebP, PNG, JPG, SVG veya BMP görselini aynı anda seçin; istediğiniz hedef formata dönüştürüp tek tek veya ZIP paketi halinde indirin.</p>
+    </section>
+
+    <div class="is-studio-grid">
+      <!-- Sol Kontrol Paneli -->
+      <div class="is-panel">
+        <div class="is-panel-title">
+          <span>1. Görselleri Ekleyin</span>
+          <span id="batchCountBadge" style="color:var(--is-accent);">0 Dosya</span>
+        </div>
+        <label id="convDropzone" class="is-dropzone" style="margin-bottom: 1.25rem;">
+          <input type="file" id="convFileInput" accept="image/*" multiple style="display:none;">
+          <div style="font-size: 2rem; margin-bottom: 0.4rem;">📂</div>
+          <div style="font-weight: 700; font-size: 0.88rem;">Çoklu Görsel Seçin veya Sürükleyin</div>
+          <div style="font-size: 0.75rem; color: var(--wp-text-muted); margin-top: 0.2rem;">WebP, PNG, JPG, SVG, BMP, GIF</div>
+        </label>
+
+        <div class="is-field">
+          <label class="is-label" for="targetFormat">2. Hedef Çıktı Formatı</label>
+          <select id="targetFormat" class="is-select">
+            <option value="image/jpeg">JPG / JPEG (Evrensel Uyumluluk)</option>
+            <option value="image/png">PNG (Kayıpsız &amp; Şeffaf Destekli)</option>
+            <option value="image/webp">WebP (Yüksek Sıkıştırma &amp; Web)</option>
+          </select>
+        </div>
+
+        <div class="is-field" id="qualityField">
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:0.25rem;">
+            <span class="is-label" style="margin:0;">Çıktı Kalitesi</span>
+            <span id="convQualityVal" style="font-family:monospace; color:var(--is-accent);">92%</span>
+          </div>
+          <input type="range" id="convQuality" min="20" max="100" value="92" style="width:100%; accent-color:var(--is-accent);">
+        </div>
+
+        <div class="is-field" id="bgFillField">
+          <label class="is-label" for="bgFillColor">Şeffaf Alan Dolgu Rengi (JPG İçin)</label>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <input type="color" id="bgFillColor" value="#ffffff" style="width:44px; height:36px; border:1px solid var(--wp-border); border-radius:8px; background:transparent; cursor:pointer;">
+            <span style="font-size:0.78rem; color:var(--wp-text-muted);">Şeffaf PNG/WebP ➔ JPG dönüşümünde kullanılır</span>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:1.25rem;">
+          <button type="button" id="convertAllBtn" class="is-btn is-btn-primary" disabled>
+            <span>⚡ Tümünü Dönüştür</span>
+          </button>
+          <button type="button" id="downloadZipBtn" class="is-btn is-btn-secondary" disabled>
+            <span>📦 Dönüştürülenleri ZIP İndir</span>
+          </button>
+          <button type="button" id="clearListBtn" class="is-btn is-btn-secondary" style="font-size:0.78rem; padding:0.55rem;">
+            <span>🗑️ Listeyi Temizle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sağ Dosya Listesi Paneli -->
+      <div class="is-panel" style="min-height:460px; display:flex; flex-direction:column;">
+        <div class="is-panel-title">
+          <span>Dönüşüm Kuyruğu &amp; Sonuçlar</span>
+          <span id="convStatusText" style="color:var(--wp-emerald);">Hazır</span>
+        </div>
+
+        <div id="convEmptyState" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--wp-text-muted); padding:2rem;">
+          <div style="font-size:2.5rem; margin-bottom:0.5rem;">🔄</div>
+          <div style="font-weight:700; color:var(--wp-text);">Henüz Görsel Eklenmedi</div>
+          <p style="font-size:0.82rem; max-width:360px; margin-top:0.25rem;">Sol taraftan birden fazla görsel seçerek toplu dönüştürme işlemini başlatabilirsiniz.</p>
+        </div>
+
+        <div id="convList" style="display:none; flex-direction:column; gap:0.75rem;"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>© 2026 ImageStudio &bull; Kerem Çalışkan | %100 İstemci Taraflı Görsel İşleme Stüdyosu</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı</a>
+        <a href="./index.html">🖼️ ImageStudio Ana Sayfa</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      let items = []; // { file, convertedBlob, ext, outName, thumbUrl }
+      const dropzone = document.getElementById('convDropzone');
+      const fileInput = document.getElementById('convFileInput');
+      const countBadge = document.getElementById('batchCountBadge');
+      const targetFormat = document.getElementById('targetFormat');
+      const convQuality = document.getElementById('convQuality');
+      const convQualityVal = document.getElementById('convQualityVal');
+      const bgFillColor = document.getElementById('bgFillColor');
+      const convertAllBtn = document.getElementById('convertAllBtn');
+      const downloadZipBtn = document.getElementById('downloadZipBtn');
+      const clearListBtn = document.getElementById('clearListBtn');
+      const emptyState = document.getElementById('convEmptyState');
+      const listEl = document.getElementById('convList');
+      const statusText = document.getElementById('convStatusText');
+
+      convQuality.addEventListener('input', () => {
+        convQualityVal.textContent = convQuality.value + '%';
+      });
+
+      ImageStudio.setupDropzone(dropzone, fileInput, async (files) => {
+        const valid = files.filter(f => f.type.startsWith('image/') || /\.(webp|png|jpe?g|bmp|svg|gif)$/i.test(f.name));
+        if (!valid.length) return;
+        for (const f of valid) {
+          items.push({ file: f, convertedBlob: null, ext: '', outName: '' });
+        }
+        await convertAll();
+      });
+
+      async function convertAll() {
+        if (!items.length) return;
+        emptyState.style.display = 'none';
+        listEl.style.display = 'flex';
+        convertAllBtn.disabled = false;
+        countBadge.textContent = `${items.length} Dosya`;
+        statusText.textContent = 'Dönüştürülüyor...';
+
+        const mime = targetFormat.value;
+        const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+        const quality = parseInt(convQuality.value, 10) / 100;
+        const fill = bgFillColor.value;
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          try {
+            const { img, url, width, height } = await ImageStudio.loadImageFromFile(item.file);
+            const canvas = document.createElement('canvas');
+            canvas.width = width || 800;
+            canvas.height = height || 600;
+            const ctx = canvas.getContext('2d');
+            if (mime === 'image/jpeg') {
+              ctx.fillStyle = fill;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const blob = await ImageStudio.canvasToBlob(canvas, mime, quality);
+            const base = item.file.name.replace(/\.[^.]+$/, '');
+            item.convertedBlob = blob;
+            item.ext = ext;
+            item.outName = `${base}.${ext}`;
+            item.thumbUrl = url;
+            item.dimensions = `${canvas.width}×${canvas.height}`;
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        renderList();
+        downloadZipBtn.disabled = false;
+        statusText.textContent = `${items.length} görsel ${ext.toUpperCase()} formatına dönüştürüldü`;
+        ImageStudio.showToast(`${items.length} görsel dönüştürüldü`, '🔄');
+      }
+
+      function renderList() {
+        listEl.innerHTML = '';
+        items.forEach((item, idx) => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.75rem 1rem; border-radius:12px; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); flex-wrap:wrap;';
+          row.innerHTML = `
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <img src="${item.thumbUrl || ''}" alt="" style="width:48px; height:48px; object-fit:cover; border-radius:8px; background:#fff;">
+              <div>
+                <div style="font-weight:700; font-size:0.86rem;">${item.outName || item.file.name}</div>
+                <div style="font-size:0.75rem; color:var(--wp-text-muted);">
+                  ${item.dimensions || ''} • Orijinal: ${ImageStudio.formatBytes(item.file.size)} ➔ 
+                  <strong style="color:var(--wp-emerald);">${item.convertedBlob ? ImageStudio.formatBytes(item.convertedBlob.size) : 'Hata'}</strong>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="is-btn is-btn-secondary" style="width:auto; padding:0.45rem 0.85rem; font-size:0.78rem;">
+              ⬇ İndir (.${item.ext})
+            </button>
+          `;
+          row.querySelector('button').addEventListener('click', () => {
+            if (item.convertedBlob) {
+              ImageStudio.downloadBlob(item.convertedBlob, item.outName);
+            }
+          });
+          listEl.appendChild(row);
+        });
+      }
+
+      targetFormat.addEventListener('change', () => { if (items.length) convertAll(); });
+      convertAllBtn.addEventListener('click', convertAll);
+
+      downloadZipBtn.addEventListener('click', async () => {
+        if (!items.length) return;
+        const zip = new window.JSZip();
+        items.forEach(it => {
+          if (it.convertedBlob) zip.file(it.outName, it.convertedBlob);
+        });
+        const blob = await zip.generateAsync({ type: 'blob' });
+        ImageStudio.downloadBlob(blob, 'imagestudio_donusturulen_gorseller.zip');
+        ImageStudio.showToast('ZIP arşivi indirildi', '📦');
+      });
+
+      clearListBtn.addEventListener('click', () => {
+        items = [];
+        listEl.innerHTML = '';
+        listEl.style.display = 'none';
+        emptyState.style.display = 'flex';
+        countBadge.textContent = '0 Dosya';
+        statusText.textContent = 'Hazır';
+        convertAllBtn.disabled = true;
+        downloadZipBtn.disabled = true;
+        fileInput.value = '';
+      });
+    })();
+  </script>
+</body>
+</html>

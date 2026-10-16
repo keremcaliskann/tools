@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biyometrik, Vesikalık & e-Okul Fotoğraf Stüdyosu | ImageStudio</title>
+  <meta name="description" content="%100 tarayıcı içi e-Okul (133x171 px), Pasaport/Ehliyet Biyometrik (50x60 mm), ÖSYM ve ABD Vizesi fotoğraf boyutlandırma ve 10x15 çoklu baskı dizilimi.">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="../shared/portal-ui.css">
+  <link rel="stylesheet" href="./css/studio.css">
+  <script src="../shared/portal-ui.js"></script>
+  <script src="./js/studio-core.js"></script>
+</head>
+<body>
+
+  <!-- Ortak Portal Üst Barı & Breadcrumb (Katman 3: Alt Özellik Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <a href="./index.html" class="wp-crumb-link" title="ImageStudio Ana Sayfasına Dön">
+          <span>🖼️</span>
+          <span>ImageStudio Ana Sayfa</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>🪪</span>
+          <span>Vesikalık &amp; e-Okul Stüdyosu</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • 0 B Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="is-container">
+    <!-- Modüller Arası Hızlı Geçiş -->
+    <nav class="is-subnav" aria-label="ImageStudio Modülleri">
+      <a href="./index.html" class="is-subnav-link">🏠 Tüm Modüller</a>
+      <a href="./vesikalik-biyometrik-boyutlandirma.html" class="is-subnav-link active">🪪 Vesikalık &amp; e-Okul</a>
+      <a href="./toplu-gorsel-format-donusturucu.html" class="is-subnav-link">🔄 Format Dönüştürücü</a>
+      <a href="./gorsel-sikistirma-boyut-kucultme.html" class="is-subnav-link">📉 Hedef KB Sıkıştırıcı</a>
+      <a href="./qr-kod-olusturucu-okuyucu.html" class="is-subnav-link">🔳 QR Kod Stüdyosu</a>
+      <a href="./gorsel-renk-paleti-exif-araci.html" class="is-subnav-link">🎨 Renk Paleti &amp; Damga</a>
+    </nav>
+
+    <section class="is-hero">
+      <div class="is-badge">🪪 e-Okul • Biyometrik Pasaport/Ehliyet • 10×15 Çoklu Baskı</div>
+      <h1>Biyometrik, Vesikalık &amp; e-Okul Fotoğraf Stüdyosu</h1>
+      <p>Fotoğrafınızı yükleyin, yüz hizalama kılavuzuyla tam resmî standartlara göre konumlandırın ve hedef kilobayt sınırına uygun olarak indirin.</p>
+    </section>
+
+    <div class="is-studio-grid">
+      <!-- Sol Kontrol Paneli -->
+      <div class="is-panel">
+        <div class="is-panel-title">
+          <span>1. Fotoğraf Yükle</span>
+          <span style="color: var(--wp-emerald);">0 KB Yükleme</span>
+        </div>
+        <label id="idDropzone" class="is-dropzone" style="margin-bottom: 1.25rem;">
+          <input type="file" id="idFileInput" accept="image/*" style="display:none;">
+          <div style="font-size: 2rem; margin-bottom: 0.4rem;">🤳</div>
+          <div id="idFileName" style="font-weight: 700; font-size: 0.88rem;">Fotoğraf Seçin veya Sürükleyin</div>
+          <div style="font-size: 0.75rem; color: var(--wp-text-muted); margin-top: 0.2rem;">JPG, PNG veya WebP</div>
+        </label>
+
+        <div class="is-field">
+          <label class="is-label" for="presetSelect">2. Resmî Ölçü Şablonu</label>
+          <select id="presetSelect" class="is-select">
+            <option value="eokul">🎓 MEB e-Okul Öğrenci (133 × 171 px • &lt; 100 KB)</option>
+            <option value="biometric" selected>🛂 Biyometrik Pasaport / Ehliyet (50×60 mm • 590 × 708 px)</option>
+            <option value="vesikalik">🖼️ Standart Vesikalık (45×60 mm • 531 × 708 px)</option>
+            <option value="osym">📝 ÖSYM / Aday İşlemleri (400 × 520 px • &lt; 150 KB)</option>
+            <option value="usvisa">🗽 ABD Vizesi / Green Card (600 × 600 px • Kare)</option>
+            <option value="cv">💼 CV &amp; LinkedIn Profil (800 × 800 px • Kare)</option>
+          </select>
+        </div>
+
+        <div class="is-field">
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:0.25rem;">
+            <span class="is-label" style="margin:0;">Yakınlaştırma (Zoom)</span>
+            <span id="zoomVal" style="font-family:monospace; color:var(--is-accent);">100%</span>
+          </div>
+          <input type="range" id="zoomRange" min="50" max="250" value="100" style="width:100%; accent-color:var(--is-accent);">
+        </div>
+
+        <div class="is-field" style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div>
+            <label class="is-label" style="font-size:0.75rem;">Yatay Kaydır (X)</label>
+            <input type="range" id="panXRange" min="-200" max="200" value="0" style="width:100%; accent-color:var(--is-accent);">
+          </div>
+          <div>
+            <label class="is-label" style="font-size:0.75rem;">Dikey Kaydır (Y)</label>
+            <input type="range" id="panYRange" min="-200" max="200" value="0" style="width:100%; accent-color:var(--is-accent);">
+          </div>
+        </div>
+
+        <div class="is-field">
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:0.25rem;">
+            <span class="is-label" style="margin:0;">Parlaklık İyileştirme</span>
+            <span id="brightVal" style="font-family:monospace; color:var(--is-accent);">100%</span>
+          </div>
+          <input type="range" id="brightRange" min="75" max="135" value="100" style="width:100%; accent-color:var(--is-accent);">
+        </div>
+
+        <div class="is-field" style="display:flex; align-items:center; justify-content:space-between; padding: 0.5rem 0;">
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; cursor:pointer;">
+            <input type="checkbox" id="guideToggle" checked style="accent-color:var(--is-accent);">
+            <span>Yüz Hizalama Kılavuzunu Göster</span>
+          </label>
+          <button type="button" id="centerResetBtn" style="background:none; border:none; color:var(--is-accent); font-size:0.76rem; font-weight:700; cursor:pointer;">Merkezle</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:1rem;">
+          <button type="button" id="downloadSingleBtn" class="is-btn is-btn-primary" disabled>
+            <span>⬇ Tekli Resmî Fotoğraf İndir (JPG)</span>
+          </button>
+          <button type="button" id="downloadSheetBtn" class="is-btn is-btn-secondary" disabled>
+            <span>🖨️ 10×15 cm 8'li Baskı Şablonu İndir</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sağ Canlı Önizleme Alanı -->
+      <div class="is-panel" style="display:flex; flex-direction:column; align-items:center; min-height:480px;">
+        <div class="is-panel-title" style="width:100%;">
+          <span>Canlı Biyometrik Kadraj &amp; Kılavuz</span>
+          <span id="outputDimensionsLabel" style="font-family:monospace; color:var(--is-accent);">590 × 708 px</span>
+        </div>
+
+        <div style="position:relative; display:flex; align-items:center; justify-content:center; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); border-radius:16px; padding:1.5rem; width:100%; flex:1;">
+          <div style="position:relative; display:inline-block; box-shadow:0 12px 30px rgba(0,0,0,0.35); border-radius:8px; overflow:hidden; background:#ffffff;">
+            <canvas id="bioCanvas" width="590" height="708" style="max-height:380px; width:auto; display:block;"></canvas>
+            <!-- SVG Biyometrik Yüz Kılavuzu Overlay (İndirilen dosyaya dahil olmaz) -->
+            <svg id="guideOverlay" viewBox="0 0 200 240" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;">
+              <ellipse cx="100" cy="108" rx="52" ry="68" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,4"/>
+              <line x1="30" y1="36" x2="170" y2="36" stroke="#10b981" stroke-width="1.5" stroke-dasharray="3,3"/>
+              <line x1="30" y1="180" x2="170" y2="180" stroke="#10b981" stroke-width="1.5" stroke-dasharray="3,3"/>
+              <line x1="100" y1="20" x2="100" y2="220" stroke="rgba(139,92,246,0.45)" stroke-width="1" stroke-dasharray="4,4"/>
+              <text x="100" y="30" text-anchor="middle" fill="#10b981" font-size="8" font-weight="bold">ÜST BAŞ SINIRI</text>
+              <text x="100" y="193" text-anchor="middle" fill="#10b981" font-size="8" font-weight="bold">ÇENE SINIRI</text>
+            </svg>
+          </div>
+        </div>
+
+        <div style="margin-top:1rem; font-size:0.78rem; color:var(--wp-text-muted); text-align:center;">
+          💡 <strong>İpucu:</strong> Kesikli mor oval çizgi sadece hizalama yardımı içindir; indirilen fotoğrafta yer almaz.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>© 2026 ImageStudio &bull; Kerem Çalışkan | %100 İstemci Taraflı Görsel İşleme Stüdyosu</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı</a>
+        <a href="./index.html">🖼️ ImageStudio Ana Sayfa</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const PRESETS = {
+        eokul:     { width: 133, height: 171, maxKB: 100, name: 'e-okul_133x171' },
+        biometric: { width: 590, height: 708, maxKB: 450, name: 'biyometrik_50x60mm' },
+        vesikalik: { width: 531, height: 708, maxKB: 450, name: 'vesikalik_45x60mm' },
+        osym:      { width: 400, height: 520, maxKB: 140, name: 'osym_400x520' },
+        usvisa:    { width: 600, height: 600, maxKB: 240, name: 'abd_vize_600x600' },
+        cv:        { width: 800, height: 800, maxKB: 500, name: 'cv_profil_800x800' }
+      };
+
+      let loadedImg = null;
+      const dropzone = document.getElementById('idDropzone');
+      const fileInput = document.getElementById('idFileInput');
+      const fileNameEl = document.getElementById('idFileName');
+      const presetSelect = document.getElementById('presetSelect');
+      const zoomRange = document.getElementById('zoomRange');
+      const zoomVal = document.getElementById('zoomVal');
+      const panXRange = document.getElementById('panXRange');
+      const panYRange = document.getElementById('panYRange');
+      const brightRange = document.getElementById('brightRange');
+      const brightVal = document.getElementById('brightVal');
+      const guideToggle = document.getElementById('guideToggle');
+      const guideOverlay = document.getElementById('guideOverlay');
+      const centerResetBtn = document.getElementById('centerResetBtn');
+      const downloadSingleBtn = document.getElementById('downloadSingleBtn');
+      const downloadSheetBtn = document.getElementById('downloadSheetBtn');
+      const canvas = document.getElementById('bioCanvas');
+      const ctx = canvas.getContext('2d');
+      const dimLabel = document.getElementById('outputDimensionsLabel');
+
+      ImageStudio.setupDropzone(dropzone, fileInput, async (files) => {
+        try {
+          const res = await ImageStudio.loadImageFromFile(files[0]);
+          loadedImg = res.img;
+          fileNameEl.textContent = files[0].name;
+          downloadSingleBtn.disabled = false;
+          downloadSheetBtn.disabled = false;
+          resetPosition();
+          renderCanvas();
+          ImageStudio.showToast('Fotoğraf yüklendi', '🪪');
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      function resetPosition() {
+        zoomRange.value = 100;
+        panXRange.value = 0;
+        panYRange.value = 0;
+        brightRange.value = 100;
+        zoomVal.textContent = '100%';
+        brightVal.textContent = '100%';
+      }
+
+      function renderCanvas() {
+        const preset = PRESETS[presetSelect.value];
+        canvas.width = preset.width;
+        canvas.height = preset.height;
+        dimLabel.textContent = `${preset.width} × ${preset.height} px (Hedef < ${preset.maxKB} KB)`;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (!loadedImg) {
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = 'bold 14px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Önizleme İçin Fotoğraf Yükleyin', canvas.width / 2, canvas.height / 2);
+          return;
+        }
+
+        const zoom = parseInt(zoomRange.value, 10) / 100;
+        const panX = (parseInt(panXRange.value, 10) / 100) * canvas.width * 0.5;
+        const panY = (parseInt(panYRange.value, 10) / 100) * canvas.height * 0.5;
+        const brightness = parseInt(brightRange.value, 10);
+
+        // Cover calculation
+        const scaleBase = Math.max(canvas.width / loadedImg.naturalWidth, canvas.height / loadedImg.naturalHeight);
+        const drawW = loadedImg.naturalWidth * scaleBase * zoom;
+        const drawH = loadedImg.naturalHeight * scaleBase * zoom;
+        const drawX = (canvas.width - drawW) / 2 + panX;
+        const drawY = (canvas.height - drawH) / 2 + panY;
+
+        ctx.save();
+        ctx.filter = `brightness(${brightness}%)`;
+        ctx.drawImage(loadedImg, drawX, drawY, drawW, drawH);
+        ctx.restore();
+      }
+
+      presetSelect.addEventListener('change', renderCanvas);
+      zoomRange.addEventListener('input', () => { zoomVal.textContent = zoomRange.value + '%'; renderCanvas(); });
+      panXRange.addEventListener('input', renderCanvas);
+      panYRange.addEventListener('input', renderCanvas);
+      brightRange.addEventListener('input', () => { brightVal.textContent = brightRange.value + '%'; renderCanvas(); });
+      guideToggle.addEventListener('change', () => {
+        guideOverlay.style.display = guideToggle.checked ? 'block' : 'none';
+      });
+      centerResetBtn.addEventListener('click', () => {
+        resetPosition();
+        renderCanvas();
+      });
+
+      downloadSingleBtn.addEventListener('click', async () => {
+        if (!loadedImg) return;
+        const preset = PRESETS[presetSelect.value];
+        const { blob } = await ImageStudio.compressCanvasToTargetKB(canvas, preset.maxKB, 'image/jpeg');
+        ImageStudio.downloadBlob(blob, `${preset.name}_${ImageStudio.formatBytes(blob.size).replace(/\s/g, '')}.jpg`);
+        ImageStudio.showToast(`Fotoğraf indirildi (${ImageStudio.formatBytes(blob.size)})`, '✅');
+      });
+
+      downloadSheetBtn.addEventListener('click', async () => {
+        if (!loadedImg) return;
+        // 10x15 cm @ 300 DPI = 1772 x 1181 px landscape sheet with 8 photos (4x2 grid)
+        const sheet = document.createElement('canvas');
+        sheet.width = 1772;
+        sheet.height = 1181;
+        const sctx = sheet.getContext('2d');
+        sctx.fillStyle = '#ffffff';
+        sctx.fillRect(0, 0, sheet.width, sheet.height);
+
+        const cols = 4, rows = 2;
+        const cellW = 360, cellH = 440;
+        const gapX = 55, gapY = 70;
+        const startX = Math.round((sheet.width - (cols * cellW + (cols - 1) * gapX)) / 2);
+        const startY = Math.round((sheet.height - (rows * cellH + (rows - 1) * gapY)) / 2);
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const x = startX + c * (cellW + gapX);
+            const y = startY + r * (cellH + gapY);
+            sctx.drawImage(canvas, x, y, cellW, cellH);
+            sctx.strokeStyle = '#cbd5e1';
+            sctx.lineWidth = 2;
+            sctx.strokeRect(x, y, cellW, cellH);
+          }
+        }
+
+        const blob = await ImageStudio.canvasToBlob(sheet, 'image/jpeg', 0.94);
+        ImageStudio.downloadBlob(blob, 'vesikalik_10x15cm_8li_baski.jpg');
+        ImageStudio.showToast('10×15 cm 8\'li baskı şablonu indirildi', '🖨️');
+      });
+
+      renderCanvas();
+    })();
+  </script>
+</body>
+</html>

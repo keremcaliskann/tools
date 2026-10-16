@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ImageStudio — Akıllı Görsel, Vesikalık & QR Stüdyosu</title>
+  <meta name="description" content="%100 tarayıcı içi çalışan biyometrik/e-Okul fotoğraf boyutlandırma, toplu görsel format dönüştürme, hedef KB sıkıştırma, renk paleti ve QR kod stüdyosu.">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="../shared/portal-ui.css">
+  <link rel="stylesheet" href="./css/studio.css">
+  <script src="../shared/portal-ui.js"></script>
+</head>
+<body>
+
+  <!-- Ortak Portal Üst Barı & Breadcrumb (Katman 2: Proje Ana Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>🖼️</span>
+          <span>ImageStudio — Görsel &amp; QR Stüdyosu</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill" title="Fotoğraflarınız hiçbir sunucuya yüklenmez">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • 0 B Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="is-container">
+    <section class="is-hero">
+      <div class="is-badge">
+        <span>✨ %100 Tarayıcı İçi Canvas Motoru • 5 Profesyonel Stüdyo</span>
+      </div>
+      <h1>Akıllı Görsel, Vesikalık &amp; QR Stüdyosu</h1>
+      <p>
+        Fotoğraflarınızı hiçbir sunucuya yüklemeden e-Okul/Pasaport biyometrik ölçülerine getirin, toplu format dönüştürün, tam istediğiniz kilobayt (KB) boyutuna sıkıştırın veya vektörel QR kodlar üretin.
+      </p>
+    </section>
+
+    <section class="is-cards-grid" aria-label="ImageStudio Modülleri">
+      <!-- Modül 1: Biyometrik & e-Okul Vesikalık -->
+      <a href="./vesikalik-biyometrik-boyutlandirma.html" class="is-card">
+        <div>
+          <div class="is-card-header">
+            <div class="is-card-icon">🪪</div>
+            <span class="is-card-tag">Modül 1 • e-Okul &amp; Pasaport</span>
+          </div>
+          <h3>Biyometrik, Vesikalık &amp; e-Okul Fotoğraf</h3>
+          <p>
+            e-Okul (133×171 px), Pasaport/Ehliyet Biyometrik (50×60 mm), ÖSYM ve ABD Vizesi için yüz hizalama kılavuzlu kırpma ve 10×15 cm çoklu baskı dizilimi.
+          </p>
+          <div class="is-tag-list">
+            <span class="is-mini-tag">e-Okul 133×171</span>
+            <span class="is-mini-tag">Biyometrik 50×60mm</span>
+            <span class="is-mini-tag">Yüz Kılavuzu</span>
+            <span class="is-mini-tag">4'lü / 8'li Baskı</span>
+          </div>
+        </div>
+        <div class="is-card-cta">
+          <span>Vesikalık Stüdyosunu Aç</span>
+          <span>➔</span>
+        </div>
+      </a>
+
+      <!-- Modül 2: Toplu Format Dönüştürücü -->
+      <a href="./toplu-gorsel-format-donusturucu.html" class="is-card">
+        <div>
+          <div class="is-card-header">
+            <div class="is-card-icon">🔄</div>
+            <span class="is-card-tag">Modül 2 • Batch Converter</span>
+          </div>
+          <h3>Toplu Görsel Format Dönüştürücü</h3>
+          <p>
+            WebP, PNG, JPG, BMP ve SVG görsellerini kalite kaybı olmadan topluca birbirine dönüştürün; şeffaf arka planları yönetin ve tek tıkla ZIP indirin.
+          </p>
+          <div class="is-tag-list">
+            <span class="is-mini-tag">WebP ➔ JPG/PNG</span>
+            <span class="is-mini-tag">PNG ➔ WebP</span>
+            <span class="is-mini-tag">Şeffaf Dolgu</span>
+            <span class="is-mini-tag">Toplu ZIP</span>
+          </div>
+        </div>
+        <div class="is-card-cta">
+          <span>Format Dönüştürücüyü Aç</span>
+          <span>➔</span>
+        </div>
+      </a>
+
+      <!-- Modül 3: Hedef KB Sıkıştırıcı -->
+      <a href="./gorsel-sikistirma-boyut-kucultme.html" class="is-card">
+        <div>
+          <div class="is-card-header">
+            <div class="is-card-icon">📉</div>
+            <span class="is-card-tag">Modül 3 • Binary Search KB</span>
+          </div>
+          <h3>Hedef KB Sıkıştırıcı &amp; Ölçekleyici</h3>
+          <p>
+            Resmî başvuru sistemlerinin "En fazla 50 KB / 100 KB / 500 KB" sınırları için ikili arama algoritmasıyla tam hedef kilobayta sıkıştırma ve boyut küçültme.
+          </p>
+          <div class="is-tag-list">
+            <span class="is-mini-tag">&lt; 50 KB / 100 KB</span>
+            <span class="is-mini-tag">İkili Arama</span>
+            <span class="is-mini-tag">Piksel Ölçekleme</span>
+            <span class="is-mini-tag">Canlı Karşılaştırma</span>
+          </div>
+        </div>
+        <div class="is-card-cta">
+          <span>Sıkıştırma Stüdyosunu Aç</span>
+          <span>➔</span>
+        </div>
+      </a>
+
+      <!-- Modül 4: Vektörel QR Kod Stüdyosu -->
+      <a href="./qr-kod-olusturucu-okuyucu.html" class="is-card">
+        <div>
+          <div class="is-card-header">
+            <div class="is-card-icon">🔳</div>
+            <span class="is-card-tag">Modül 4 • QR &amp; Kamera</span>
+          </div>
+          <h3>Vektörel QR Kod Oluşturucu &amp; Okuyucu</h3>
+          <p>
+            URL, Wi-Fi Otomatik Bağlantı, vCard (Kartvizit), WhatsApp ve Metin için özel renkli, merkez logolu PNG/SVG QR kod üretin veya görselden QR kod okuyun.
+          </p>
+          <div class="is-tag-list">
+            <span class="is-mini-tag">Wi-Fi &amp; vCard</span>
+            <span class="is-mini-tag">Merkez Logo</span>
+            <span class="is-mini-tag">SVG &amp; PNG</span>
+            <span class="is-mini-tag">QR Okuyucu</span>
+          </div>
+        </div>
+        <div class="is-card-cta">
+          <span>QR Kod Stüdyosunu Aç</span>
+          <span>➔</span>
+        </div>
+      </a>
+
+      <!-- Modül 5: Renk Paleti, Damga & EXIF Analizi -->
+      <a href="./gorsel-renk-paleti-exif-araci.html" class="is-card">
+        <div>
+          <div class="is-card-header">
+            <div class="is-card-icon">🎨</div>
+            <span class="is-card-tag">Modül 5 • Renk &amp; Damga</span>
+          </div>
+          <h3>Renk Paleti, Damlalık &amp; Tarih/Telif Damgası</h3>
+          <p>
+            Fotoğraflardan baskın renk paletini (HEX/RGB) ve piksel üzerinde canlı renk kodunu çıkarın; görsellerinize tarih/telif imzası ekleyip indirin.
+          </p>
+          <div class="is-tag-list">
+            <span class="is-mini-tag">Canlı Damlalık</span>
+            <span class="is-mini-tag">Baskın Renkler</span>
+            <span class="is-mini-tag">Tarih &amp; Telif Damgası</span>
+            <span class="is-mini-tag">Çözünürlük Analizi</span>
+          </div>
+        </div>
+        <div class="is-card-cta">
+          <span>Renk &amp; Damga Stüdyosunu Aç</span>
+          <span>➔</span>
+        </div>
+      </a>
+    </section>
+  </main>
+
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>© 2026 ImageStudio &bull; Kerem Çalışkan | %100 İstemci Taraflı Görsel İşleme Stüdyosu</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı (Tools)</a>
+        <a href="./index.html">🖼️ ImageStudio Ana Sayfa</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

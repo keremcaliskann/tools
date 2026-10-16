@@ -22,14 +22,43 @@
   
   <!-- Özel Stiller ve Baskı CSS -->
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="../shared/portal-ui.css" />
+  <script src="../shared/portal-ui.js"></script>
 
   <!-- Google AdSense (Kendi ca-pub-XXXXXXXXXXXXXXXX kodunuz ile değiştirin) -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col">
+<body class="bep-body bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col">
 
-  <!-- Üst Bar / Header -->
-  <header class="no-print bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl border-b border-indigo-950">
+  <!-- Ortak Portal Üst Barı & Breadcrumb (Katman 2: Tek Özellikli Proje) -->
+  <header class="wp-header no-print">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>🎓</span>
+          <span>MEB BEP Dosyası Hazırlayıcı</span>
+        </span>
+      </nav>
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill" title="Tüm öğrenci verileri yalnızca cihazınızda saklanır">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • Yerel Depolama</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Proje İçi Araç Çubuğu / Header -->
+  <div class="no-print bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl border-b border-indigo-950">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="flex items-center gap-3">
@@ -74,7 +103,7 @@
         </button>
       </nav>
     </div>
-  </header>
+  </div>
 
   <!-- Ana İçerik -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -600,6 +629,16 @@
       }
     }
   </script>
+
+  <!-- Ortak Alt Bilgi (Footer) -->
+  <footer class="wp-footer no-print">
+    <div class="wp-footer-inner">
+      <div>© 2026 MEB BEP Hazırlayıcı &bull; Kerem Çalışkan | %100 İstemci Taraflı & Yerel Depolama</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı (Tools)</a>
+      </div>
+    </div>
+  </footer>
 
   <!-- Uygulama Scriptleri -->
   <script src="js/data/kazanimlar.js"></script>

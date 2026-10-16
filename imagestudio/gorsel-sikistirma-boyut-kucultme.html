@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hedef KB Görsel Sıkıştırıcı & Boyut Küçültme | ImageStudio</title>
+  <meta name="description" content="%100 tarayıcı içi hedef kilobayt (50 KB, 100 KB, 500 KB) garantili fotoğraf sıkıştırma ve piksel ölçekleme stüdyosu.">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="../shared/portal-ui.css">
+  <link rel="stylesheet" href="./css/studio.css">
+  <script src="../shared/portal-ui.js"></script>
+  <script src="./js/studio-core.js"></script>
+</head>
+<body>
+
+  <!-- Ortak Portal Üst Barı & Breadcrumb (Katman 3: Alt Özellik Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <a href="./index.html" class="wp-crumb-link" title="ImageStudio Ana Sayfasına Dön">
+          <span>🖼️</span>
+          <span>ImageStudio Ana Sayfa</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>📉</span>
+          <span>Hedef KB Sıkıştırıcı</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • 0 B Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="is-container">
+    <nav class="is-subnav" aria-label="ImageStudio Modülleri">
+      <a href="./index.html" class="is-subnav-link">🏠 Tüm Modüller</a>
+      <a href="./vesikalik-biyometrik-boyutlandirma.html" class="is-subnav-link">🪪 Vesikalık &amp; e-Okul</a>
+      <a href="./toplu-gorsel-format-donusturucu.html" class="is-subnav-link">🔄 Format Dönüştürücü</a>
+      <a href="./gorsel-sikistirma-boyut-kucultme.html" class="is-subnav-link active">📉 Hedef KB Sıkıştırıcı</a>
+      <a href="./qr-kod-olusturucu-okuyucu.html" class="is-subnav-link">🔳 QR Kod Stüdyosu</a>
+      <a href="./gorsel-renk-paleti-exif-araci.html" class="is-subnav-link">🎨 Renk Paleti &amp; Damga</a>
+    </nav>
+
+    <section class="is-hero">
+      <div class="is-badge">📉 İkili Arama (Binary Search) KB Motoru • Maksimum Netlik</div>
+      <h1>Hedef KB Görsel Sıkıştırıcı &amp; Ölçekleyici</h1>
+      <p>Başvuru sistemlerinin "En fazla 50 KB / 100 KB / 250 KB" sınırlarına takılmayın; hedef kilobaytı belirleyin, algoritma en yüksek kalitede tam sınırın altına indirsin.</p>
+    </section>
+
+    <div class="is-studio-grid">
+      <!-- Sol Kontrol Paneli -->
+      <div class="is-panel">
+        <div class="is-panel-title">
+          <span>1. Görsel Seçin</span>
+          <span id="origSizeBadge" style="color:var(--wp-text-muted);">-</span>
+        </div>
+        <label id="compDropzone" class="is-dropzone" style="margin-bottom: 1.25rem;">
+          <input type="file" id="compFileInput" accept="image/*" style="display:none;">
+          <div style="font-size: 2rem; margin-bottom: 0.4rem;">🗜️</div>
+          <div id="compFileName" style="font-weight: 700; font-size: 0.88rem;">Fotoğraf Seçin veya Sürükleyin</div>
+          <div style="font-size: 0.75rem; color: var(--wp-text-muted); margin-top: 0.2rem;">Yüksek boyutlu JPG, PNG, WebP</div>
+        </label>
+
+        <div class="is-field">
+          <label class="is-label" for="kbPresetSelect">2. Hedef Dosya Boyutu (KB)</label>
+          <select id="kbPresetSelect" class="is-select">
+            <option value="50">🎯 50 KB Altı (Sıkı Resmi Başvuru)</option>
+            <option value="100" selected>🎓 100 KB Altı (e-Okul / ÖSYM Standart)</option>
+            <option value="200">📋 200 KB Altı (Kariyer / İŞKUR)</option>
+            <option value="500">🏛️ 500 KB Altı (e-Devlet / Konsolosluk)</option>
+            <option value="1024">📄 1 MB Altı (Yüksek Çözünürlüklü Arşiv)</option>
+            <option value="custom">✏️ Özel KB Değeri Gir...</option>
+          </select>
+        </div>
+
+        <div class="is-field" id="customKbField" style="display:none;">
+          <label class="is-label" for="customKbInput">Özel Hedef Boyut (KB)</label>
+          <input type="number" id="customKbInput" class="is-input" min="15" max="5000" value="120">
+        </div>
+
+        <div class="is-field">
+          <label class="is-label" for="maxWidthSelect">3. Maksimum Genişlik Sınırı (Opsiyonel)</label>
+          <select id="maxWidthSelect" class="is-select">
+            <option value="0">Orijinal Çözünürlüğü Koru</option>
+            <option value="1920">Full HD (Maks. 1920 px)</option>
+            <option value="1280">HD (Maks. 1280 px)</option>
+            <option value="800">Web / Vesikalık (Maks. 800 px)</option>
+          </select>
+        </div>
+
+        <div class="is-field">
+          <label class="is-label" for="compFormatSelect">Çıktı Formatı</label>
+          <select id="compFormatSelect" class="is-select">
+            <option value="image/jpeg">JPG (En İyi Fotoğraf Sıkıştırma)</option>
+            <option value="image/webp">WebP (Modern &amp; Ultra Küçük)</option>
+          </select>
+        </div>
+
+        <button type="button" id="compDownloadBtn" class="is-btn is-btn-primary" style="margin-top:0.75rem;" disabled>
+          <span>⬇ Sıkıştırılmış Görseli İndir</span>
+        </button>
+      </div>
+
+      <!-- Sağ Sonuç ve Karşılaştırma Paneli -->
+      <div class="is-panel" style="min-height:460px; display:flex; flex-direction:column;">
+        <div class="is-panel-title">
+          <span>Canlı Sıkıştırma Analizi &amp; Önizleme</span>
+          <span id="savingsBadge" style="color:var(--wp-emerald); font-family:monospace;">Hazır</span>
+        </div>
+
+        <!-- İstatistik Kartları -->
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.75rem; margin-bottom:1.25rem;">
+          <div style="padding:0.85rem; border-radius:12px; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); text-align:center;">
+            <div style="font-size:0.72rem; color:var(--wp-text-muted);">Orijinal Boyut</div>
+            <div id="statOrig" style="font-size:1.1rem; font-weight:800; margin-top:0.2rem;">-</div>
+          </div>
+          <div style="padding:0.85rem; border-radius:12px; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); text-align:center;">
+            <div style="font-size:0.72rem; color:var(--wp-text-muted);">Yeni Boyut</div>
+            <div id="statNew" style="font-size:1.1rem; font-weight:800; color:var(--wp-emerald); margin-top:0.2rem;">-</div>
+          </div>
+          <div style="padding:0.85rem; border-radius:12px; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); text-align:center;">
+            <div style="font-size:0.72rem; color:var(--wp-text-muted);">Optimum Kalite / Ölçek</div>
+            <div id="statMeta" style="font-size:0.95rem; font-weight:800; color:var(--is-accent); margin-top:0.2rem;">-</div>
+          </div>
+        </div>
+
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); border-radius:14px; padding:1.25rem; overflow:hidden;">
+          <img id="compPreviewImg" alt="Sıkıştırılmış Önizleme" style="max-height:330px; max-width:100%; object-contain:contain; border-radius:8px; display:none;">
+          <div id="compEmptyText" style="color:var(--wp-text-muted); font-size:0.85rem; text-align:center;">
+            Görsel yüklediğinizde ikili arama algoritması saniyeler içinde hedef KB değerine sıkıştırır.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>© 2026 ImageStudio &bull; Kerem Çalışkan | %100 İstemci Taraflı Görsel İşleme Stüdyosu</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı</a>
+        <a href="./index.html">🖼️ ImageStudio Ana Sayfa</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      let currentImgObj = null;
+      let compressedBlob = null;
+
+      const dropzone = document.getElementById('compDropzone');
+      const fileInput = document.getElementById('compFileInput');
+      const fileNameEl = document.getElementById('compFileName');
+      const origSizeBadge = document.getElementById('origSizeBadge');
+      const kbPresetSelect = document.getElementById('kbPresetSelect');
+      const customKbField = document.getElementById('customKbField');
+      const customKbInput = document.getElementById('customKbInput');
+      const maxWidthSelect = document.getElementById('maxWidthSelect');
+      const compFormatSelect = document.getElementById('compFormatSelect');
+      const downloadBtn = document.getElementById('compDownloadBtn');
+      const statOrig = document.getElementById('statOrig');
+      const statNew = document.getElementById('statNew');
+      const statMeta = document.getElementById('statMeta');
+      const savingsBadge = document.getElementById('savingsBadge');
+      const previewImg = document.getElementById('compPreviewImg');
+      const emptyText = document.getElementById('compEmptyText');
+
+      ImageStudio.setupDropzone(dropzone, fileInput, async (files) => {
+        try {
+          currentImgObj = await ImageStudio.loadImageFromFile(files[0]);
+          fileNameEl.textContent = files[0].name;
+          origSizeBadge.textContent = ImageStudio.formatBytes(files[0].size);
+          statOrig.textContent = ImageStudio.formatBytes(files[0].size);
+          await runCompression();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      kbPresetSelect.addEventListener('change', () => {
+        customKbField.style.display = kbPresetSelect.value === 'custom' ? 'block' : 'none';
+        runCompression();
+      });
+      customKbInput.addEventListener('input', runCompression);
+      maxWidthSelect.addEventListener('change', runCompression);
+      compFormatSelect.addEventListener('change', runCompression);
+
+      async function runCompression() {
+        if (!currentImgObj) return;
+        const targetKB = kbPresetSelect.value === 'custom'
+          ? Math.max(15, parseInt(customKbInput.value, 10) || 100)
+          : parseInt(kbPresetSelect.value, 10);
+
+        const maxW = parseInt(maxWidthSelect.value, 10);
+        let w = currentImgObj.width;
+        let h = currentImgObj.height;
+        if (maxW > 0 && w > maxW) {
+          h = Math.round(h * (maxW / w));
+          w = maxW;
+        }
+
+        const workCanvas = document.createElement('canvas');
+        workCanvas.width = w;
+        workCanvas.height = h;
+        const ctx = workCanvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(currentImgObj.img, 0, 0, w, h);
+
+        const mime = compFormatSelect.value;
+        const res = await ImageStudio.compressCanvasToTargetKB(workCanvas, targetKB, mime);
+        compressedBlob = res.blob;
+
+        statNew.textContent = ImageStudio.formatBytes(compressedBlob.size);
+        statMeta.textContent = `Kalite %${res.quality} • Ölçek %${Math.round(res.scale * 100)}`;
+
+        const savedPct = Math.round((1 - compressedBlob.size / currentImgObj.file.size) * 100);
+        savingsBadge.textContent = savedPct > 0 ? `%${savedPct} Küçüldü` : 'Optimize Edildi';
+
+        previewImg.src = URL.createObjectURL(compressedBlob);
+        previewImg.style.display = 'block';
+        emptyText.style.display = 'none';
+        downloadBtn.disabled = false;
+      }
+
+      downloadBtn.addEventListener('click', () => {
+        if (!compressedBlob || !currentImgObj) return;
+        const ext = compFormatSelect.value === 'image/webp' ? 'webp' : 'jpg';
+        const base = currentImgObj.file.name.replace(/\.[^.]+$/, '');
+        ImageStudio.downloadBlob(compressedBlob, `${base}_sikistirilmis.${ext}`);
+        ImageStudio.showToast('Sıkıştırılmış görsel indirildi', '📉');
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,37 +1,14 @@
 <!DOCTYPE html>
-<html lang="tr" data-theme="dark">
+<html lang="tr" data-theme="dark" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Araçlar Portalı | Kerem Çalışkan</title>
-  <meta name="description" content="Ücretsiz, güvenli, %100 istemci taraflı çalışan web araçları koleksiyonu.">
-  <link rel="icon" type="image/svg+xml" href="./pdf/icon.svg">
+  <title>Araçlar Portalı (Tools Hub) | Kerem Çalışkan</title>
+  <meta name="description" content="Ücretsiz, güvenli, %100 istemci taraflı çalışan web araçları ve uygulama portalı.">
+  <link rel="icon" type="image/svg+xml" href="./docshield/icon.svg">
+  <link rel="stylesheet" href="./shared/portal-ui.css">
+  <script src="./shared/portal-ui.js"></script>
   <style>
-    :root {
-      --primary: #ef4444;
-      --primary-hover: #dc2626;
-      --bg-main: #0f172a;
-      --bg-surface: #1e293b;
-      --bg-surface-elevated: #334155;
-      --border-color: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --radius-lg: 20px;
-      --radius-md: 12px;
-      --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.3);
-      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    [data-theme="light"] {
-      --bg-main: #f8fafc;
-      --bg-surface: #ffffff;
-      --bg-surface-elevated: #f1f5f9;
-      --border-color: #e2e8f0;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
@@ -39,163 +16,165 @@
     }
 
     body {
-      font-family: var(--font-family);
-      background-color: var(--bg-main);
-      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--wp-bg);
+      color: var(--wp-text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       line-height: 1.6;
-    }
-
-    .header {
-      background: var(--bg-surface);
-      border-bottom: 1px solid var(--border-color);
-      padding: 1.25rem 1.5rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       width: 100%;
-    }
-
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-size: 1.35rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .badge-secure {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #10b981;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      padding: 0.3rem 0.75rem;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
+      padding: 0 1.25rem;
     }
 
     .hero {
-      padding: 3.5rem 1rem 2rem;
+      padding: 3.5rem 0 2.25rem;
       text-align: center;
     }
 
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--wp-emerald);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.28);
+      margin-bottom: 1rem;
+    }
+
     .hero h1 {
-      font-size: 2.5rem;
+      font-size: clamp(2rem, 4vw, 2.85rem);
       font-weight: 900;
       letter-spacing: -0.03em;
       margin-bottom: 0.75rem;
+      color: var(--wp-text);
     }
 
     .hero p {
-      color: var(--text-muted);
-      font-size: 1.1rem;
-      max-width: 650px;
+      color: var(--wp-text-muted);
+      font-size: 1.05rem;
+      max-width: 680px;
       margin: 0 auto;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 1.75rem;
-      padding: 2rem 1rem 4rem;
+      padding: 1.5rem 0 4rem;
     }
 
     .tool-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
+      background: var(--wp-surface);
+      border: 1px solid var(--wp-border);
+      border-radius: 20px;
       padding: 2rem;
-      text-decoration: none;
       color: inherit;
       display: flex;
       flex-direction: column;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--wp-shadow);
     }
 
     .tool-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--primary);
-      box-shadow: 0 16px 32px rgba(239, 68, 68, 0.15);
+      transform: translateY(-4px);
+      border-color: var(--wp-accent);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
     }
 
     .tool-icon-wrapper {
-      width: 60px;
-      height: 60px;
+      width: 56px;
+      height: 56px;
       border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
-      margin-bottom: 1.25rem;
+      font-size: 1.85rem;
     }
 
-    .pdf-icon-bg {
-      background: rgba(239, 68, 68, 0.15);
-      color: #ef4444;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+    .docshield-icon-bg {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.35);
     }
 
     .bep-icon-bg {
       background: rgba(59, 130, 246, 0.15);
-      color: #3b82f6;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      border: 1px solid rgba(59, 130, 246, 0.35);
     }
 
-    .guvenli-icon-bg {
-      background: rgba(16, 185, 129, 0.15);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+    .type-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: var(--wp-surface-elevated);
+      color: var(--wp-text-secondary);
+      border: 1px solid var(--wp-border);
     }
 
     .tool-title {
-      font-size: 1.4rem;
+      font-size: 1.45rem;
       font-weight: 800;
       margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      color: var(--wp-text);
+      text-decoration: none;
     }
 
     .tool-desc {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      flex: 1;
-      margin-bottom: 1.5rem;
+      color: var(--wp-text-muted);
+      font-size: 0.94rem;
+      margin-bottom: 1.35rem;
+    }
+
+    .subtools-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--wp-text-muted);
+      margin-bottom: 0.6rem;
     }
 
     .tool-features {
       display: flex;
       flex-wrap: wrap;
       gap: 0.45rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
     }
 
     .tool-tag {
-      font-size: 0.75rem;
+      font-size: 0.76rem;
       font-weight: 600;
-      background: var(--bg-surface-elevated);
-      color: var(--text-muted);
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      border: 1px solid var(--border-color);
+      background: var(--wp-surface-elevated);
+      color: var(--wp-text-secondary);
+      padding: 0.3rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--wp-border);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    a.tool-tag:hover {
+      border-color: var(--wp-accent);
+      color: var(--wp-text);
+      transform: translateY(-1px);
     }
 
     .tool-btn {
@@ -203,127 +182,145 @@
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      padding: 0.8rem 1.25rem;
+      padding: 0.85rem 1.25rem;
       font-weight: 700;
       font-size: 0.95rem;
-      border-radius: var(--radius-md);
-      background: var(--primary);
+      border-radius: 12px;
+      background: var(--wp-accent);
       color: #ffffff;
-      transition: background 0.2s ease;
+      text-decoration: none;
+      transition: background 0.2s ease, transform 0.15s ease;
       margin-top: auto;
     }
 
-    .tool-card:hover .tool-btn {
-      background: var(--primary-hover);
-    }
-
-    .footer {
-      margin-top: auto;
-      background: var(--bg-surface);
-      border-top: 1px solid var(--border-color);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--text-muted);
+    .tool-btn:hover {
+      background: var(--wp-accent-hover);
     }
   </style>
 </head>
 <body>
 
-  <header class="header">
-    <div class="container header-content">
-      <a href="./" class="logo">
-        <span>🛠️ Araçlar Portalı</span>
-      </a>
-      <div class="badge-secure">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span>%100 Sunucusuz & Güvenli</span>
+  <!-- Ortak Portal Üst Barı (Katman 1: Tools Ana Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Ana Navigasyon">
+        <span class="wp-crumb-current">
+          <span>🛠️</span>
+          <span>Araçlar Portalı (Tools Hub)</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill">
+          <span>🔒</span>
+          <span>%100 Sunucusuz &amp; İstemci Taraflı</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
       </div>
     </div>
   </header>
 
   <main class="container">
-    <div class="hero">
+    <section class="hero">
+      <div class="hero-badge">
+        <span>⚡ Sıfır Sunucu (Zero-Backend) • Doğrudan Tarayıcıda Çalışır</span>
+      </div>
       <h1>Web Tabanlı Araçlar Portalı</h1>
-      <p>Tamamen tarayıcınızda çalışan, dosyalarınızı hiçbir sunucuya yüklemeyen, gizlilik odaklı ve ücretsiz araçlar.</p>
-    </div>
+      <p>Dosyalarınızı ve verilerinizi hiçbir sunucuya yüklemeyen, tamamen kendi cihazınızın belleğinde çalışan gizlilik odaklı araçlar koleksiyonu.</p>
+    </section>
 
-    <div class="grid">
-      <!-- 1. PDF Araçları -->
-      <a href="./pdf/" class="tool-card">
-        <div class="tool-icon-wrapper pdf-icon-bg">📄</div>
-        <div class="tool-title">
-          <span>PDF Araçları</span>
-          <span style="font-size: 1.2rem;">➔</span>
+    <section class="grid">
+      <!-- 1. DocShield — Çok Özellikli Belge Gizliliği ve PDF Stüdyosu -->
+      <div class="tool-card">
+        <div class="card-top">
+          <div class="tool-icon-wrapper docshield-icon-bg">🛡️</div>
+          <span class="type-badge">Çok Özellikli Araç Seti • 9 Modül</span>
         </div>
+        <a href="./docshield/index.html" class="tool-title">DocShield — Belge &amp; PDF Stüdyosu</a>
         <p class="tool-desc">
-          Fotoğraflardan PDF oluşturma, PDF birleştirme, sayfa bölme, görsele dönüştürme, sayfa döndürme/düzenleme ve filigran ekleme araç seti.
+          Kimlik fotokopisi filigranlama, kalıcı piksel karartma, EXIF temizleme, e-Devlet/UYAP hedef boyutlu PDF sıkıştırma, belge birleştirme, PDF bölme, sayfa düzenleme ve görsele dönüştürme paketi.
         </p>
+        <div class="subtools-label">Alt Özelliklere Doğrudan Geçiş:</div>
         <div class="tool-features">
-          <span class="tool-tag">Görsel ➔ PDF</span>
-          <span class="tool-tag">PDF Birleştir</span>
-          <span class="tool-tag">PDF Böl</span>
-          <span class="tool-tag">PDF ➔ Görsel</span>
-          <span class="tool-tag">Sayfa Düzenle</span>
-          <span class="tool-tag">Filigran</span>
+          <a href="./docshield/kimlik-fotokopisi-filigran-ekleme.html" class="tool-tag">🪪 Kimlik Filigranı</a>
+          <a href="./docshield/pdf-hassas-bilgi-karartma.html" class="tool-tag">⬛ Kalıcı Karartma</a>
+          <a href="./docshield/pdf-exif-metadata-temizleme.html" class="tool-tag">🧹 EXIF Temizleme</a>
+          <a href="./docshield/e-devlet-pdf-boyut-kucultme-1mb.html" class="tool-tag">📉 e-Devlet 1 MB Sıkıştır</a>
+          <a href="./docshield/kira-sozlesmesi-belge-birlestirme.html" class="tool-tag">🔗 Belge &amp; PDF Birleştir</a>
+          <a href="./docshield/fotograftan-resmi-pdf-yapma.html" class="tool-tag">📷 Fotoğraftan A4 PDF</a>
+          <a href="./docshield/pdf-bolme-sayfa-cikarma.html" class="tool-tag">✂️ PDF Böl &amp; Çıkar</a>
+          <a href="./docshield/pdf-sayfa-duzenleme-numaralandirma.html" class="tool-tag">🔄 Sayfa Düzenle &amp; No</a>
+          <a href="./docshield/pdf-gorsele-donusturme.html" class="tool-tag">🖼️ PDF ➔ Görsel</a>
         </div>
-        <div class="tool-btn">
-          Uygulamayı Aç
-        </div>
-      </a>
+        <a href="./docshield/index.html" class="tool-btn">
+          <span>DocShield Ana Sayfasını Aç</span>
+          <span>➔</span>
+        </a>
+      </div>
 
-      <!-- 2. BEP Planı Hazırlayıcı -->
-      <a href="./bep/" class="tool-card">
-        <div class="tool-icon-wrapper bep-icon-bg">🎓</div>
-        <div class="tool-title">
-          <span>BEP Dosyası Hazırlayıcı</span>
-          <span style="font-size: 1.2rem;">➔</span>
+      <!-- 2. BEP Planı Hazırlayıcı — Tek Özellikli Doğrudan Araç -->
+      <div class="tool-card">
+        <div class="card-top">
+          <div class="tool-icon-wrapper bep-icon-bg">🎓</div>
+          <span class="type-badge">Doğrudan Uygulama • Eğitim</span>
         </div>
+        <a href="./bep/index.html" class="tool-title">MEB BEP Dosyası Hazırlayıcı</a>
         <p class="tool-desc">
-          MEB Özel Eğitim standartlarına tam uyumlu BEP Planı, Toplantı Tutanağı ve İzleme Formu oluşturma, arşivleme ve Word (.docx)/PDF çıktı alma sistemi.
+          MEB Özel Eğitim ve Rehberlik standartlarına tam uyumlu Bireyselleştirilmiş Eğitim Programı (BEP) Planı, Toplantı Tutanağı ve İzleme Formu oluşturma, yerel arşivleme ve Word (.docx) / A4 PDF çıktı sistemi.
         </p>
+        <div class="subtools-label">Temel Yetenekler:</div>
         <div class="tool-features">
-          <span class="tool-tag">MEB Standart</span>
-          <span class="tool-tag">BÖP / BEP Planı</span>
-          <span class="tool-tag">Toplantı Tutanağı</span>
-          <span class="tool-tag">İzleme Formu</span>
-          <span class="tool-tag">Word .docx</span>
+          <span class="tool-tag">📋 MEB Standart Format</span>
+          <span class="tool-tag">📝 BEP &amp; BÖP Planı</span>
+          <span class="tool-tag">🤝 Toplantı Tutanağı</span>
+          <span class="tool-tag">📊 İzleme-Değerlendirme</span>
+          <span class="tool-tag">📄 Word (.docx) &amp; A4 Baskı</span>
+          <span class="tool-tag">💾 JSON Yedekleme</span>
         </div>
-        <div class="tool-btn" style="background: #2563eb;">
-          Uygulamayı Aç
-        </div>
-      </a>
+        <a href="./bep/index.html" class="tool-btn" style="background: #2563eb;">
+          <span>BEP Hazırlayıcıyı Aç</span>
+          <span>➔</span>
+        </a>
+      </div>
 
-      <!-- 3. DocShield — Zero-Server Document Privacy Suite -->
-      <a href="./docshield/" class="tool-card">
-        <div class="tool-icon-wrapper guvenli-icon-bg">🛡️</div>
-        <div class="tool-title">
-          <span>DocShield</span>
-          <span style="font-size: 1.2rem;">➔</span>
+      <!-- 3. ImageStudio — Çok Özellikli Görsel, Vesikalık & QR Stüdyosu -->
+      <div class="tool-card">
+        <div class="card-top">
+          <div class="tool-icon-wrapper" style="background: rgba(139, 92, 246, 0.16); border: 1px solid rgba(139, 92, 246, 0.35);">🖼️</div>
+          <span class="type-badge">Çok Özellikli Araç Seti • 5 Modül</span>
         </div>
+        <a href="./imagestudio/index.html" class="tool-title">ImageStudio — Görsel &amp; QR Stüdyosu</a>
         <p class="tool-desc">
-          %100 tarayıcı içi çalışan; kimlik fotokopisi filigranlama, kalıcı piksel karartma, EXIF meta veri temizleme ve e-Devlet/UYAP hedef boyutlu PDF sıkıştırma stüdyosu.
+          e-Okul/Pasaport biyometrik vesikalık fotoğraf boyutlandırma, 10×15 çoklu baskı, toplu WebP/PNG/JPG format dönüştürme, hedef KB sıkıştırma, renk paleti ve vektörel QR kod stüdyosu.
         </p>
+        <div class="subtools-label">Alt Özelliklere Doğrudan Geçiş:</div>
         <div class="tool-features">
-          <span class="tool-tag">Sıfır Sunucu</span>
-          <span class="tool-tag">Kimlik Filigranı</span>
-          <span class="tool-tag">Kalıcı Karartma</span>
-          <span class="tool-tag">EXIF Temizleme</span>
-          <span class="tool-tag">e-Devlet 1 MB</span>
-          <span class="tool-tag">PDF Birleştir</span>
+          <a href="./imagestudio/vesikalik-biyometrik-boyutlandirma.html" class="tool-tag">🪪 Vesikalık &amp; e-Okul</a>
+          <a href="./imagestudio/toplu-gorsel-format-donusturucu.html" class="tool-tag">🔄 Format Dönüştürücü</a>
+          <a href="./imagestudio/gorsel-sikistirma-boyut-kucultme.html" class="tool-tag">📉 Hedef KB Sıkıştırıcı</a>
+          <a href="./imagestudio/qr-kod-olusturucu-okuyucu.html" class="tool-tag">🔳 QR Kod &amp; Okuyucu</a>
+          <a href="./imagestudio/gorsel-renk-paleti-exif-araci.html" class="tool-tag">🎨 Renk Paleti &amp; Damga</a>
         </div>
-        <div class="tool-btn" style="background: #059669;">
-          Uygulamayı Aç
-        </div>
-      </a>
-    </div>
+        <a href="./imagestudio/index.html" class="tool-btn" style="background: #7c3aed;">
+          <span>ImageStudio Ana Sayfasını Aç</span>
+          <span>➔</span>
+        </a>
+      </div>
+    </section>
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <div>Kerem Çalışkan &copy; 2026 | Tüm hakları saklıdır.</div>
-      <div style="margin-top: 0.35rem;">
-        <a href="https://keremcaliskann.github.io/tools/" style="color: inherit; text-decoration: underline;">keremcaliskann.github.io/tools/</a>
+  <!-- Ortak Alt Bilgi (Footer) -->
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>Kerem Çalışkan &copy; 2026 | %100 İstemci Taraflı &amp; Sıfır-Sunucu Web Araçları</div>
+      <div class="wp-footer-links">
+        <a href="./index.html">🏠 Tools Ana Sayfa</a>
+        <a href="./docshield/index.html">🛡️ DocShield</a>
+        <a href="./imagestudio/index.html">🖼️ ImageStudio</a>
+        <a href="./bep/index.html">🎓 MEB BEP</a>
       </div>
     </div>
   </footer>

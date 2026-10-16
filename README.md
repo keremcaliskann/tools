@@ -6,39 +6,38 @@ Bu depo, modern web standartlarıyla geliştirilmiş, **%100 istemci tarafında 
 
 ## 🌐 Canlı Web Uygulamaları
 
-- 🏠 **Ana Araçlar Portalı:** 👉 **[http://keremcaliskann.github.io/tools/](http://keremcaliskann.github.io/tools/)**
-- 🛡️ **DocShield Suite:** 👉 **[http://keremcaliskann.github.io/tools/docshield/](http://keremcaliskann.github.io/tools/docshield/)**
-- 📄 **PDF Araçları:** 👉 **[http://keremcaliskann.github.io/tools/pdf/](http://keremcaliskann.github.io/tools/pdf/)**
-- 🎓 **MEB BEP Dosyası Hazırlayıcı:** 👉 **[http://keremcaliskann.github.io/tools/bep/](http://keremcaliskann.github.io/tools/bep/)**
+- 🏠 **Ana Araçlar Portalı (Tools Hub):** 👉 **[https://keremcaliskann.github.io/tools/](https://keremcaliskann.github.io/tools/)**
+- 🛡️ **DocShield — Belge Gizliliği & PDF Stüdyosu (9 Modül):** 👉 **[https://keremcaliskann.github.io/tools/docshield/](https://keremcaliskann.github.io/tools/docshield/)**
+- 🖼️ **ImageStudio — Akıllı Görsel, Vesikalık & QR Stüdyosu (5 Modül):** 👉 **[https://keremcaliskann.github.io/tools/imagestudio/](https://keremcaliskann.github.io/tools/imagestudio/)**
+- 🎓 **MEB BEP Dosyası Hazırlayıcı:** 👉 **[https://keremcaliskann.github.io/tools/bep/](https://keremcaliskann.github.io/tools/bep/)**
 
 ---
 
-## 📂 Proje Yapısı
+## 📂 Mimari ve Klasör Yapısı
 
-```
-tools/
-├── index.html               # Araçlar Portalı ana sayfası
-├── .nojekyll                # GitHub Pages Jekyll bypass
-├── .github/workflows/       # GitHub Pages otomatik dağıtım
-│   └── deploy.yml
-├── docshield/               # DocShield — Zero-Server Document Privacy Suite
-│   ├── index.html
-│   ├── _astro/
-│   ├── workers/
-│   ├── icon.svg
-│   └── manifest.json
-├── pdf/                     # PDF Araçları uygulaması
-│   ├── index.html
-│   ├── css/
-│   ├── js/
-│   ├── icon.svg
-│   └── manifest.json
-└── bep/                     # MEB BEP Dosyası Hazırlayıcı uygulaması
-    ├── index.html
+```text
+Workshop/                              # Git Repo Kökü (keremcaliskann/tools)
+├── index.html                         # Katman 1: Tools Ana Sayfası (/tools/)
+├── .nojekyll                          # GitHub Pages Jekyll bypass
+├── AGENTS.md & GEMINI.md              # Mimari ve geliştirme kuralları
+├── shared/                            # Ortak Tasarım & Navigasyon Sistemi
+│   ├── portal-ui.css                  # Ortak Header, Breadcrumb, Footer ve Tema CSS
+│   └── portal-ui.js                   # Evrensel Koyu/Açık Tema Senkronizasyonu
+├── docshield/                         # Çok Özellikli Proje (/tools/docshield/)
+│   ├── index.html                     # Katman 2: DocShield Proje Ana Sayfası
+│   ├── kimlik-fotokopisi-filigran-ekleme.html
+│   ├── pdf-hassas-bilgi-karartma.html
+│   ├── pdf-exif-metadata-temizleme.html
+│   ├── e-devlet-pdf-boyut-kucultme-1mb.html
+│   ├── kira-sozlesmesi-belge-birlestirme.html
+│   ├── fotograftan-resmi-pdf-yapma.html
+│   ├── pdf-bolme-sayfa-cikarma.html
+│   ├── pdf-sayfa-duzenleme-numaralandirma.html
+│   └── pdf-gorsele-donusturme.html
+└── bep/                               # Tek Özellikli Proje (/tools/bep/)
+    ├── index.html                     # Katman 2: Doğrudan BEP Uygulaması
     ├── css/
-    ├── js/
-    ├── icon.svg
-    └── manifest.json
+    └── js/
 ```
 
 ---

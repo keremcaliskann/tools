@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Renk Paleti, Canlı Damlalık & Tarih/Telif Damgası | ImageStudio</title>
+  <meta name="description" content="%100 tarayıcı içi görsel renk paleti çıkarma (HEX/RGB), canlı piksel damlalığı ve fotoğraflara tarih/telif imzası basma stüdyosu.">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="../shared/portal-ui.css">
+  <link rel="stylesheet" href="./css/studio.css">
+  <script src="../shared/portal-ui.js"></script>
+  <script src="./js/studio-core.js"></script>
+</head>
+<body>
+
+  <!-- Ortak Portal Üst Barı & Breadcrumb (Katman 3: Alt Özellik Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <a href="./index.html" class="wp-crumb-link" title="ImageStudio Ana Sayfasına Dön">
+          <span>🖼️</span>
+          <span>ImageStudio Ana Sayfa</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>🎨</span>
+          <span>Renk Paleti &amp; Damga</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • 0 B Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="is-container">
+    <nav class="is-subnav" aria-label="ImageStudio Modülleri">
+      <a href="./index.html" class="is-subnav-link">🏠 Tüm Modüller</a>
+      <a href="./vesikalik-biyometrik-boyutlandirma.html" class="is-subnav-link">🪪 Vesikalık &amp; e-Okul</a>
+      <a href="./toplu-gorsel-format-donusturucu.html" class="is-subnav-link">🔄 Format Dönüştürücü</a>
+      <a href="./gorsel-sikistirma-boyut-kucultme.html" class="is-subnav-link">📉 Hedef KB Sıkıştırıcı</a>
+      <a href="./qr-kod-olusturucu-okuyucu.html" class="is-subnav-link">🔳 QR Kod Stüdyosu</a>
+      <a href="./gorsel-renk-paleti-exif-araci.html" class="is-subnav-link active">🎨 Renk Paleti &amp; Damga</a>
+    </nav>
+
+    <section class="is-hero">
+      <div class="is-badge">🎨 Baskın Renk Paleti • Canlı Piksel Damlalığı • Tarih &amp; Telif Damgası</div>
+      <h1>Renk Paleti, Damlalık &amp; Fotoğraf Damgalama</h1>
+      <p>Yüklediğiniz fotoğraftaki baskın renkleri ve tıkladığınız noktanın HEX/RGB kodunu kopyalayın; ayrıca fotoğraflarınıza profesyonel tarih/telif imzası ekleyin.</p>
+    </section>
+
+    <div class="is-studio-grid">
+      <!-- Sol Kontrol Paneli -->
+      <div class="is-panel">
+        <div class="is-panel-title">
+          <span>1. Görsel Yükle</span>
+          <span id="palMetaInfo" style="color:var(--is-accent);">-</span>
+        </div>
+        <label id="palDropzone" class="is-dropzone" style="margin-bottom: 1.25rem;">
+          <input type="file" id="palFileInput" accept="image/*" style="display:none;">
+          <div style="font-size: 2rem; margin-bottom: 0.4rem;">🎨</div>
+          <div id="palFileName" style="font-weight: 700; font-size: 0.88rem;">Fotoğraf Seçin veya Sürükleyin</div>
+          <div style="font-size: 0.75rem; color: var(--wp-text-muted); margin-top: 0.2rem;">Görsel üzerindeki herhangi bir noktaya tıklayarak renk seçin</div>
+        </label>
+
+        <!-- Seçili Piksel Rengi -->
+        <div class="is-field" style="padding:0.85rem; border-radius:12px; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div id="pickedColorSwatch" style="width:40px; height:40px; border-radius:10px; background:#8b5cf6; border:2px solid #fff;"></div>
+            <div>
+              <div id="pickedHex" style="font-family:monospace; font-weight:800; font-size:0.95rem;">#8B5CF6</div>
+              <div id="pickedRgb" style="font-family:monospace; font-size:0.75rem; color:var(--wp-text-muted);">rgb(139, 92, 246)</div>
+            </div>
+          </div>
+          <button type="button" id="copyHexBtn" class="is-btn is-btn-secondary" style="width:auto; padding:0.4rem 0.75rem; font-size:0.76rem;">Kopyala</button>
+        </div>
+
+        <!-- Baskın Palet -->
+        <div class="is-field">
+          <label class="is-label">Baskın Renk Paleti (Kopyalamak İçin Tıklayın)</label>
+          <div id="dominantPaletteGrid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem;"></div>
+        </div>
+
+        <!-- Tarih ve Telif Damgası -->
+        <div style="padding-top:0.85rem; border-top:1px solid var(--wp-border);">
+          <div class="is-panel-title" style="margin-bottom:0.6rem;">
+            <span>2. Köşe Tarih &amp; Telif Damgası</span>
+          </div>
+          <div class="is-field">
+            <label class="is-label" for="stampText">Damga Metni (İmza / Telif / Not)</label>
+            <input type="text" id="stampText" class="is-input" placeholder="Örn: © 2026 Kerem Çalışkan">
+          </div>
+          <div class="is-field" style="display:flex; align-items:center; justify-content:space-between;">
+            <label style="display:flex; align-items:center; gap:0.45rem; font-size:0.82rem; cursor:pointer;">
+              <input type="checkbox" id="stampDateToggle" checked style="accent-color:var(--is-accent);">
+              <span>Bugünün Tarihini Ekle</span>
+            </label>
+          </div>
+          <button type="button" id="dlStampedBtn" class="is-btn is-btn-primary" disabled>
+            <span>⬇ Damgalı Görseli İndir (JPG)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sağ İnteraktif Kanvas -->
+      <div class="is-panel" style="min-height:460px; display:flex; flex-direction:column;">
+        <div class="is-panel-title">
+          <span>İnteraktif Renk Seçici &amp; Damga Önizleme (Görsele Tıklayın)</span>
+          <span id="aspectBadge" style="font-family:monospace; color:var(--wp-emerald);">Hazır</span>
+        </div>
+
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); border-radius:14px; padding:1.25rem; overflow:hidden;">
+          <canvas id="palCanvas" style="max-height:380px; max-width:100%; border-radius:8px; cursor:crosshair; display:none;"></canvas>
+          <div id="palEmptyState" style="text-align:center; color:var(--wp-text-muted); font-size:0.86rem;">
+            Fotoğraf yüklediğinizde baskın renk paleti otomatik çıkarılır ve görsel üzerine tıklayarak piksel rengi alabilirsiniz.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>© 2026 ImageStudio &bull; Kerem Çalışkan | %100 İstemci Taraflı Görsel İşleme Stüdyosu</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı</a>
+        <a href="./index.html">🖼️ ImageStudio Ana Sayfa</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      let loadedObj = null;
+      const dropzone = document.getElementById('palDropzone');
+      const fileInput = document.getElementById('palFileInput');
+      const fileNameEl = document.getElementById('palFileName');
+      const metaInfo = document.getElementById('palMetaInfo');
+      const aspectBadge = document.getElementById('aspectBadge');
+      const swatch = document.getElementById('pickedColorSwatch');
+      const pickedHex = document.getElementById('pickedHex');
+      const pickedRgb = document.getElementById('pickedRgb');
+      const copyHexBtn = document.getElementById('copyHexBtn');
+      const paletteGrid = document.getElementById('dominantPaletteGrid');
+      const stampText = document.getElementById('stampText');
+      const stampDateToggle = document.getElementById('stampDateToggle');
+      const dlStampedBtn = document.getElementById('dlStampedBtn');
+      const canvas = document.getElementById('palCanvas');
+      const ctx = canvas.getContext('2d');
+      const emptyState = document.getElementById('palEmptyState');
+
+      function rgbToHex(r, g, b) {
+        return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+      }
+
+      function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+      ImageStudio.setupDropzone(dropzone, fileInput, async (files) => {
+        try {
+          loadedObj = await ImageStudio.loadImageFromFile(files[0]);
+          fileNameEl.textContent = files[0].name;
+          const w = loadedObj.width, h = loadedObj.height;
+          const g = gcd(w, h);
+          const mp = ((w * h) / 1000000).toFixed(1);
+          metaInfo.textContent = `${w}×${h} (${mp} MP)`;
+          aspectBadge.textContent = `En/Boy Oranı: ${w / g}:${h / g}`;
+
+          emptyState.style.display = 'none';
+          canvas.style.display = 'block';
+          dlStampedBtn.disabled = false;
+
+          renderImageWithStamp();
+          extractDominantColors(loadedObj.img);
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      function renderImageWithStamp() {
+        if (!loadedObj) return;
+        const { img, width, height } = loadedObj;
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0);
+
+        const parts = [];
+        if (stampText.value.trim()) parts.push(stampText.value.trim());
+        if (stampDateToggle.checked) parts.push(new Date().toLocaleDateString('tr-TR'));
+
+        if (parts.length > 0) {
+          const label = parts.join(' • ');
+          const fontSize = Math.max(16, Math.round(Math.min(width, height) * 0.032));
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          const padX = fontSize * 0.7;
+          const padY = fontSize * 0.45;
+          const textW = ctx.measureText(label).width;
+          const boxW = textW + padX * 2;
+          const boxH = fontSize + padY * 2;
+          const bx = width - boxW - fontSize * 0.8;
+          const by = height - boxH - fontSize * 0.8;
+
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.72)';
+          ctx.beginPath();
+          ctx.roundRect(bx, by, boxW, boxH, 8);
+          ctx.fill();
+
+          ctx.fillStyle = '#fde047';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, bx + padX, by + boxH / 2);
+        }
+      }
+
+      function extractDominantColors(img) {
+        const sampleCanvas = document.createElement('canvas');
+        sampleCanvas.width = 64;
+        sampleCanvas.height = 64;
+        const sctx = sampleCanvas.getContext('2d');
+        sctx.drawImage(img, 0, 0, 64, 64);
+        const data = sctx.getImageData(0, 0, 64, 64).data;
+
+        const buckets = new Map();
+        for (let i = 0; i < data.length; i += 16) {
+          const r = Math.round(data[i] / 32) * 32;
+          const g = Math.round(data[i + 1] / 32) * 32;
+          const b = Math.round(data[i + 2] / 32) * 32;
+          const hex = rgbToHex(Math.min(255, r), Math.min(255, g), Math.min(255, b));
+          buckets.set(hex, (buckets.get(hex) || 0) + 1);
+        }
+
+        const top6 = Array.from(buckets.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6)
+          .map(e => e[0]);
+
+        paletteGrid.innerHTML = '';
+        top6.forEach(hex => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.style.cssText = 'display:flex; align-items:center; gap:0.4rem; padding:0.45rem; border-radius:8px; background:var(--wp-bg-secondary); border:1px solid var(--wp-border); cursor:pointer; color:var(--wp-text); font-family:monospace; font-size:0.75rem; font-weight:700;';
+          btn.innerHTML = `<span style="width:18px; height:18px; border-radius:4px; background:${hex}; border:1px solid rgba(255,255,255,0.3);"></span><span>${hex}</span>`;
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(hex);
+            swatch.style.background = hex;
+            pickedHex.textContent = hex;
+            ImageStudio.showToast(`${hex} kopyalandı`, '🎨');
+          });
+          paletteGrid.appendChild(btn);
+        });
+      }
+
+      canvas.addEventListener('click', (e) => {
+        if (!loadedObj) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
+        const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
+        const p = ctx.getImageData(x, y, 1, 1).data;
+        const hex = rgbToHex(p[0], p[1], p[2]);
+        swatch.style.background = hex;
+        pickedHex.textContent = hex;
+        pickedRgb.textContent = `rgb(${p[0]}, ${p[1]}, ${p[2]})`;
+      });
+
+      copyHexBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(pickedHex.textContent);
+        ImageStudio.showToast(`${pickedHex.textContent} panoya kopyalandı`, '📋');
+      });
+
+      stampText.addEventListener('input', renderImageWithStamp);
+      stampDateToggle.addEventListener('change', renderImageWithStamp);
+
+      dlStampedBtn.addEventListener('click', async () => {
+        if (!loadedObj) return;
+        const blob = await ImageStudio.canvasToBlob(canvas, 'image/jpeg', 0.94);
+        const base = loadedObj.file.name.replace(/\.[^.]+$/, '');
+        ImageStudio.downloadBlob(blob, `${base}_damgali.jpg`);
+        ImageStudio.showToast('Damgalı fotoğraf indirildi', '✅');
+      });
+    })();
+  </script>
+</body>
+</html>

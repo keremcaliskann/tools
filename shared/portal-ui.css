@@ -1,0 +1,292 @@
+/**
+ * Workshop Unified Design System & Navigation (portal-ui.css)
+ * Tüm projelerde (Tools Hub, DocShield, BEP vb.) ortak kullanılan
+ * üst navigasyon (Breadcrumb), alt bilgi (Footer), kart ve Koyu/Açık tema sistemi.
+ */
+
+:root,
+html[data-theme="dark"] {
+  --wp-bg: #0b1120;
+  --wp-bg-secondary: #0f172a;
+  --wp-surface: #1e293b;
+  --wp-surface-elevated: #334155;
+  --wp-border: #334155;
+  --wp-text: #f8fafc;
+  --wp-text-secondary: #cbd5e1;
+  --wp-text-muted: #94a3b8;
+  --wp-accent: #6366f1;
+  --wp-accent-hover: #4f46e5;
+  --wp-emerald: #10b981;
+  --wp-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  --wp-header-bg: rgba(15, 23, 42, 0.88);
+}
+
+html[data-theme="light"] {
+  --wp-bg: #f8fafc;
+  --wp-bg-secondary: #f1f5f9;
+  --wp-surface: #ffffff;
+  --wp-surface-elevated: #f1f5f9;
+  --wp-border: #e2e8f0;
+  --wp-text: #0f172a;
+  --wp-text-secondary: #334155;
+  --wp-text-muted: #64748b;
+  --wp-accent: #4f46e5;
+  --wp-accent-hover: #4338ca;
+  --wp-emerald: #059669;
+  --wp-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.07);
+  --wp-header-bg: rgba(255, 255, 255, 0.92);
+}
+
+/* ==================== UNIFIED TOP HEADER & BREADCRUMB ==================== */
+.wp-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--wp-header-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--wp-border);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.wp-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.wp-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.wp-crumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 10px;
+  color: var(--wp-text-secondary);
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-border);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.wp-crumb-link:hover {
+  color: var(--wp-text);
+  border-color: var(--wp-accent);
+  transform: translateY(-1px);
+}
+
+.wp-crumb-sep {
+  color: var(--wp-text-muted);
+  font-size: 0.85rem;
+  user-select: none;
+  padding: 0 0.1rem;
+}
+
+.wp-crumb-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--wp-text);
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 0.25rem 0.4rem;
+}
+
+.wp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.wp-trust-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--wp-emerald);
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  white-space: nowrap;
+}
+
+.wp-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.75rem;
+  border-radius: 10px;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-border);
+  color: var(--wp-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.wp-theme-btn:hover {
+  border-color: var(--wp-accent);
+  background: var(--wp-surface-elevated);
+}
+
+/* ==================== UNIFIED FOOTER ==================== */
+.wp-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--wp-border);
+  background: var(--wp-bg-secondary);
+  color: var(--wp-text-muted);
+  padding: 2rem 1.25rem;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.wp-footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.wp-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.wp-footer-links a {
+  color: var(--wp-text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.wp-footer-links a:hover {
+  color: var(--wp-accent);
+}
+
+/* ==================== DOCSHIELD LIGHT THEME COMPATIBILITY ==================== */
+html[data-theme="light"] body.bg-slate-950 {
+  background-color: var(--wp-bg) !important;
+  color: var(--wp-text) !important;
+}
+
+html[data-theme="light"] .bg-slate-950\/80,
+html[data-theme="light"] .bg-slate-950\/95 {
+  background-color: var(--wp-header-bg) !important;
+}
+
+html[data-theme="light"] .bg-slate-900,
+html[data-theme="light"] .bg-slate-900\/80,
+html[data-theme="light"] .bg-slate-900\/70,
+html[data-theme="light"] .bg-slate-900\/60,
+html[data-theme="light"] .bg-slate-900\/40 {
+  background-color: var(--wp-surface) !important;
+  box-shadow: var(--wp-shadow);
+}
+
+html[data-theme="light"] .bg-slate-950,
+html[data-theme="light"] .bg-slate-950\/40,
+html[data-theme="light"] .bg-slate-800,
+html[data-theme="light"] .bg-slate-800\/60 {
+  background-color: var(--wp-surface-elevated) !important;
+  color: var(--wp-text) !important;
+}
+
+html[data-theme="light"] .text-white,
+html[data-theme="light"] .text-slate-100,
+html[data-theme="light"] .text-slate-200 {
+  color: var(--wp-text) !important;
+}
+
+html[data-theme="light"] .text-slate-300,
+html[data-theme="light"] .text-slate-400 {
+  color: var(--wp-text-muted) !important;
+}
+
+html[data-theme="light"] .border-slate-800,
+html[data-theme="light"] .border-slate-800\/80,
+html[data-theme="light"] .border-slate-700 {
+  border-color: var(--wp-border) !important;
+}
+
+/* ==================== BEP DARK THEME COMPATIBILITY ==================== */
+html[data-theme="dark"] body.bep-body {
+  background-color: var(--wp-bg) !important;
+  color: var(--wp-text) !important;
+}
+
+html[data-theme="dark"] .bep-body #formView .bg-white,
+html[data-theme="dark"] .bep-body #ogrencilerView .bg-white,
+html[data-theme="dark"] .bep-body .ad-banner-wrapper {
+  background-color: var(--wp-surface) !important;
+  border-color: var(--wp-border) !important;
+  color: var(--wp-text) !important;
+}
+
+html[data-theme="dark"] .bep-body #formView .bg-slate-50,
+html[data-theme="dark"] .bep-body #formView .bg-slate-50\/80,
+html[data-theme="dark"] .bep-body #ogrencilerView .bg-slate-50 {
+  background-color: var(--wp-bg-secondary) !important;
+  border-color: var(--wp-border) !important;
+  color: var(--wp-text) !important;
+}
+
+html[data-theme="dark"] .bep-body #formView .text-slate-800,
+html[data-theme="dark"] .bep-body #formView .text-slate-700,
+html[data-theme="dark"] .bep-body #ogrencilerView .text-slate-800,
+html[data-theme="dark"] .bep-body #ogrencilerView .text-slate-700 {
+  color: var(--wp-text) !important;
+}
+
+html[data-theme="dark"] .bep-body #formView .text-slate-600,
+html[data-theme="dark"] .bep-body #formView .text-slate-500,
+html[data-theme="dark"] .bep-body #ogrencilerView .text-slate-500 {
+  color: var(--wp-text-muted) !important;
+}
+
+html[data-theme="dark"] .bep-body #formView input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] .bep-body #formView select,
+html[data-theme="dark"] .bep-body #formView textarea {
+  background-color: var(--wp-bg-secondary) !important;
+  border-color: var(--wp-border) !important;
+  color: var(--wp-text) !important;
+}
+
+html[data-theme="dark"] .bep-body #formView .border-slate-200,
+html[data-theme="dark"] .bep-body #formView .border-slate-300,
+html[data-theme="dark"] .bep-body #ogrencilerView .border-slate-200 {
+  border-color: var(--wp-border) !important;
+}
+
+@media print {
+  .wp-header,
+  .wp-footer,
+  .no-print {
+    display: none !important;
+  }
+}

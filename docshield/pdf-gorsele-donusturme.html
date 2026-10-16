@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark scroll-smooth" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF'ten Görsele (JPG / PNG) Dönüştürme Stüdyosu | DocShield</title>
+  <meta name="description" content="%100 tarayıcı içi çalışan PDF'ten yüksek çözünürlüklü PNG ve JPG görsel çıkarma aracı. Sayfaları tek tek veya toplu ZIP arşivi olarak indirin.">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./_astro/e-devlet-pdf-boyut-kucultme-1mb.s2stHDGw.css">
+  <link rel="stylesheet" href="../shared/portal-ui.css">
+  <script src="../shared/portal-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased">
+
+  <!-- Unified Portal Header & Breadcrumb (Katman 3: Alt Özellik Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <a href="./index.html" class="wp-crumb-link" title="DocShield Ana Sayfasına Dön">
+          <span>🛡️</span>
+          <span>DocShield Ana Sayfa</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>🖼️</span>
+          <span>PDF ➔ Görsel Dönüştürücü</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill" title="Belgeleriniz hiçbir sunucuya yüklenmez">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • 0 B Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <section class="text-center py-4 sm:py-6">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-3">
+        <span>🖼️ Yüksek DPI Render • PNG / JPG Çıktı • Toplu ZIP</span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight max-w-3xl mx-auto">
+        PDF'ten Görsele (PNG / JPG) Dönüştürücü
+      </h1>
+      <p class="mt-2 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
+        PDF sayfalarınızı sunucuya yüklemeden yüksek çözünürlüklü PNG veya JPG görüntülerine dönüştürün; tek tek veya tek tıkla ZIP paketi olarak indirin.
+      </p>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-4">
+      <!-- Sol Kontrol Paneli -->
+      <div class="lg:col-span-4 space-y-5 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">1. PDF Dosyası Seçin</h2>
+          <label id="p2iDropzone" class="block border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-950/40">
+            <input type="file" id="p2iFileInput" accept="application/pdf,.pdf" class="hidden">
+            <div class="text-3xl mb-2">🖼️</div>
+            <div class="text-sm font-semibold text-white" id="p2iFileName">PDF Dosyasını Sürükleyin veya Seçin</div>
+            <div class="text-xs text-slate-400 mt-1" id="p2iFileMeta">Sayfalar anında yüksek netlikte görsele çevrilir</div>
+          </label>
+        </div>
+
+        <div id="p2iControls" class="space-y-4 pt-4 border-t border-slate-800 hidden">
+          <div>
+            <label for="p2iFormat" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">2. Çıktı Formatı</label>
+            <select id="p2iFormat" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+              <option value="png">PNG (Kayıpsız Netlik)</option>
+              <option value="jpeg">JPG (Küçük Dosya Boyutu)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="p2iQuality" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">3. Çözünürlük Kalitesi (DPI)</label>
+            <select id="p2iQuality" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+              <option value="1.5">Standart (150 DPI - Hızlı)</option>
+              <option value="2.0" selected>Yüksek (220 DPI - Önerilen)</option>
+              <option value="3.0">Ultra Baskı (300+ DPI)</option>
+            </select>
+          </div>
+
+          <div id="p2iStatusBox" class="hidden p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs text-indigo-300 font-mono"></div>
+
+          <div class="pt-2 space-y-2">
+            <button type="button" id="p2iDownloadZipBtn" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-sm shadow-lg transition cursor-pointer">
+              Tüm Görselleri ZIP Olarak İndir
+            </button>
+            <button type="button" id="p2iResetBtn" class="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition cursor-pointer">
+              Sıfırla
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sağ Görsel Galerisi -->
+      <div class="lg:col-span-8 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 min-h-[420px] flex flex-col">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+          <h3 class="text-sm font-bold text-white">Dönüştürülen Sayfa Görselleri</h3>
+          <span id="p2iCounter" class="text-xs font-mono text-emerald-400">Hazır</span>
+        </div>
+
+        <div id="p2iEmptyState" class="flex-1 flex flex-col items-center justify-center text-center py-16 text-slate-400">
+          <div class="text-4xl mb-3">🖼️</div>
+          <p class="text-sm font-semibold text-slate-200">Görsele Dönüştürmek İçin PDF Seçin</p>
+          <p class="text-xs text-slate-400 max-w-sm mt-1">Her sayfa yüksek çözünürlüklü olarak işlenir; ister tek tek sayfaları, ister tümünü ZIP arşivi olarak indirebilirsiniz.</p>
+        </div>
+
+        <div id="p2iGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 hidden"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>© 2026 DocShield &bull; Kerem Çalışkan | %100 İstemci Taraflı & Sıfır-Sunucu Mimari</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı</a>
+        <a href="./index.html">🛡️ DocShield Ana Sayfa</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      let currentFile = null;
+      let currentBuffer = null;
+      let renderedPages = [];
+
+      const dropzone = document.getElementById('p2iDropzone');
+      const fileInput = document.getElementById('p2iFileInput');
+      const fileNameEl = document.getElementById('p2iFileName');
+      const fileMetaEl = document.getElementById('p2iFileMeta');
+      const controlsEl = document.getElementById('p2iControls');
+      const formatSelect = document.getElementById('p2iFormat');
+      const qualitySelect = document.getElementById('p2iQuality');
+      const statusBox = document.getElementById('p2iStatusBox');
+      const zipBtn = document.getElementById('p2iDownloadZipBtn');
+      const resetBtn = document.getElementById('p2iResetBtn');
+      const emptyState = document.getElementById('p2iEmptyState');
+      const grid = document.getElementById('p2iGrid');
+      const counter = document.getElementById('p2iCounter');
+
+      function setStatus(msg) {
+        if (!msg) {
+          statusBox.classList.add('hidden');
+          return;
+        }
+        statusBox.textContent = msg;
+        statusBox.classList.remove('hidden');
+      }
+
+      ['dragenter', 'dragover'].forEach(ev => {
+        dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('border-indigo-500'); });
+      });
+      ['dragleave', 'drop'].forEach(ev => {
+        dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('border-indigo-500'); });
+      });
+      dropzone.addEventListener('drop', e => {
+        if (e.dataTransfer.files && e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener('change', e => {
+        if (e.target.files && e.target.files.length) handleFile(e.target.files[0]);
+      });
+
+      async function handleFile(file) {
+        if (!file || (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf'))) {
+          alert('Lütfen geçerli bir PDF dosyası seçin.');
+          return;
+        }
+        currentFile = file;
+        currentBuffer = await file.arrayBuffer();
+        fileNameEl.textContent = file.name;
+        fileMetaEl.textContent = `${(file.size / 1024).toFixed(1)} KB`;
+        controlsEl.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        grid.classList.remove('hidden');
+        await renderAll();
+      }
+
+      formatSelect.addEventListener('change', () => { if (currentBuffer) renderAll(); });
+      qualitySelect.addEventListener('change', () => { if (currentBuffer) renderAll(); });
+
+      async function renderAll() {
+        if (!currentBuffer) return;
+        grid.innerHTML = '';
+        renderedPages = [];
+
+        const fmt = formatSelect.value;
+        const mime = fmt === 'jpeg' ? 'image/jpeg' : 'image/png';
+        const ext = fmt === 'jpeg' ? 'jpg' : 'png';
+        const scale = parseFloat(qualitySelect.value) || 2.0;
+
+        try {
+          const pdf = await window.pdfjsLib.getDocument({ data: currentBuffer.slice(0) }).promise;
+          const total = pdf.numPages;
+
+          for (let pNum = 1; pNum <= total; pNum++) {
+            setStatus(`Sayfa ${pNum}/${total} dönüştürülüyor...`);
+            const page = await pdf.getPage(pNum);
+            const viewport = page.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+            const dataUrl = canvas.toDataURL(mime, 0.92);
+            const blob = await new Promise(res => canvas.toBlob(res, mime, 0.92));
+
+            const item = { pageNum: pNum, blob, dataUrl, width: Math.round(viewport.width), height: Math.round(viewport.height), ext };
+            renderedPages.push(item);
+
+            const card = document.createElement('div');
+            card.className = 'p-3 rounded-xl border border-slate-800 bg-slate-950/60 flex flex-col justify-between';
+            card.innerHTML = `
+              <div class="h-44 flex items-center justify-center bg-white rounded overflow-hidden mb-2">
+                <img src="${dataUrl}" alt="Sayfa ${pNum}" class="max-h-full max-w-full object-contain">
+              </div>
+              <div class="flex items-center justify-between text-xs mb-2">
+                <span class="font-bold text-white">Sayfa ${pNum}</span>
+                <span class="text-slate-400 font-mono">${item.width}×${item.height}px</span>
+              </div>
+              <button type="button" class="w-full py-2 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs font-semibold transition cursor-pointer">
+                ⬇ ${ext.toUpperCase()} İndir (${(blob.size / 1024).toFixed(0)} KB)
+              </button>
+            `;
+            card.querySelector('button').addEventListener('click', () => {
+              const baseName = currentFile.name.replace(/\.pdf$/i, '');
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(blob);
+              a.download = `${baseName}_sayfa_${String(pNum).padStart(3, '0')}.${ext}`;
+              a.click();
+            });
+            grid.appendChild(card);
+          }
+
+          counter.textContent = `${total} Sayfa (${ext.toUpperCase()})`;
+        } catch (err) {
+          alert('Dönüştürme hatası: ' + err.message);
+        } finally {
+          setStatus('');
+        }
+      }
+
+      resetBtn.addEventListener('click', () => {
+        currentFile = null;
+        currentBuffer = null;
+        renderedPages = [];
+        grid.innerHTML = '';
+        grid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        controlsEl.classList.add('hidden');
+        fileNameEl.textContent = 'PDF Dosyasını Sürükleyin veya Seçin';
+        counter.textContent = 'Hazır';
+        fileInput.value = '';
+      });
+
+      zipBtn.addEventListener('click', async () => {
+        if (!renderedPages.length) return;
+        try {
+          zipBtn.disabled = true;
+          setStatus('ZIP arşivi oluşturuluyor...');
+          const zip = new window.JSZip();
+          const baseName = currentFile.name.replace(/\.pdf$/i, '');
+          renderedPages.forEach(p => {
+            zip.file(`${baseName}_sayfa_${String(p.pageNum).padStart(3, '0')}.${p.ext}`, p.blob);
+          });
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(zipBlob);
+          a.download = `${baseName}_gorseller.zip`;
+          a.click();
+        } catch (err) {
+          alert('ZIP hatası: ' + err.message);
+        } finally {
+          setStatus('');
+          zipBtn.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

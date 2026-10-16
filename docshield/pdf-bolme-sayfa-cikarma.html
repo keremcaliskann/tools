@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark scroll-smooth" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Bölme ve Sayfa Çıkarma Stüdyosu | DocShield</title>
+  <meta name="description" content="%100 tarayıcı içi çalışan PDF bölme ve sayfa ayıklama aracı. Belirli sayfa aralıklarını tek PDF yapın veya tüm sayfaları ayrı PDF'ler olarak ZIP indirin.">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./_astro/e-devlet-pdf-boyut-kucultme-1mb.s2stHDGw.css">
+  <link rel="stylesheet" href="../shared/portal-ui.css">
+  <script src="../shared/portal-ui.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased">
+
+  <!-- Unified Portal Header & Breadcrumb (Katman 3: Alt Özellik Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <a href="./index.html" class="wp-crumb-link" title="DocShield Ana Sayfasına Dön">
+          <span>🛡️</span>
+          <span>DocShield Ana Sayfa</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>✂️</span>
+          <span>PDF Böl & Sayfa Çıkar</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill" title="Belgeleriniz hiçbir sunucuya yüklenmez">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • 0 B Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <section class="text-center py-4 sm:py-6">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-3">
+        <span>✂️ Sayfa Ayıklama • Aralık Seçimi • Toplu ZIP Bölme</span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight max-w-3xl mx-auto">
+        PDF Bölme ve Sayfa Çıkarma Stüdyosu
+      </h1>
+      <p class="mt-2 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
+        Çok sayfalı PDF belgelerinizden istediğiniz sayfaları tıklayarak veya aralık yazarak ayıklayın ya da her sayfayı ayrı birer PDF dosyasına bölün.
+      </p>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-4">
+      <!-- Sol Kontrol Paneli -->
+      <div class="lg:col-span-4 space-y-5 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">1. PDF Dosyası Seçin</h2>
+          <label id="splitDropzone" class="block border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-950/40">
+            <input type="file" id="splitFileInput" accept="application/pdf,.pdf" class="hidden">
+            <div class="text-3xl mb-2">📄</div>
+            <div class="text-sm font-semibold text-white" id="splitFileName">PDF Dosyasını Sürükleyin veya Seçin</div>
+            <div class="text-xs text-slate-400 mt-1" id="splitFileMeta">Tüm işlemler cihazınızın RAM belleğinde yapılır</div>
+          </label>
+        </div>
+
+        <div id="splitControls" class="space-y-4 pt-4 border-t border-slate-800 hidden">
+          <div>
+            <label for="splitMode" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">2. Bölme Modu</label>
+            <select id="splitMode" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="range">Seçili Sayfaları Tek PDF Olarak Çıkar</option>
+              <option value="each">Her Sayfayı Ayrı PDF Yap (ZIP İndir)</option>
+            </select>
+          </div>
+
+          <div id="splitRangeGroup">
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="splitRangeInput" class="text-xs text-slate-400">Sayfa Aralığı (Örn: 1-3, 5)</label>
+              <div class="flex gap-2 text-[11px]">
+                <button type="button" id="selectAllBtn" class="text-indigo-400 hover:underline cursor-pointer">Tümünü Seç</button>
+                <button type="button" id="selectNoneBtn" class="text-rose-400 hover:underline cursor-pointer">Temizle</button>
+              </div>
+            </div>
+            <input type="text" id="splitRangeInput" placeholder="Örn: 1-3, 5, 8-10" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono">
+          </div>
+
+          <div id="splitStatusBox" class="hidden p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs text-indigo-300 font-mono"></div>
+
+          <div class="pt-2 space-y-2">
+            <button type="button" id="splitExecuteBtn" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-sm shadow-lg transition cursor-pointer">
+              Seçili Sayfaları Çıkar ve İndir
+            </button>
+            <button type="button" id="splitResetBtn" class="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition cursor-pointer">
+              Sıfırla
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sağ Sayfa Önizleme Izgarası -->
+      <div class="lg:col-span-8 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 min-h-[420px] flex flex-col">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+          <h3 class="text-sm font-bold text-white">Sayfa Önizlemeleri (Seçmek/Kaldırmak İçin Tıklayın)</h3>
+          <span id="splitPageCounter" class="text-xs font-mono text-emerald-400">Henüz dosya yüklenmedi</span>
+        </div>
+
+        <div id="splitEmptyState" class="flex-1 flex flex-col items-center justify-center text-center py-16 text-slate-400">
+          <div class="text-4xl mb-3">✂️</div>
+          <p class="text-sm font-semibold text-slate-200">Önizleme İçin Bir PDF Yükleyin</p>
+          <p class="text-xs text-slate-400 max-w-sm mt-1">Yüklediğiniz PDF'in tüm sayfaları burada küçük resim olarak listelenir; istediğiniz sayfalara tıklayarak seçebilirsiniz.</p>
+        </div>
+
+        <div id="splitThumbnailsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 hidden"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>© 2026 DocShield &bull; Kerem Çalışkan | %100 İstemci Taraflı & Sıfır-Sunucu Mimari</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı</a>
+        <a href="./index.html">🛡️ DocShield Ana Sayfa</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      let currentFile = null;
+      let currentBuffer = null;
+      let totalPages = 0;
+      const selectedPages = new Set();
+
+      const dropzone = document.getElementById('splitDropzone');
+      const fileInput = document.getElementById('splitFileInput');
+      const fileNameEl = document.getElementById('splitFileName');
+      const fileMetaEl = document.getElementById('splitFileMeta');
+      const controlsEl = document.getElementById('splitControls');
+      const modeSelect = document.getElementById('splitMode');
+      const rangeGroup = document.getElementById('splitRangeGroup');
+      const rangeInput = document.getElementById('splitRangeInput');
+      const selectAllBtn = document.getElementById('selectAllBtn');
+      const selectNoneBtn = document.getElementById('selectNoneBtn');
+      const statusBox = document.getElementById('splitStatusBox');
+      const executeBtn = document.getElementById('splitExecuteBtn');
+      const resetBtn = document.getElementById('splitResetBtn');
+      const emptyState = document.getElementById('splitEmptyState');
+      const thumbsGrid = document.getElementById('splitThumbnailsGrid');
+      const pageCounter = document.getElementById('splitPageCounter');
+
+      function setStatus(msg) {
+        if (!msg) {
+          statusBox.classList.add('hidden');
+          return;
+        }
+        statusBox.textContent = msg;
+        statusBox.classList.remove('hidden');
+      }
+
+      ['dragenter', 'dragover'].forEach(ev => {
+        dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('border-indigo-500'); });
+      });
+      ['dragleave', 'drop'].forEach(ev => {
+        dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('border-indigo-500'); });
+      });
+      dropzone.addEventListener('drop', e => {
+        if (e.dataTransfer.files && e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener('change', e => {
+        if (e.target.files && e.target.files.length) handleFile(e.target.files[0]);
+      });
+
+      async function handleFile(file) {
+        if (!file || (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf'))) {
+          alert('Lütfen geçerli bir PDF dosyası seçin.');
+          return;
+        }
+        try {
+          setStatus('PDF taranıyor...');
+          currentFile = file;
+          currentBuffer = await file.arrayBuffer();
+          const doc = await window.PDFLib.PDFDocument.load(currentBuffer, { ignoreEncryption: true });
+          totalPages = doc.getPageCount();
+
+          selectedPages.clear();
+          for (let i = 1; i <= totalPages; i++) selectedPages.add(i);
+          syncRangeInput();
+
+          fileNameEl.textContent = file.name;
+          fileMetaEl.textContent = `${(file.size / 1024).toFixed(1)} KB • ${totalPages} Sayfa`;
+          controlsEl.classList.remove('hidden');
+          emptyState.classList.add('hidden');
+          thumbsGrid.classList.remove('hidden');
+
+          await renderThumbnails();
+          setStatus('');
+        } catch (err) {
+          alert('PDF okunamadı: ' + err.message);
+          setStatus('');
+        }
+      }
+
+      function syncRangeInput() {
+        pageCounter.textContent = `${selectedPages.size} / ${totalPages} sayfa seçili`;
+        if (selectedPages.size === 0) {
+          rangeInput.value = '';
+          return;
+        }
+        const sorted = Array.from(selectedPages).sort((a, b) => a - b);
+        const ranges = [];
+        let start = sorted[0], end = start;
+        for (let i = 1; i < sorted.length; i++) {
+          if (sorted[i] === end + 1) end = sorted[i];
+          else {
+            ranges.push(start === end ? `${start}` : `${start}-${end}`);
+            start = end = sorted[i];
+          }
+        }
+        ranges.push(start === end ? `${start}` : `${start}-${end}`);
+        rangeInput.value = ranges.join(', ');
+      }
+
+      function parseRange() {
+        selectedPages.clear();
+        const parts = rangeInput.value.split(',');
+        parts.forEach(part => {
+          part = part.trim();
+          if (!part) return;
+          if (part.includes('-')) {
+            const [s, e] = part.split('-').map(n => parseInt(n.trim(), 10));
+            if (!isNaN(s) && !isNaN(e)) {
+              for (let p = Math.max(1, Math.min(s, e)); p <= Math.min(totalPages, Math.max(s, e)); p++) {
+                selectedPages.add(p);
+              }
+            }
+          } else {
+            const p = parseInt(part, 10);
+            if (!isNaN(p) && p >= 1 && p <= totalPages) selectedPages.add(p);
+          }
+        });
+        pageCounter.textContent = `${selectedPages.size} / ${totalPages} sayfa seçili`;
+        highlightCards();
+      }
+
+      function highlightCards() {
+        thumbsGrid.querySelectorAll('[data-page]').forEach(card => {
+          const p = parseInt(card.getAttribute('data-page'), 10);
+          if (selectedPages.has(p)) {
+            card.className = 'p-2 rounded-xl border-2 border-indigo-500 bg-indigo-950/30 cursor-pointer transition text-center';
+          } else {
+            card.className = 'p-2 rounded-xl border border-slate-800 bg-slate-950/50 opacity-60 cursor-pointer transition text-center';
+          }
+        });
+      }
+
+      async function renderThumbnails() {
+        thumbsGrid.innerHTML = '';
+        const pdf = await window.pdfjsLib.getDocument({ data: currentBuffer.slice(0) }).promise;
+        for (let pNum = 1; pNum <= totalPages; pNum++) {
+          setStatus(`Önizleme hazırlanıyor (${pNum}/${totalPages})...`);
+          const page = await pdf.getPage(pNum);
+          const viewport = page.getViewport({ scale: 0.3 });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+          const card = document.createElement('div');
+          card.setAttribute('data-page', pNum);
+          card.innerHTML = `
+            <img src="${canvas.toDataURL()}" alt="Sayfa ${pNum}" class="w-full h-36 object-contain rounded bg-white mb-2">
+            <div class="text-xs font-semibold text-white">Sayfa ${pNum}</div>
+          `;
+          card.addEventListener('click', () => {
+            if (selectedPages.has(pNum)) selectedPages.delete(pNum);
+            else selectedPages.add(pNum);
+            syncRangeInput();
+            highlightCards();
+          });
+          thumbsGrid.appendChild(card);
+        }
+        highlightCards();
+      }
+
+      modeSelect.addEventListener('change', () => {
+        if (modeSelect.value === 'each') {
+          rangeGroup.classList.add('hidden');
+          executeBtn.textContent = 'Tüm Sayfaları Böl (ZIP İndir)';
+        } else {
+          rangeGroup.classList.remove('hidden');
+          executeBtn.textContent = 'Seçili Sayfaları Çıkar ve İndir';
+        }
+      });
+
+      rangeInput.addEventListener('input', parseRange);
+      selectAllBtn.addEventListener('click', () => {
+        for (let i = 1; i <= totalPages; i++) selectedPages.add(i);
+        syncRangeInput();
+        highlightCards();
+      });
+      selectNoneBtn.addEventListener('click', () => {
+        selectedPages.clear();
+        syncRangeInput();
+        highlightCards();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        currentFile = null;
+        currentBuffer = null;
+        totalPages = 0;
+        selectedPages.clear();
+        thumbsGrid.innerHTML = '';
+        thumbsGrid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        controlsEl.classList.add('hidden');
+        fileNameEl.textContent = 'PDF Dosyasını Sürükleyin veya Seçin';
+        fileMetaEl.textContent = 'Tüm işlemler cihazınızın RAM belleğinde yapılır';
+        pageCounter.textContent = 'Henüz dosya yüklenmedi';
+        fileInput.value = '';
+      });
+
+      executeBtn.addEventListener('click', async () => {
+        if (!currentBuffer) return;
+        const { PDFDocument } = window.PDFLib;
+        const baseName = currentFile.name.replace(/\.pdf$/i, '');
+
+        try {
+          executeBtn.disabled = true;
+          if (modeSelect.value === 'each') {
+            setStatus('Sayfalar ayrı PDF dosyalarına bölünüyor...');
+            const zip = new window.JSZip();
+            const srcDoc = await PDFDocument.load(currentBuffer, { ignoreEncryption: true });
+            for (let i = 0; i < totalPages; i++) {
+              const singleDoc = await PDFDocument.create();
+              const [copied] = await singleDoc.copyPages(srcDoc, [i]);
+              singleDoc.addPage(copied);
+              const bytes = await singleDoc.save();
+              zip.file(`${baseName}_sayfa_${String(i + 1).padStart(3, '0')}.pdf`, bytes);
+            }
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${baseName}_bolunmus_sayfalar.zip`;
+            a.click();
+          } else {
+            if (selectedPages.size === 0) {
+              alert('Lütfen en az bir sayfa seçin.');
+              return;
+            }
+            setStatus('Seçili sayfalar birleştiriliyor...');
+            const srcDoc = await PDFDocument.load(currentBuffer, { ignoreEncryption: true });
+            const newDoc = await PDFDocument.create();
+            const indices = Array.from(selectedPages).sort((a, b) => a - b).map(p => p - 1);
+            const copied = await newDoc.copyPages(srcDoc, indices);
+            copied.forEach(p => newDoc.addPage(p));
+            const bytes = await newDoc.save();
+            const blob = new Blob([bytes], { type: 'application/pdf' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${baseName}_secili_${indices.length}_sayfa.pdf`;
+            a.click();
+          }
+        } catch (err) {
+          alert('Hata: ' + err.message);
+        } finally {
+          setStatus('');
+          executeBtn.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

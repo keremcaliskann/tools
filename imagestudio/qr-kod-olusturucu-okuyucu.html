@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vektörel QR Kod Oluşturucu & Okuyucu (Wi-Fi, vCard, URL) | ImageStudio</title>
+  <meta name="description" content="%100 tarayıcı içi çalışan logolu, renkli SVG/PNG QR kod oluşturucu (URL, Wi-Fi, vCard, WhatsApp) ve görselden QR kod okuyucu.">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="../shared/portal-ui.css">
+  <link rel="stylesheet" href="./css/studio.css">
+  <script src="../shared/portal-ui.js"></script>
+  <script src="./js/studio-core.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+
+  <!-- Ortak Portal Üst Barı & Breadcrumb (Katman 3: Alt Özellik Sayfası) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <a href="./index.html" class="wp-crumb-link" title="ImageStudio Ana Sayfasına Dön">
+          <span>🖼️</span>
+          <span>ImageStudio Ana Sayfa</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>🔳</span>
+          <span>QR Kod Stüdyosu</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • 0 B Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="is-container">
+    <nav class="is-subnav" aria-label="ImageStudio Modülleri">
+      <a href="./index.html" class="is-subnav-link">🏠 Tüm Modüller</a>
+      <a href="./vesikalik-biyometrik-boyutlandirma.html" class="is-subnav-link">🪪 Vesikalık &amp; e-Okul</a>
+      <a href="./toplu-gorsel-format-donusturucu.html" class="is-subnav-link">🔄 Format Dönüştürücü</a>
+      <a href="./gorsel-sikistirma-boyut-kucultme.html" class="is-subnav-link">📉 Hedef KB Sıkıştırıcı</a>
+      <a href="./qr-kod-olusturucu-okuyucu.html" class="is-subnav-link active">🔳 QR Kod Stüdyosu</a>
+      <a href="./gorsel-renk-paleti-exif-araci.html" class="is-subnav-link">🎨 Renk Paleti &amp; Damga</a>
+    </nav>
+
+    <section class="is-hero">
+      <div class="is-badge">🔳 Vektörel SVG &amp; Yüksek Çözünürlüklü PNG • Wi-Fi &amp; vCard • QR Okuyucu</div>
+      <h1>Vektörel QR Kod Oluşturucu &amp; Okuyucu</h1>
+      <p>Web sitesi, Wi-Fi otomatik bağlantı, vCard kartvizit veya WhatsApp mesajı için renkli/logolu QR kodlar üretin ya da mevcut bir görseldeki QR kodu çözümleyin.</p>
+    </section>
+
+    <div class="is-studio-grid">
+      <!-- Sol Kontrol Paneli -->
+      <div class="is-panel">
+        <div class="is-panel-title">
+          <span>1. QR Kod İçeriği</span>
+          <span style="color:var(--is-accent);">Canlı Üretim</span>
+        </div>
+
+        <div class="is-field">
+          <label class="is-label" for="qrType">QR Veri Tipi</label>
+          <select id="qrType" class="is-select">
+            <option value="url">🌐 Web Adresi (URL) / Metin</option>
+            <option value="wifi">📶 Wi-Fi Ağına Otomatik Bağlantı</option>
+            <option value="vcard">👤 vCard (Dijital Kartvizit / Rehber)</option>
+            <option value="whatsapp">💬 WhatsApp Doğrudan Mesaj</option>
+          </select>
+        </div>
+
+        <!-- URL / Text Alanı -->
+        <div id="qrBoxUrl" class="is-field">
+          <label class="is-label" for="qrTextInput">Bağlantı (URL) veya Metin</label>
+          <input type="text" id="qrTextInput" class="is-input" value="https://keremcaliskann.github.io/tools/" placeholder="https://...">
+        </div>
+
+        <!-- Wi-Fi Alanı -->
+        <div id="qrBoxWifi" class="is-field" style="display:none;">
+          <div style="margin-bottom:0.6rem;">
+            <label class="is-label">Wi-Fi Ağ Adı (SSID)</label>
+            <input type="text" id="wifiSsid" class="is-input" placeholder="Örn: Ev_Internet">
+          </div>
+          <div style="margin-bottom:0.6rem;">
+            <label class="is-label">Wi-Fi Şifresi</label>
+            <input type="text" id="wifiPass" class="is-input" placeholder="Şifreniz...">
+          </div>
+          <div>
+            <label class="is-label">Güvenlik Tipi</label>
+            <select id="wifiEnc" class="is-select">
+              <option value="WPA">WPA / WPA2 / WPA3</option>
+              <option value="WEP">WEP</option>
+              <option value="nopass">Şifresiz</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- vCard Alanı -->
+        <div id="qrBoxVcard" class="is-field" style="display:none;">
+          <div style="margin-bottom:0.5rem;">
+            <label class="is-label">Ad Soyad</label>
+            <input type="text" id="vcName" class="is-input" placeholder="Ad Soyad">
+          </div>
+          <div style="margin-bottom:0.5rem;">
+            <label class="is-label">Telefon</label>
+            <input type="text" id="vcPhone" class="is-input" placeholder="+90 5XX XXX XX XX">
+          </div>
+          <div>
+            <label class="is-label">E-Posta / Kurum</label>
+            <input type="text" id="vcEmail" class="is-input" placeholder="ornek@alanadi.com">
+          </div>
+        </div>
+
+        <!-- WhatsApp Alanı -->
+        <div id="qrBoxWa" class="is-field" style="display:none;">
+          <div style="margin-bottom:0.5rem;">
+            <label class="is-label">Telefon Numarası (Ülke Koduyla)</label>
+            <input type="text" id="waPhone" class="is-input" placeholder="905551112233">
+          </div>
+          <div>
+            <label class="is-label">Hazır Mesaj</label>
+            <input type="text" id="waMsg" class="is-input" placeholder="Merhaba, bilgi almak istiyorum.">
+          </div>
+        </div>
+
+        <div class="is-field" style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; padding-top:0.5rem; border-top:1px solid var(--wp-border);">
+          <div>
+            <label class="is-label">QR Rengi</label>
+            <input type="color" id="qrFgColor" value="#0f172a" style="width:100%; height:38px; border-radius:8px; border:1px solid var(--wp-border); cursor:pointer;">
+          </div>
+          <div>
+            <label class="is-label">Arka Plan Rengi</label>
+            <input type="color" id="qrBgColor" value="#ffffff" style="width:100%; height:38px; border-radius:8px; border:1px solid var(--wp-border); cursor:pointer;">
+          </div>
+        </div>
+
+        <div class="is-field">
+          <label class="is-label" for="qrCenterIcon">Merkez İkon / Sembol (Opsiyonel)</label>
+          <select id="qrCenterIcon" class="is-select">
+            <option value="">İkon Yok (Saf QR)</option>
+            <option value="🌐">🌐 Web / Link</option>
+            <option value="📶">📶 Wi-Fi</option>
+            <option value="👤">👤 Kişi / vCard</option>
+            <option value="💬">💬 Mesaj / WhatsApp</option>
+            <option value="🛡️">🛡️ Güvenli Belge</option>
+            <option value="🎓">🎓 Eğitim / Okul</option>
+          </select>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:1rem;">
+          <button type="button" id="dlPngBtn" class="is-btn is-btn-primary">
+            <span>⬇ Yüksek Çözünürlüklü PNG İndir (1024px)</span>
+          </button>
+          <button type="button" id="dlSvgBtn" class="is-btn is-btn-secondary">
+            <span>📐 Vektörel SVG İndir (Baskı Kalitesi)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sağ Önizleme + QR Okuyucu Paneli -->
+      <div style="display:flex; flex-direction:column; gap:1.5rem;">
+        <div class="is-panel" style="display:flex; flex-direction:column; align-items:center;">
+          <div class="is-panel-title" style="width:100%;">
+            <span>Canlı QR Kod Önizleme</span>
+            <span style="color:var(--wp-emerald); font-family:monospace;">1024 × 1024 px</span>
+          </div>
+          <div style="background:var(--wp-bg-secondary); border:1px solid var(--wp-border); border-radius:16px; padding:1.75rem; display:flex; align-items:center; justify-content:center; width:100%;">
+            <canvas id="qrCanvas" width="1024" height="1024" style="width:260px; height:260px; border-radius:14px; box-shadow:0 12px 30px rgba(0,0,0,0.3); background:#fff;"></canvas>
+          </div>
+        </div>
+
+        <!-- Görselden QR Kod Okuyucu -->
+        <div class="is-panel">
+          <div class="is-panel-title">
+            <span>🔍 Görselden QR Kod Okuyucu (Decoder)</span>
+            <span style="color:var(--is-accent);">Anında Çözümleyici</span>
+          </div>
+          <label id="qrReadDropzone" class="is-dropzone" style="padding:1.1rem;">
+            <input type="file" id="qrReadInput" accept="image/*" style="display:none;">
+            <div style="font-weight:700; font-size:0.84rem;">📷 QR Kod İçeren Ekran Görüntüsü veya Fotoğraf Seçin</div>
+          </label>
+          <div id="qrReadResultBox" style="display:none; margin-top:0.85rem; padding:0.85rem; border-radius:10px; background:var(--wp-bg-secondary); border:1px solid var(--is-accent);">
+            <div style="font-size:0.72rem; color:var(--wp-text-muted); margin-bottom:0.25rem;">Okunan QR Kod İçeriği:</div>
+            <div id="qrReadText" style="font-family:monospace; font-size:0.86rem; word-break:break-all; font-weight:700; color:var(--wp-emerald);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>© 2026 ImageStudio &bull; Kerem Çalışkan | %100 İstemci Taraflı Görsel İşleme Stüdyosu</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tüm Araçlar Portalı</a>
+        <a href="./index.html">🖼️ ImageStudio Ana Sayfa</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const qrType = document.getElementById('qrType');
+      const boxUrl = document.getElementById('qrBoxUrl');
+      const boxWifi = document.getElementById('qrBoxWifi');
+      const boxVcard = document.getElementById('qrBoxVcard');
+      const boxWa = document.getElementById('qrBoxWa');
+
+      const qrTextInput = document.getElementById('qrTextInput');
+      const wifiSsid = document.getElementById('wifiSsid');
+      const wifiPass = document.getElementById('wifiPass');
+      const wifiEnc = document.getElementById('wifiEnc');
+      const vcName = document.getElementById('vcName');
+      const vcPhone = document.getElementById('vcPhone');
+      const vcEmail = document.getElementById('vcEmail');
+      const waPhone = document.getElementById('waPhone');
+      const waMsg = document.getElementById('waMsg');
+      const qrFgColor = document.getElementById('qrFgColor');
+      const qrBgColor = document.getElementById('qrBgColor');
+      const qrCenterIcon = document.getElementById('qrCenterIcon');
+      const qrCanvas = document.getElementById('qrCanvas');
+      const dlPngBtn = document.getElementById('dlPngBtn');
+      const dlSvgBtn = document.getElementById('dlSvgBtn');
+
+      let currentPayload = '';
+
+      qrType.addEventListener('change', () => {
+        boxUrl.style.display = qrType.value === 'url' ? 'block' : 'none';
+        boxWifi.style.display = qrType.value === 'wifi' ? 'block' : 'none';
+        boxVcard.style.display = qrType.value === 'vcard' ? 'block' : 'none';
+        boxWa.style.display = qrType.value === 'whatsapp' ? 'block' : 'none';
+        renderQR();
+      });
+
+      function buildPayload() {
+        const type = qrType.value;
+        if (type === 'wifi') {
+          const s = wifiSsid.value.trim() || 'WiFi_Agim';
+          const p = wifiPass.value.trim();
+          const t = wifiEnc.value;
+          return `WIFI:T:${t};S:${s};P:${p};;`;
+        }
+        if (type === 'vcard') {
+          const n = vcName.value.trim() || 'Ad Soyad';
+          const tel = vcPhone.value.trim();
+          const em = vcEmail.value.trim();
+          return `BEGIN:VCARD\nVERSION:3.0\nFN:${n}\nTEL:${tel}\nEMAIL:${em}\nEND:VCARD`;
+        }
+        if (type === 'whatsapp') {
+          const num = waPhone.value.replace(/\D/g, '') || '905000000000';
+          const msg = encodeURIComponent(waMsg.value.trim());
+          return `https://wa.me/${num}${msg ? '?text=' + msg : ''}`;
+        }
+        return qrTextInput.value.trim() || 'https://keremcaliskann.github.io/tools/';
+      }
+
+      function renderQR() {
+        if (!window.qrcode) return;
+        currentPayload = buildPayload();
+        const qr = window.qrcode(0, 'H');
+        qr.addData(currentPayload);
+        qr.make();
+
+        const count = qr.getModuleCount();
+        const size = 1024;
+        const margin = 72;
+        const drawable = size - margin * 2;
+        const cell = drawable / count;
+
+        const ctx = qrCanvas.getContext('2d');
+        ctx.fillStyle = qrBgColor.value;
+        ctx.fillRect(0, 0, size, size);
+
+        ctx.fillStyle = qrFgColor.value;
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (qr.isDark(r, c)) {
+              ctx.fillRect(
+                Math.floor(margin + c * cell),
+                Math.floor(margin + r * cell),
+                Math.ceil(cell),
+                Math.ceil(cell)
+              );
+            }
+          }
+        }
+
+        const icon = qrCenterIcon.value;
+        if (icon) {
+          const boxSize = 180;
+          const bx = (size - boxSize) / 2;
+          const by = (size - boxSize) / 2;
+          ctx.fillStyle = qrBgColor.value;
+          ctx.beginPath();
+          ctx.roundRect(bx, by, boxSize, boxSize, 28);
+          ctx.fill();
+          ctx.strokeStyle = qrFgColor.value;
+          ctx.lineWidth = 6;
+          ctx.stroke();
+
+          ctx.font = '105px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(icon, size / 2, size / 2 + 6);
+        }
+      }
+
+      [qrTextInput, wifiSsid, wifiPass, wifiEnc, vcName, vcPhone, vcEmail, waPhone, waMsg, qrFgColor, qrBgColor, qrCenterIcon].forEach(el => {
+        el.addEventListener('input', renderQR);
+        el.addEventListener('change', renderQR);
+      });
+
+      dlPngBtn.addEventListener('click', async () => {
+        const blob = await ImageStudio.canvasToBlob(qrCanvas, 'image/png', 1);
+        ImageStudio.downloadBlob(blob, 'imagestudio_qrcode.png');
+        ImageStudio.showToast('PNG QR kod indirildi', '🔳');
+      });
+
+      dlSvgBtn.addEventListener('click', () => {
+        if (!window.qrcode) return;
+        const qr = window.qrcode(0, 'H');
+        qr.addData(currentPayload);
+        qr.make();
+        const count = qr.getModuleCount();
+        let rects = '';
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (qr.isDark(r, c)) {
+              rects += `<rect x="${c + 4}" y="${r + 4}" width="1" height="1" fill="${qrFgColor.value}"/>`;
+            }
+          }
+        }
+        const total = count + 8;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges"><rect width="${total}" height="${total}" fill="${qrBgColor.value}"/>${rects}</svg>`;
+        const blob = new Blob([svg], { type: 'image/svg+xml' });
+        ImageStudio.downloadBlob(blob, 'imagestudio_qrcode.svg');
+        ImageStudio.showToast('Vektörel SVG QR kod indirildi', '📐');
+      });
+
+      // QR Reader
+      const readDrop = document.getElementById('qrReadDropzone');
+      const readInput = document.getElementById('qrReadInput');
+      const readBox = document.getElementById('qrReadResultBox');
+      const readText = document.getElementById('qrReadText');
+
+      ImageStudio.setupDropzone(readDrop, readInput, async (files) => {
+        try {
+          const { img, width, height } = await ImageStudio.loadImageFromFile(files[0]);
+          const c = document.createElement('canvas');
+          c.width = width;
+          c.height = height;
+          const cx = c.getContext('2d');
+          cx.drawImage(img, 0, 0);
+          const imgData = cx.getImageData(0, 0, width, height);
+          const code = window.jsQR && window.jsQR(imgData.data, width, height);
+          readBox.style.display = 'block';
+          if (code && code.data) {
+            readText.textContent = code.data;
+            ImageStudio.showToast('QR kod başarıyla okundu!', '✅');
+          } else {
+            readText.textContent = 'Görselde geçerli bir QR kod tespit edilemedi.';
+          }
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      window.addEventListener('load', renderQR);
+      renderQR();
+    })();
+  </script>
+</body>
+</html>
