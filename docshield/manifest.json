@@ -1,8 +1,8 @@
 {
-  "name": "GüvenliBelge - Gizlilik Odaklı Resmî Belge ve Kimlik Güvenliği",
-  "short_name": "GüvenliBelge",
+  "name": "DocShield - Zero-Server Document Privacy Suite",
+  "short_name": "DocShield",
   "description": "%100 tarayıcı belleğinde çalışan, sıfır-sunucu mimarili akıllı kimlik filigranlama, kalıcı karartma ve hedef boyutlu PDF sıkıştırma aracı.",
-  "id": "guvenli-belge-pwa-v1",
+  "id": "docshield-pwa-v1",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

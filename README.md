@@ -7,7 +7,7 @@ Bu depo, modern web standartlarıyla geliştirilmiş, **%100 istemci tarafında 
 ## 🌐 Canlı Web Uygulamaları
 
 - 🏠 **Ana Araçlar Portalı:** 👉 **[http://keremcaliskann.github.io/tools/](http://keremcaliskann.github.io/tools/)**
-- 🛡️ **GüvenliBelge Stüdyosu:** 👉 **[http://keremcaliskann.github.io/tools/guvenli-belge/](http://keremcaliskann.github.io/tools/guvenli-belge/)**
+- 🛡️ **DocShield Suite:** 👉 **[http://keremcaliskann.github.io/tools/docshield/](http://keremcaliskann.github.io/tools/docshield/)**
 - 📄 **PDF Araçları:** 👉 **[http://keremcaliskann.github.io/tools/pdf/](http://keremcaliskann.github.io/tools/pdf/)**
 - 🎓 **MEB BEP Dosyası Hazırlayıcı:** 👉 **[http://keremcaliskann.github.io/tools/bep/](http://keremcaliskann.github.io/tools/bep/)**
 
@@ -21,7 +21,7 @@ tools/
 ├── .nojekyll                # GitHub Pages Jekyll bypass
 ├── .github/workflows/       # GitHub Pages otomatik dağıtım
 │   └── deploy.yml
-├── guvenli-belge/           # GüvenliBelge resmi belge & PDF stüdyosu
+├── docshield/               # DocShield — Zero-Server Document Privacy Suite
 │   ├── index.html
 │   ├── _astro/
 │   ├── workers/
