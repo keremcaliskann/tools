@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="tts-bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e1b4b" />
+      <stop offset="100%" stop-color="#31104b" />
+    </linearGradient>
+    <linearGradient id="tts-screen-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="50%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+    <linearGradient id="tts-laser-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <filter id="tts-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Arka Plan Yuvarlatılmış Kare -->
+  <rect width="512" height="512" rx="112" fill="url(#tts-bg-grad)" />
+
+  <!-- Ekran Çerçevesi -->
+  <rect x="76" y="96" width="360" height="236" rx="24" fill="#0b0f19" stroke="url(#tts-screen-grad)" stroke-width="12" />
+  
+  <!-- Ekran İçi Canlı Dalga / İçerik -->
+  <path d="M104 260 C 160 210, 220 300, 280 230 C 340 170, 380 250, 408 210 L 408 308 C 408 316, 400 320, 392 320 L 120 320 C 112 320, 104 316, 104 308 Z" fill="url(#tts-screen-grad)" opacity="0.35" />
+
+  <!-- Ekran Standı -->
+  <path d="M226 332 L 206 404 L 306 404 L 286 332 Z" fill="#1e293b" />
+  <rect x="180" y="404" width="152" height="18" rx="9" fill="#334155" />
+
+  <!-- Canlı Yayın / Sinyal İkonu (Sağ Üst Rozet) -->
+  <circle cx="396" cy="136" r="14" fill="#ef4444" filter="url(#tts-glow)" />
+  <circle cx="396" cy="136" r="24" fill="none" stroke="#ef4444" stroke-width="4" opacity="0.6">
+    <animate attributeName="r" values="16;32;16" dur="2s" repeatCount="indefinite" />
+    <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite" />
+  </circle>
+
+  <!-- Ekrana Çizen Kalem (Stylus / Pen) -->
+  <g transform="translate(240, 130) rotate(35)">
+    <!-- Kalem Gövdesi -->
+    <rect x="-12" y="-90" width="24" height="100" rx="6" fill="#f8fafc" />
+    <rect x="-12" y="-50" width="24" height="20" fill="#6366f1" />
+    <!-- Kalem Ucu -->
+    <path d="M-12 10 L 12 10 L 0 34 Z" fill="#e2e8f0" />
+    <circle cx="0" cy="34" r="3" fill="#06b6d4" />
+  </g>
+
+  <!-- Çizim Çizgisi ve Lazer İzi -->
+  <path d="M124 230 Q 190 150 255 160 T 360 210" fill="none" stroke="url(#tts-laser-grad)" stroke-width="8" stroke-linecap="round" filter="url(#tts-glow)" />
+  <circle cx="360" cy="210" r="8" fill="#38bdf8" filter="url(#tts-glow)" />
+</svg>

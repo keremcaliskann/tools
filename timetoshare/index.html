@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TimeToShare — Canlı Ekran Paylaşımı, Ekran Üzeri Çizim &amp; P2P Sohbet | Workshop</title>
+  <meta name="description" content="Sunucu gerektirmeyen, %100 uçtan uca şifreli (P2P) canlı ekran paylaşımı, ekran üzeri ortak canlı çizim, lazer işaretçi ve anlık sohbet aracı." />
+  
+  <!-- PWA & Favicon -->
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#6366f1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="TimeToShare" />
+
+  <!-- Shared Workshop UI -->
+  <link rel="stylesheet" href="../shared/portal-ui.css" />
+  <script src="../shared/portal-ui.js"></script>
+
+  <!-- Uygulama Stilleri -->
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- PeerJS WebRTC P2P Kütüphanesi -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <!-- Ana Uygulama Mantığı -->
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+
+  <!-- Ortak Portal Üst Barı (Katman 2: Tek Özellikli Proje) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>📺</span>
+          <span>TimeToShare — Canlı Ekran &amp; Çizim</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill" title="Ekran görüntüsü ve veriler hiçbir sunucuda depolanmaz, doğrudan cihazlar arasında akar">
+          <span>🔒</span>
+          <span>%100 Sunucusuz • Uçtan Uca P2P</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Ana Taşıyıcı -->
+  <main class="tts-container">
+
+    <!-- 1. BAŞLANGIÇ LOBİSİ (LOBBY) -->
+    <section class="tts-lobby" id="ttsLobby">
+      <div class="tts-hero-badge">
+        <span>⚡ Sıfır Sunucu • WebRTC Doğrudan P2P • Tamamen Ücretsiz</span>
+      </div>
+      <h1 class="tts-hero-title">Ekranını Paylaş, Birlikte Çiz ve Sohbet Et</h1>
+      <p class="tts-hero-subtitle">
+        Hiçbir program yüklemeden tarayıcınızdan canlı ekran yayını yapın. Arkadaşınızla aynı ekran üzerinde serbestçe çizim yapın, lazer işaretçi ile detayları gösterin ve anlık sohbet edin.
+      </p>
+
+      <div class="tts-cards-grid">
+        <!-- Kart 1: Yeni Oda Aç (Yayıncı) -->
+        <div class="tts-card">
+          <div class="tts-card-icon">🚀</div>
+          <h2 class="tts-card-title">Yayın Başlat &amp; Oda Aç</h2>
+          <p class="tts-card-desc">
+            Ekranınızı, açık bir pencerenizi veya bir tarayıcı sekmesini sesle birlikte anında paylaşın. Üretilen davet linkini arkadaşınıza iletin.
+          </p>
+          <button type="button" class="tts-btn-primary" id="btnStartHost">
+            <span>📺</span>
+            <span>Ekranı Paylaş &amp; Oda Başlat</span>
+          </button>
+        </div>
+
+        <!-- Kart 2: Odaya Katıl (İzleyici) -->
+        <div class="tts-card">
+          <div class="tts-card-icon">👥</div>
+          <h2 class="tts-card-title">Mevcut Odaya Katıl</h2>
+          <p class="tts-card-desc">
+            Arkadaşınızın sizinle paylaştığı oda kodunu girerek yayına anında bağlanın ve ortak çizim tahtasına katılın.
+          </p>
+          <div class="tts-input-group">
+            <input type="text" class="tts-input" id="inputRoomCode" placeholder="Örn: tts-a9b2c3" autocomplete="off" spellcheck="false" />
+            <button type="button" class="tts-btn-primary" id="btnJoinRoom" style="width: auto; padding: 0.85rem 1.25rem;">
+              <span>Katıl</span>
+              <span>➔</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Özellik Rozetleri -->
+      <div class="tts-features-row">
+        <div class="tts-feature-item"><span>🔒</span> Uçtan Uca Şifreli P2P</div>
+        <div class="tts-feature-item"><span>✏️</span> Ekran Üzeri Canlı Kalem &amp; Çizim</div>
+        <div class="tts-feature-item"><span>🔴</span> Işıltılı Lazer İşaretçi</div>
+        <div class="tts-feature-item"><span>💬</span> Sunucusuz Anlık Sohbet</div>
+        <div class="tts-feature-item"><span>🚀</span> 1 Saniyenin Altında Gecikme</div>
+        <div class="tts-feature-item"><span>🌐</span> Kurulumsuz &amp; %100 Ücretsiz</div>
+      </div>
+    </section>
+
+    <!-- 2. CANLI SAHNE VE ETKİLEŞİM ALANI (STAGE) -->
+    <section class="tts-stage" id="ttsStage">
+      <!-- Sahne Üst Çubuğu -->
+      <div class="tts-stage-header">
+        <div class="tts-stage-status">
+          <div class="tts-live-badge">
+            <span class="tts-live-dot"></span>
+            <span>CANLI</span>
+          </div>
+          <div class="tts-room-pill">
+            <span>Oda:</span>
+            <span class="tts-room-code" id="roomCodeDisplay">...</span>
+          </div>
+          <button type="button" class="tts-btn-secondary" id="btnCopyLink" title="Arkadaşınıza göndermek için davet linkini kopyalayın">
+            <span>📋</span>
+            <span>Davet Linkini Kopyala</span>
+          </button>
+        </div>
+
+        <div class="tts-stage-actions">
+          <span class="tts-room-pill" id="peerCountBadge">👥 1 Kişi</span>
+          <button type="button" class="tts-btn-secondary" id="btnFullscreen" title="Tam Ekrana Geç">
+            <span>⛶</span>
+            <span>Tam Ekran</span>
+          </button>
+          <button type="button" class="tts-btn-danger" id="btnStopStream" title="Ekran Paylaşımını Sonlandır">
+            <span>⏹️</span>
+            <span>Yayını Durdur</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Görüntü & Çizim Sahnesi -->
+      <div class="tts-viewport-wrapper" id="ttsViewport">
+        <div class="tts-video-container">
+          <!-- Canlı Video Akışı -->
+          <video class="tts-video-stream" id="ttsVideo" autoplay playsinline></video>
+          
+          <!-- Şeffaf Çizim Katmanı -->
+          <canvas class="tts-draw-canvas" id="ttsCanvas"></canvas>
+
+          <!-- Sinyal Yok / Bekleniyor Katmanı -->
+          <div class="tts-stream-placeholder" id="ttsPlaceholder">
+            <div class="tts-spinner"></div>
+            <p id="ttsPlaceholderText" style="font-size: 1.05rem; font-weight: 600;">Canlı yayın akışı hazırlanıyor...</p>
+          </div>
+        </div>
+
+        <!-- Yüzen Çizim Araç Çubuğu (Floating Dock Toolbar) -->
+        <div class="tts-floating-dock" id="ttsFloatingDock">
+          <!-- Modlar -->
+          <button type="button" class="tts-tool-btn" data-tool="pointer" title="İşaretçi / Pasif Mod (Tıklamalar ekrana geçer)">
+            <span>🖐️</span>
+          </button>
+          <button type="button" class="tts-tool-btn active" data-tool="pen" title="Kalem (Çizim Yap)">
+            <span>✏️</span>
+          </button>
+          <button type="button" class="tts-tool-btn" data-tool="highlighter" title="Fosforlu Vurgulayıcı">
+            <span>🖍️</span>
+          </button>
+          <button type="button" class="tts-tool-btn" data-tool="laser" title="Lazer İşaretçi (1.2 saniyede kaybolan ışıltılı iz)">
+            <span>🔴</span>
+          </button>
+          <button type="button" class="tts-tool-btn" data-tool="eraser" title="Silgi">
+            <span>🧹</span>
+          </button>
+
+          <div class="tts-dock-separator"></div>
+
+          <!-- Renk Paleti -->
+          <button type="button" class="tts-color-btn active" data-color="#ef4444" style="background: #ef4444;" title="Kırmızı"></button>
+          <button type="button" class="tts-color-btn" data-color="#3b82f6" style="background: #3b82f6;" title="Mavi"></button>
+          <button type="button" class="tts-color-btn" data-color="#10b981" style="background: #10b981;" title="Yeşil"></button>
+          <button type="button" class="tts-color-btn" data-color="#f59e0b" style="background: #f59e0b;" title="Sarı"></button>
+          <button type="button" class="tts-color-btn" data-color="#a855f7" style="background: #a855f7;" title="Mor"></button>
+          <button type="button" class="tts-color-btn" data-color="#00f0ff" style="background: #00f0ff;" title="Cyan / Neon"></button>
+          <button type="button" class="tts-color-btn" data-color="#ffffff" style="background: #ffffff;" title="Beyaz"></button>
+
+          <div class="tts-dock-separator"></div>
+
+          <!-- Kalınlık -->
+          <button type="button" class="tts-size-btn" data-size="2" title="İnce Çizgi">
+            <span class="tts-size-dot" style="width: 4px; height: 4px;"></span>
+          </button>
+          <button type="button" class="tts-size-btn active" data-size="4" title="Orta Çizgi">
+            <span class="tts-size-dot" style="width: 8px; height: 8px;"></span>
+          </button>
+          <button type="button" class="tts-size-btn" data-size="8" title="Kalın Çizgi">
+            <span class="tts-size-dot" style="width: 12px; height: 12px;"></span>
+          </button>
+
+          <div class="tts-dock-separator"></div>
+
+          <!-- Eylemler -->
+          <button type="button" class="tts-tool-btn" id="btnUndo" title="Son Çizgiyi Geri Al (Undo)">
+            <span>↩️</span>
+          </button>
+          <button type="button" class="tts-tool-btn" id="btnClearCanvas" title="Tüm Çizimleri Temizle">
+            <span>🗑️</span>
+          </button>
+          <button type="button" class="tts-tool-btn active" id="btnToggleCanvas" title="Çizimleri Gizle/Göster">
+            <span>👁️</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- YÜZEN SOHBET BUTONU (Sağ Alt) -->
+  <button type="button" class="tts-floating-chat-btn" id="btnToggleChat">
+    <span>💬</span>
+    <span>Sohbet</span>
+    <span class="tts-unread-badge" id="chatUnreadBadge">0</span>
+  </button>
+
+  <!-- P2P CANLI SOHBET ÇEKMECESİ (DRAWER) -->
+  <aside class="tts-chat-panel" id="ttsChatPanel">
+    <div class="tts-chat-header">
+      <div class="tts-chat-title">
+        <span>💬</span>
+        <span>Canlı P2P Sohbet</span>
+      </div>
+      <button type="button" class="tts-chat-close" id="btnCloseChat" aria-label="Sohbeti Kapat">✕</button>
+    </div>
+
+    <!-- Mesaj Akışı -->
+    <div class="tts-chat-messages" id="chatMessages">
+      <div class="tts-msg system">
+        <span>🔒 Sohbet uçtan uca doğrudan bağlıdır, hiçbir sunucuda kaydedilmez.</span>
+      </div>
+    </div>
+
+    <!-- Mesaj Yazma Alanı -->
+    <div class="tts-chat-input-area">
+      <input type="text" class="tts-chat-input" id="chatInput" placeholder="Mesajınızı yazın..." maxlength="500" />
+      <button type="button" class="tts-chat-send" id="chatSendBtn" title="Gönder">➔</button>
+    </div>
+  </aside>
+
+  <!-- Bildirim Kutusu (Toast Container) -->
+  <div class="tts-toast-container" id="toastContainer"></div>
+
+  <!-- Ortak Alt Bilgi (Footer) -->
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>Kerem Çalışkan &copy; 2026 | %100 İstemci Taraflı &amp; Sıfır-Sunucu Web Araçları</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tools Ana Sayfa</a>
+        <a href="./index.html">📺 TimeToShare</a>
+        <a href="../docshield/index.html">🛡️ DocShield</a>
+        <a href="../imagestudio/index.html">🖼️ ImageStudio</a>
+        <a href="../bep/index.html">🎓 MEB BEP</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
