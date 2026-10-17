@@ -130,6 +130,10 @@
         </div>
 
         <div class="tts-stage-actions">
+          <div class="tts-room-pill tts-user-pill" id="userBadge" title="Size atanan çizim rengi">
+            <span class="tts-user-dot" id="userColorDot"></span>
+            <span id="userBadgeText">Sen</span>
+          </div>
           <span class="tts-room-pill" id="peerCountBadge">👥 1 Kişi</span>
           <button type="button" class="tts-btn-secondary" id="btnFullscreen" title="Tam Ekrana Geç">
             <span>⛶</span>
@@ -146,10 +150,19 @@
       <div class="tts-viewport-wrapper" id="ttsViewport">
         <div class="tts-video-container">
           <!-- Canlı Video Akışı -->
-          <video class="tts-video-stream" id="ttsVideo" autoplay playsinline></video>
+          <video class="tts-video-stream" id="ttsVideo" autoplay playsinline webkit-playsinline></video>
           
           <!-- Şeffaf Çizim Katmanı -->
           <canvas class="tts-draw-canvas" id="ttsCanvas"></canvas>
+
+          <!-- Sesi Aç Butonu (Tarayıcı otomatik ses engeline karşı) -->
+          <button type="button" class="tts-unmute-btn" id="btnUnmute">
+            <span>🔊</span>
+            <span>Yayın Sesini Aç</span>
+          </button>
+
+          <!-- Canlı Yayın Sohbet Bindirmesi (Overlay) -->
+          <div class="tts-live-chat-overlay" id="liveChatOverlay"></div>
 
           <!-- Sinyal Yok / Bekleniyor Katmanı -->
           <div class="tts-stream-placeholder" id="ttsPlaceholder">
@@ -158,47 +171,19 @@
           </div>
         </div>
 
-        <!-- Yüzen Çizim Araç Çubuğu (Floating Dock Toolbar) -->
+        <!-- Basitleştirilmiş Yüzen Çizim Araç Çubuğu (2 Kalem: Kalıcı & Geçici) -->
         <div class="tts-floating-dock" id="ttsFloatingDock">
           <!-- Modlar -->
-          <button type="button" class="tts-tool-btn" data-tool="pointer" title="İşaretçi / Pasif Mod (Tıklamalar ekrana geçer)">
+          <button type="button" class="tts-tool-btn" data-tool="pointer" title="🖐️ İşaretçi (Gezinme / Tıklamalar arkaya geçer)">
             <span>🖐️</span>
           </button>
-          <button type="button" class="tts-tool-btn active" data-tool="pen" title="Kalem (Çizim Yap)">
+          <button type="button" class="tts-tool-btn active" data-tool="pen" title="✏️ Kalıcı Kalem (Ekrandan silinmeyen çizim)">
             <span>✏️</span>
+            <span class="tts-dock-label">Kalıcı</span>
           </button>
-          <button type="button" class="tts-tool-btn" data-tool="highlighter" title="Fosforlu Vurgulayıcı">
-            <span>🖍️</span>
-          </button>
-          <button type="button" class="tts-tool-btn" data-tool="laser" title="Lazer İşaretçi (1.2 saniyede kaybolan ışıltılı iz)">
-            <span>🔴</span>
-          </button>
-          <button type="button" class="tts-tool-btn" data-tool="eraser" title="Silgi">
-            <span>🧹</span>
-          </button>
-
-          <div class="tts-dock-separator"></div>
-
-          <!-- Renk Paleti -->
-          <button type="button" class="tts-color-btn active" data-color="#ef4444" style="background: #ef4444;" title="Kırmızı"></button>
-          <button type="button" class="tts-color-btn" data-color="#3b82f6" style="background: #3b82f6;" title="Mavi"></button>
-          <button type="button" class="tts-color-btn" data-color="#10b981" style="background: #10b981;" title="Yeşil"></button>
-          <button type="button" class="tts-color-btn" data-color="#f59e0b" style="background: #f59e0b;" title="Sarı"></button>
-          <button type="button" class="tts-color-btn" data-color="#a855f7" style="background: #a855f7;" title="Mor"></button>
-          <button type="button" class="tts-color-btn" data-color="#00f0ff" style="background: #00f0ff;" title="Cyan / Neon"></button>
-          <button type="button" class="tts-color-btn" data-color="#ffffff" style="background: #ffffff;" title="Beyaz"></button>
-
-          <div class="tts-dock-separator"></div>
-
-          <!-- Kalınlık -->
-          <button type="button" class="tts-size-btn" data-size="2" title="İnce Çizgi">
-            <span class="tts-size-dot" style="width: 4px; height: 4px;"></span>
-          </button>
-          <button type="button" class="tts-size-btn active" data-size="4" title="Orta Çizgi">
-            <span class="tts-size-dot" style="width: 8px; height: 8px;"></span>
-          </button>
-          <button type="button" class="tts-size-btn" data-size="8" title="Kalın Çizgi">
-            <span class="tts-size-dot" style="width: 12px; height: 12px;"></span>
+          <button type="button" class="tts-tool-btn" data-tool="fade" title="✨ Geçici Kalem (2.5 saniyede kendiliğinden kaybolan iz)">
+            <span>✨</span>
+            <span class="tts-dock-label">Geçici</span>
           </button>
 
           <div class="tts-dock-separator"></div>

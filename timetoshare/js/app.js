@@ -7,32 +7,63 @@
   'use strict';
 
   // ==========================================================================
-  // 1. STATE & DEĞİŞKENLER
+  // 1. KULLANICI RENK PALETİ VE DURUM (STATE)
   // ==========================================================================
+  const PALETTE = [
+    '#00f0ff', // Neon Cyan
+    '#ff0055', // Neon Pembe
+    '#00ff66', // Neon Yeşil
+    '#ffcc00', // Parlak Sarı
+    '#b026ff', // Neon Mor
+    '#ff6600', // Canlı Turuncu
+    '#38bdf8', // Açık Mavi
+    '#f43f5e', // Mercan
+  ];
+
+  // Rastgele kullanıcı rengi ata
+  const assignedColor = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+
   const state = {
     peer: null,
     peerId: null,
     roomId: null,
     isHost: false,
-    connections: [],     // P2P Data bağlantıları (Host için birden fazla olabilir)
+    connections: [],     // P2P Data bağlantıları
     mediaCalls: [],      // WebRTC Media Call nesneleri
-    localStream: null,   // Ekran akışı
-    remoteStream: null,  // Katılımcı için gelen akış
+    localStream: null,   // Ekran akışı (Host)
+    remoteStream: null,  // Gelen akış (Katılımcı)
 
-    // Çizim Durumu
-    currentTool: 'pen',  // 'pointer' | 'pen' | 'highlighter' | 'laser' | 'eraser'
-    currentColor: '#ef4444',
+    // Kullanıcı Kimliği
+    userColor: assignedColor,
+    userName: 'Kullanıcı-' + Math.floor(100 + Math.random() * 900),
+
+    // Çizim Durumu: Sadece 2 Kalem (Kalıcı ve Geçici) + Pasif İşaretçi
+    currentTool: 'pen',  // 'pointer' | 'pen' (Kalıcı) | 'fade' (Geçici)
     currentSize: 4,
     isDrawing: false,
     currentStroke: null,
-    strokeHistory: [],
-    activeLasers: [],    // Lazer izleri [{ x, y, timestamp, color }]
+    strokeHistory: [],   // Kalıcı çizgiler
+    fadingStrokes: [],   // Kendiliğinden kaybolan geçici çizgiler
     canvasVisible: true,
 
     // Sohbet Durumu
     isChatOpen: false,
     unreadCount: 0,
-    userName: 'Kullanıcı-' + Math.floor(100 + Math.random() * 900),
+  };
+
+  // Google & Mozilla Açık STUN Sunucuları (Farklı ağlardaki katılımcıların ekranı görebilmesi için)
+  const PEER_CONFIG = {
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
+        { urls: 'stun:stun.services.mozilla.com' },
+      ],
+      sdpSemantics: 'unified-plan',
+    },
   };
 
   // DOM Elemanları
@@ -42,26 +73,28 @@
     btnStartHost: document.getElementById('btnStartHost'),
     btnJoinRoom: document.getElementById('btnJoinRoom'),
     inputRoomCode: document.getElementById('inputRoomCode'),
-    
-    // Sahne
+
+    // Sahne Üstü
     roomCodeDisplay: document.getElementById('roomCodeDisplay'),
     btnCopyLink: document.getElementById('btnCopyLink'),
     peerCountBadge: document.getElementById('peerCountBadge'),
     btnStopStream: document.getElementById('btnStopStream'),
-    btnToggleMic: document.getElementById('btnToggleMic'),
     btnFullscreen: document.getElementById('btnFullscreen'),
-    
+    userBadge: document.getElementById('userBadge'),
+    userColorDot: document.getElementById('userColorDot'),
+    userBadgeText: document.getElementById('userBadgeText'),
+
     // Video & Canvas
     viewportWrapper: document.getElementById('ttsViewport'),
     video: document.getElementById('ttsVideo'),
     canvas: document.getElementById('ttsCanvas'),
     placeholder: document.getElementById('ttsPlaceholder'),
     placeholderText: document.getElementById('ttsPlaceholderText'),
-    
-    // Çizim Araçları
+    btnUnmute: document.getElementById('btnUnmute'),
+    liveChatOverlay: document.getElementById('liveChatOverlay'),
+
+    // Çizim Araçları (Basitleştirilmiş: Kalıcı & Geçici Kalem)
     toolBtns: document.querySelectorAll('[data-tool]'),
-    colorBtns: document.querySelectorAll('[data-color]'),
-    sizeBtns: document.querySelectorAll('[data-size]'),
     btnUndo: document.getElementById('btnUndo'),
     btnClearCanvas: document.getElementById('btnClearCanvas'),
     btnToggleCanvas: document.getElementById('btnToggleCanvas'),
@@ -74,7 +107,7 @@
     chatInput: document.getElementById('chatInput'),
     chatSendBtn: document.getElementById('chatSendBtn'),
     unreadBadge: document.getElementById('chatUnreadBadge'),
-    
+
     // Toast
     toastContainer: document.getElementById('toastContainer'),
   };
@@ -82,7 +115,7 @@
   const ctx = dom.canvas ? dom.canvas.getContext('2d') : null;
 
   // ==========================================================================
-  // 2. YARDIMCI SES VE TOAST SİSTEMİ
+  // 2. YARDIMCI VE SES SİSTEMİ
   // ==========================================================================
   function showToast(message, icon = 'ℹ️', duration = 3000) {
     if (!dom.toastContainer) return;
@@ -97,7 +130,6 @@
     }, duration);
   }
 
-  // Hafif Web Audio API Bildirim Sesi (Harici dosya indirmeden)
   function playNotificationSound() {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -106,21 +138,19 @@
       const osc = actx.createOscillator();
       const gain = actx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, actx.currentTime); // D5
-      osc.frequency.exponentialRampToValueAtTime(880, actx.currentTime + 0.15); // A5
+      osc.frequency.setValueAtTime(587.33, actx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, actx.currentTime + 0.15);
       gain.gain.setValueAtTime(0.08, actx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.25);
       osc.connect(gain);
       gain.connect(actx.destination);
       osc.start();
       osc.stop(actx.currentTime + 0.25);
-    } catch (e) {
-      // Ses engellendiyse sessizce geç
-    }
+    } catch (e) {}
   }
 
   // ==========================================================================
-  // 3. WEBRTC / PEERJS BAĞLANTI MOTORU
+  // 3. WEBRTC / PEERJS MOTORU (GELİŞMİŞ STUN & BAĞLANTI)
   // ==========================================================================
   function generateRoomId() {
     return 'tts-' + Math.random().toString(36).substring(2, 8);
@@ -133,8 +163,7 @@
         return;
       }
 
-      // Ücretsiz açık PeerJS broker bulutu
-      const peer = customId ? new Peer(customId) : new Peer();
+      const peer = customId ? new Peer(customId, PEER_CONFIG) : new Peer(PEER_CONFIG);
 
       peer.on('open', (id) => {
         state.peer = peer;
@@ -143,31 +172,72 @@
       });
 
       peer.on('error', (err) => {
-        console.error('PeerJS Hatası:', err);
-        showToast('Bağlantı hatası: ' + (err.type || err.message), '⚠️');
+        console.warn('PeerJS Durumu/Hatası:', err);
         if (err.type === 'unavailable-id') {
-          showToast('Bu oda kodu zaten kullanımda, lütfen yeni bir oda açın.', '❌');
+          showToast('Bu oda kodu kullanımda, yeni oda açılıyor...', '⚠️');
+        } else if (err.type === 'peer-unavailable') {
+          showToast('Oda bulunamadı veya yayıncı henüz yayında değil.', '❌');
+          if (dom.placeholderText) {
+            dom.placeholderText.textContent = 'Yayıncı bulunamadı. Lütfen oda kodunu kontrol edin.';
+          }
         }
       });
 
-      // Gelen P2P Veri Bağlantısı (DataChannel)
+      // Gelen DataChannel Bağlantısı
       peer.on('connection', (conn) => {
         setupDataConnection(conn);
       });
 
-      // Gelen Canlı Medya Akışı (Katılımcı tarafında video alma)
+      // Gelen Canlı Video Akışı (Katılımcı Ekran Alımı)
       peer.on('call', (call) => {
         call.answer(); // Cevapla
-        call.on('stream', (remoteStream) => {
-          state.remoteStream = remoteStream;
-          dom.video.srcObject = remoteStream;
-          dom.video.play().catch(e => console.log('Oynatma izni:', e));
-          if (dom.placeholder) dom.placeholder.style.display = 'none';
-          showToast('Canlı yayın görüntüsü alındı!', '📺');
-          resizeCanvas();
-        });
+        handleIncomingCall(call);
       });
     });
+  }
+
+  function handleIncomingCall(call) {
+    call.on('stream', (remoteStream) => {
+      attachRemoteStream(remoteStream);
+    });
+
+    // Fallback: WebRTC ontrack olayı
+    if (call.peerConnection) {
+      call.peerConnection.ontrack = (event) => {
+        if (event.streams && event.streams[0]) {
+          attachRemoteStream(event.streams[0]);
+        }
+      };
+    }
+  }
+
+  function attachRemoteStream(stream) {
+    state.remoteStream = stream;
+    dom.video.srcObject = stream;
+    
+    // Tarayıcı otomatik oynatma (autoplay) engeline takılmamak için önce sessiz başlat
+    dom.video.muted = true;
+    
+    const playPromise = dom.video.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        if (dom.placeholder) dom.placeholder.style.display = 'none';
+        showToast('Canlı yayın görüntüsü başarıyla alındı!', '📺');
+        resizeCanvas();
+
+        // Eğer yayında ses parçası varsa "Sesi Aç" butonunu göster
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks && audioTracks.length > 0 && dom.btnUnmute) {
+          dom.btnUnmute.style.display = 'inline-flex';
+        }
+      }).catch((err) => {
+        console.warn('Otomatik oynatma bekliyor:', err);
+        if (dom.btnUnmute) {
+          dom.btnUnmute.style.display = 'inline-flex';
+          dom.btnUnmute.innerHTML = '<span>▶️</span><span>Yayını Başlat</span>';
+        }
+      });
+    }
   }
 
   function setupDataConnection(conn) {
@@ -177,24 +247,27 @@
       }
       updatePeerCount();
 
-      // Eğer biz Host isek ve halihazırda yayın yapıyorsak, yeni gelene yayını ilet
+      // Eğer Host isek ve akış mevcutsa, yeni katılan kişiyi ara ve akışı gönder
       if (state.isHost && state.localStream) {
-        const call = state.peer.call(conn.peer, state.localStream);
-        state.mediaCalls.push(call);
-        // Mevcut çizim geçmişini yeni katılan kullanıcıya gönder
+        callPeerWithStream(conn.peer, state.localStream);
+
+        // Kalıcı çizim geçmişini gönder
         conn.send({
           type: 'sync_history',
           history: state.strokeHistory,
         });
       }
 
-      // Katılım bildirimi
+      // Katılımcı isek Host'a akış talep mesajı at
+      if (!state.isHost) {
+        conn.send({ type: 'request_stream' });
+      }
+
       addChatMessage({
         sender: 'Sistem',
         text: 'Bir katılımcı odaya bağlandı.',
         type: 'system',
       });
-      playNotificationSound();
     });
 
     conn.on('data', (data) => {
@@ -212,7 +285,16 @@
     });
   }
 
-  // Tüm bağlı kullanıcılara veri yayma
+  function callPeerWithStream(targetPeerId, stream) {
+    if (!state.peer || !stream) return;
+    try {
+      const call = state.peer.call(targetPeerId, stream);
+      state.mediaCalls.push(call);
+    } catch (e) {
+      console.warn('Yayın arama hatası:', e);
+    }
+  }
+
   function broadcastData(data) {
     state.connections.forEach((conn) => {
       if (conn.open) {
@@ -240,7 +322,7 @@
       await dom.video.play();
       if (dom.placeholder) dom.placeholder.style.display = 'none';
 
-      // Ekran paylaşımı tarayıcı çubuğundan durdurulursa
+      // Paylaşım çubuğundan durdurulursa
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.onended = () => {
@@ -249,11 +331,10 @@
         };
       }
 
-      // Tüm bağlı katılımcılara çağrı başlat
+      // Tüm bağlı katılımcılara çağrı açarak akışı gönder
       state.connections.forEach((conn) => {
         if (conn.open) {
-          const call = state.peer.call(conn.peer, stream);
-          state.mediaCalls.push(call);
+          callPeerWithStream(conn.peer, stream);
         }
       });
 
@@ -279,13 +360,13 @@
     dom.video.srcObject = null;
     if (dom.placeholder) {
       dom.placeholder.style.display = 'flex';
-      dom.placeholderText.textContent = 'Yayın durduruldu. Yeniden başlatmak için butonu kullanın.';
+      dom.placeholderText.textContent = 'Yayın durduruldu.';
     }
     broadcastData({ type: 'stream_stopped' });
   }
 
   function updatePeerCount() {
-    const count = state.connections.length + 1; // Biz + diğerleri
+    const count = state.connections.length + 1;
     if (dom.peerCountBadge) {
       dom.peerCountBadge.textContent = `👥 ${count} Kişi`;
     }
@@ -294,32 +375,34 @@
   // ==========================================================================
   // 5. ODA YÖNETİMİ & ARAYÜZ GEÇİŞLERİ
   // ==========================================================================
+  function updateUserBadge() {
+    if (dom.userColorDot) dom.userColorDot.style.backgroundColor = state.userColor;
+    if (dom.userBadgeText) dom.userBadgeText.textContent = state.isHost ? 'Yayıncı (Sen)' : 'Sen';
+    if (dom.userBadge) dom.userBadge.style.color = state.userColor;
+  }
+
   async function startHostSession() {
     const roomId = generateRoomId();
     state.roomId = roomId;
     state.isHost = true;
     state.userName = 'Yayıncı';
+    updateUserBadge();
 
     try {
       showToast('Oda başlatılıyor, lütfen bekleyin...', '⏳');
       await initPeer(roomId);
-      
-      // Sahneyi göster
+
       dom.lobby.style.display = 'none';
       dom.stage.style.display = 'flex';
       dom.roomCodeDisplay.textContent = roomId;
 
-      // URL'e oda parametresini ekle (yenilemede kaybolmasın)
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.set('oda', roomId);
       window.history.pushState({}, '', newUrl);
 
-      // Ekran paylaşımını başlat
       const success = await startScreenShare();
-      if (!success) {
-        if (dom.placeholderText) {
-          dom.placeholderText.textContent = 'Ekran paylaşımı bekleniyor. Yukarıdaki "Ekranı Başlat" butonuyla açabilirsiniz.';
-        }
+      if (!success && dom.placeholderText) {
+        dom.placeholderText.textContent = 'Ekran paylaşımı bekleniyor. Sayfayı yenileyerek tekrar başlatabilirsiniz.';
       }
 
       showToast('Oda hazır! Davet linkini kopyalayabilirsiniz.', '🎉', 4000);
@@ -336,27 +419,26 @@
 
     state.roomId = targetRoomId.trim();
     state.isHost = false;
-    state.userName = 'Misafir-' + Math.floor(100 + Math.random() * 900);
+    updateUserBadge();
 
     try {
       showToast('Odaya bağlanılıyor...', '⏳');
-      const peer = await initPeer(); // Rastgele ID ile aç
+      const peer = await initPeer();
 
-      // Sahneyi aç
       dom.lobby.style.display = 'none';
       dom.stage.style.display = 'flex';
       dom.roomCodeDisplay.textContent = state.roomId;
-      if (dom.btnStopStream) dom.btnStopStream.style.display = 'none'; // Katılımcı yayını durduramaz
+      if (dom.btnStopStream) dom.btnStopStream.style.display = 'none';
 
       if (dom.placeholderText) {
-        dom.placeholderText.textContent = 'Yayıncının ekran akışı bekleniyor...';
+        dom.placeholderText.textContent = 'Yayıncının ekran görüntüsü bekleniyor...';
       }
 
-      // Host'a P2P veri bağlantısı kur
+      // Host'a bağlan
       const conn = peer.connect(state.roomId, { reliable: true });
       setupDataConnection(conn);
 
-      showToast('Odaya başarıyla katıldınız!', '✅');
+      showToast('Odaya bağlanıldı!', '✅');
     } catch (err) {
       showToast('Odaya bağlanılamadı: ' + err.message, '❌');
     }
@@ -381,7 +463,7 @@
   }
 
   // ==========================================================================
-  // 6. ÇİZİM & ANNOTATION MOTORU (CANVAS OVERLAY)
+  // 6. ÇİZİM MOTORU (2 KALEM: KALICI & GEÇİCİ / FADING)
   // ==========================================================================
   function resizeCanvas() {
     if (!dom.canvas || !dom.video) return;
@@ -395,7 +477,7 @@
     dom.canvas.style.top = dom.video.offsetTop + 'px';
     dom.canvas.style.left = dom.video.offsetLeft + 'px';
 
-    redrawAllStrokes();
+    redrawCanvas();
   }
 
   function getNormalizedCoords(e) {
@@ -413,26 +495,20 @@
     state.isDrawing = true;
     const coords = getNormalizedCoords(e);
 
-    if (state.currentTool === 'laser') {
-      addLaserPoint(coords.x, coords.y, state.currentColor);
-      broadcastData({
-        type: 'laser',
-        x: coords.x,
-        y: coords.y,
-        color: state.currentColor,
-      });
-      return;
-    }
-
     state.currentStroke = {
-      id: 'stroke-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
-      tool: state.currentTool,
-      color: state.currentTool === 'eraser' ? null : state.currentColor,
-      size: state.currentSize,
+      id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      tool: state.currentTool, // 'pen' (Kalıcı) veya 'fade' (Geçici)
+      color: state.userColor,
+      size: state.currentTool === 'fade' ? 6 : 4,
+      createdAt: performance.now(),
       points: [coords],
     };
 
-    drawSegment(coords, coords, state.currentStroke);
+    if (state.currentTool === 'fade') {
+      state.fadingStrokes.push(state.currentStroke);
+    }
+
+    drawSegment(coords, coords, state.currentStroke, 1);
 
     broadcastData({
       type: 'draw_start',
@@ -441,25 +517,12 @@
   }
 
   function moveDrawing(e) {
-    if (!state.isDrawing || !state.canvasVisible) return;
+    if (!state.isDrawing || !state.canvasVisible || !state.currentStroke) return;
     const coords = getNormalizedCoords(e);
-
-    if (state.currentTool === 'laser') {
-      addLaserPoint(coords.x, coords.y, state.currentColor);
-      broadcastData({
-        type: 'laser',
-        x: coords.x,
-        y: coords.y,
-        color: state.currentColor,
-      });
-      return;
-    }
-
-    if (!state.currentStroke) return;
     const prevPoint = state.currentStroke.points[state.currentStroke.points.length - 1];
     state.currentStroke.points.push(coords);
 
-    drawSegment(prevPoint, coords, state.currentStroke);
+    drawSegment(prevPoint, coords, state.currentStroke, 1);
 
     broadcastData({
       type: 'draw_point',
@@ -471,8 +534,10 @@
   function stopDrawing() {
     if (!state.isDrawing) return;
     state.isDrawing = false;
-    if (state.currentStroke && state.currentTool !== 'laser') {
-      state.strokeHistory.push(state.currentStroke);
+    if (state.currentStroke) {
+      if (state.currentStroke.tool === 'pen') {
+        state.strokeHistory.push(state.currentStroke);
+      }
       broadcastData({
         type: 'draw_end',
         strokeId: state.currentStroke.id,
@@ -481,7 +546,7 @@
     }
   }
 
-  function drawSegment(p1, p2, stroke) {
+  function drawSegment(p1, p2, stroke, alphaMultiplier = 1) {
     if (!ctx || !dom.canvas) return;
     const w = dom.canvas.width;
     const h = dom.canvas.height;
@@ -490,17 +555,16 @@
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    if (stroke.tool === 'eraser') {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = stroke.size * 3;
-    } else if (stroke.tool === 'highlighter') {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = 0.35;
+    if (stroke.tool === 'fade') {
+      // Geçici Kalem: Parlak, ışıldayan neon çizgi
+      ctx.globalAlpha = Math.max(0, 0.9 * alphaMultiplier);
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = stroke.color;
       ctx.strokeStyle = stroke.color;
-      ctx.lineWidth = stroke.size * 3.5;
+      ctx.lineWidth = stroke.size;
     } else {
-      // Kalem
-      ctx.globalCompositeOperation = 'source-over';
+      // Kalıcı Kalem: Net, belirgin çizgi
+      ctx.globalAlpha = Math.max(0, 1 * alphaMultiplier);
       ctx.strokeStyle = stroke.color;
       ctx.lineWidth = stroke.size;
     }
@@ -512,97 +576,107 @@
     ctx.restore();
   }
 
-  function redrawAllStrokes() {
+  function redrawCanvas() {
     if (!ctx || !dom.canvas) return;
     ctx.clearRect(0, 0, dom.canvas.width, dom.canvas.height);
 
     if (!state.canvasVisible) return;
 
+    // 1. Kalıcı Çizgileri Çiz
     state.strokeHistory.forEach((stroke) => {
       for (let i = 1; i < stroke.points.length; i++) {
-        drawSegment(stroke.points[i - 1], stroke.points[i], stroke);
+        drawSegment(stroke.points[i - 1], stroke.points[i], stroke, 1);
+      }
+    });
+
+    // 2. Geçici Çizgileri Kalan Süresine Göre Çiz
+    const now = performance.now();
+    const FADE_DURATION = 2500; // 2.5 saniyede kaybolur
+
+    state.fadingStrokes = state.fadingStrokes.filter((stroke) => {
+      const age = now - stroke.createdAt;
+      return age < FADE_DURATION;
+    });
+
+    state.fadingStrokes.forEach((stroke) => {
+      const age = now - stroke.createdAt;
+      const progress = age / FADE_DURATION; // 0 -> 1
+      const alpha = Math.max(0, 1 - progress);
+
+      for (let i = 1; i < stroke.points.length; i++) {
+        drawSegment(stroke.points[i - 1], stroke.points[i], stroke, alpha);
       }
     });
   }
 
-  // ==========================================================================
-  // 7. LAZER İŞARETÇİ ANİMASYON DÖNGÜSÜ (LASER TRAIL)
-  // ==========================================================================
-  function addLaserPoint(normX, normY, color) {
-    state.activeLasers.push({
-      x: normX,
-      y: normY,
-      color: color || '#00f0ff',
-      timestamp: performance.now(),
-    });
+  // Geçici çizgileri pürüzsüz kaybettiren animasyon döngüsü
+  function animationLoop() {
+    if (state.fadingStrokes.length > 0) {
+      redrawCanvas();
+    }
+    requestAnimationFrame(animationLoop);
   }
 
-  function renderLaserLoop(now) {
-    if (state.activeLasers.length > 0 && ctx && dom.canvas && state.canvasVisible) {
-      const w = dom.canvas.width;
-      const h = dom.canvas.height;
-      const maxAge = 1200; // 1.2 saniyede kaybolur
+  // ==========================================================================
+  // 7. CANLI YAYIN EKRANI SOHBET BİNDİRMESİ (LIVE STREAM OVERLAY CHAT)
+  // ==========================================================================
+  function showLiveChatBubble(msg) {
+    if (!dom.liveChatOverlay) return;
 
-      // Önceki çizimleri bozmadan sadece lazer çizmek için
-      redrawAllStrokes();
+    const bubble = document.createElement('div');
+    bubble.className = 'tts-live-bubble';
+    bubble.style.setProperty('--bubble-color', msg.color || '#6366f1');
+    bubble.innerHTML = `
+      <span class="tts-live-sender" style="color: ${msg.color || '#6366f1'}">${escapeHtml(msg.sender)}:</span>
+      <span>${escapeHtml(msg.text)}</span>
+    `;
 
-      // Eski noktaları temizle
-      state.activeLasers = state.activeLasers.filter(l => now - l.timestamp < maxAge);
+    dom.liveChatOverlay.appendChild(bubble);
 
-      state.activeLasers.forEach((laser) => {
-        const age = now - laser.timestamp;
-        const progress = age / maxAge; // 0 -> 1
-        const alpha = Math.max(0, 1 - progress);
-        const radius = Math.max(3, 10 * (1 - progress * 0.5));
-
-        const px = laser.x * w;
-        const py = laser.y * h;
-
-        ctx.save();
-        ctx.shadowBlur = 14;
-        ctx.shadowColor = laser.color;
-        ctx.fillStyle = laser.color;
-        ctx.globalAlpha = alpha;
-
-        ctx.beginPath();
-        ctx.arc(px, py, radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Ortada beyaz parlama
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(px, py, radius * 0.45, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.restore();
-      });
+    // Ekranda en fazla 4 baloncuk tut
+    while (dom.liveChatOverlay.children.length > 4) {
+      dom.liveChatOverlay.removeChild(dom.liveChatOverlay.firstChild);
     }
 
-    requestAnimationFrame(renderLaserLoop);
+    // 4.5 saniye sonra yumuşakça kaybolsun
+    setTimeout(() => {
+      bubble.classList.add('fade-out');
+      setTimeout(() => bubble.remove(), 400);
+    }, 4500);
   }
 
   // ==========================================================================
-  // 8. GELEN P2P VERİLERİNİN İŞLENMESİ (DATA DISPATCHER)
+  // 8. GELEN P2P VERİLERİNİN İŞLENMESİ
   // ==========================================================================
   const remoteStrokes = {};
 
-  function handleIncomingData(data) {
+  function handleIncomingData(data, conn) {
     switch (data.type) {
+      case 'request_stream':
+        if (state.isHost && state.localStream) {
+          callPeerWithStream(conn.peer, state.localStream);
+        }
+        break;
+
       case 'chat':
         addChatMessage(data);
+        showLiveChatBubble(data);
         if (!state.isChatOpen) {
           state.unreadCount++;
           if (dom.unreadBadge) {
             dom.unreadBadge.style.display = 'inline-block';
             dom.unreadBadge.textContent = state.unreadCount;
           }
-          showToast(`${data.sender}: ${data.text.substring(0, 30)}...`, '💬');
         }
         playNotificationSound();
         break;
 
       case 'draw_start':
         remoteStrokes[data.stroke.id] = data.stroke;
+        if (data.stroke.tool === 'fade') {
+          data.stroke.createdAt = performance.now();
+          state.fadingStrokes.push(data.stroke);
+        }
         break;
 
       case 'draw_point':
@@ -611,36 +685,36 @@
           const prev = s.points[s.points.length - 1];
           s.points.push(data.point);
           if (state.canvasVisible) {
-            drawSegment(prev, data.point, s);
+            drawSegment(prev, data.point, s, 1);
           }
         }
         break;
 
       case 'draw_end':
         if (remoteStrokes[data.strokeId]) {
-          state.strokeHistory.push(remoteStrokes[data.strokeId]);
+          const s = remoteStrokes[data.strokeId];
+          if (s.tool === 'pen') {
+            state.strokeHistory.push(s);
+          }
           delete remoteStrokes[data.strokeId];
         }
         break;
 
       case 'draw_clear':
         state.strokeHistory = [];
-        redrawAllStrokes();
+        state.fadingStrokes = [];
+        redrawCanvas();
         showToast('Çizimler temizlendi.', '🧹');
         break;
 
       case 'draw_undo':
         state.strokeHistory.pop();
-        redrawAllStrokes();
-        break;
-
-      case 'laser':
-        addLaserPoint(data.x, data.y, data.color);
+        redrawCanvas();
         break;
 
       case 'sync_history':
         state.strokeHistory = data.history || [];
-        redrawAllStrokes();
+        redrawCanvas();
         break;
 
       case 'stream_stopped':
@@ -653,7 +727,7 @@
   }
 
   // ==========================================================================
-  // 9. P2P SOHBET YÖNETİMİ
+  // 9. P2P SOHBET VE MOBİL KLAVYE UYUMLULUĞU
   // ==========================================================================
   function sendChatMessage() {
     const text = dom.chatInput.value.trim();
@@ -663,19 +737,21 @@
       type: 'chat',
       id: 'msg-' + Date.now(),
       sender: state.userName,
+      color: state.userColor,
       text: text,
       timestamp: Date.now(),
       isMe: true,
     };
 
     addChatMessage(msg);
+    showLiveChatBubble(msg);
     dom.chatInput.value = '';
 
-    // Karşı taraflara ilet
     broadcastData({
       type: 'chat',
       id: msg.id,
       sender: state.userName,
+      color: state.userColor,
       text: text,
       timestamp: msg.timestamp,
       isMe: false,
@@ -694,7 +770,7 @@
       const timeStr = new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       el.innerHTML = `
         <div class="tts-msg-info">
-          <span>${msg.sender}</span>
+          <span style="font-weight: 700; color: ${msg.color || 'inherit'}">${escapeHtml(msg.sender)}</span>
           <span>•</span>
           <span>${timeStr}</span>
         </div>
@@ -713,10 +789,28 @@
         dom.chatPanel.classList.add('open');
         state.unreadCount = 0;
         if (dom.unreadBadge) dom.unreadBadge.style.display = 'none';
-        setTimeout(() => dom.chatInput && dom.chatInput.focus(), 200);
+        setTimeout(() => dom.chatInput && dom.chatInput.focus(), 250);
       } else {
         dom.chatPanel.classList.remove('open');
+        if (dom.chatInput) dom.chatInput.blur();
       }
+    }
+  }
+
+  // Mobil klavye açıldığında sohbet panelini visualViewport'a sabitle
+  function setupMobileViewportFix() {
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        if (dom.chatPanel && dom.chatPanel.classList.contains('open')) {
+          dom.chatPanel.style.height = `${window.visualViewport.height}px`;
+          dom.chatMessages.scrollTop = dom.chatMessages.scrollHeight;
+        }
+      });
+      window.visualViewport.addEventListener('scroll', () => {
+        if (dom.chatPanel && dom.chatPanel.classList.contains('open')) {
+          dom.chatPanel.style.top = `${window.visualViewport.offsetTop}px`;
+        }
+      });
     }
   }
 
@@ -734,7 +828,7 @@
   // 10. OLAY DİNLEYİCİLERİ VE BAŞLATMA
   // ==========================================================================
   function setupEventListeners() {
-    // Oda Açma & Katılma
+    // Oda Aç & Katıl
     if (dom.btnStartHost) dom.btnStartHost.addEventListener('click', startHostSession);
     if (dom.btnJoinRoom) dom.btnJoinRoom.addEventListener('click', () => joinSession(dom.inputRoomCode.value));
     if (dom.inputRoomCode) {
@@ -756,7 +850,19 @@
       });
     }
 
-    // Çizim Araçları Seçimi
+    // Sesi Aç Butonu (Tarayıcı autoplay kısıtlaması için)
+    if (dom.btnUnmute) {
+      dom.btnUnmute.addEventListener('click', () => {
+        if (dom.video) {
+          dom.video.muted = false;
+          dom.video.play().catch(() => {});
+          dom.btnUnmute.style.display = 'none';
+          showToast('Yayın sesi açıldı.', '🔊');
+        }
+      });
+    }
+
+    // Çizim Araçları (Kalıcı ve Geçici Kalem)
     dom.toolBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         dom.toolBtns.forEach(b => b.classList.remove('active'));
@@ -773,41 +879,24 @@
       });
     });
 
-    // Renk Seçimi
-    dom.colorBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        dom.colorBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.currentColor = btn.dataset.color;
-      });
-    });
-
-    // Kalınlık Seçimi
-    dom.sizeBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        dom.sizeBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.currentSize = parseInt(btn.dataset.size, 10);
-      });
-    });
-
     // Geri Al (Undo)
     if (dom.btnUndo) {
       dom.btnUndo.addEventListener('click', () => {
         if (state.strokeHistory.length > 0) {
           state.strokeHistory.pop();
-          redrawAllStrokes();
+          redrawCanvas();
           broadcastData({ type: 'draw_undo' });
         }
       });
     }
 
-    // Temizle
+    // Tümünü Temizle
     if (dom.btnClearCanvas) {
       dom.btnClearCanvas.addEventListener('click', () => {
         if (confirm('Tüm çizimleri temizlemek istiyor musunuz?')) {
           state.strokeHistory = [];
-          redrawAllStrokes();
+          state.fadingStrokes = [];
+          redrawCanvas();
           broadcastData({ type: 'draw_clear' });
         }
       });
@@ -819,7 +908,7 @@
         state.canvasVisible = !state.canvasVisible;
         dom.btnToggleCanvas.classList.toggle('active', state.canvasVisible);
         dom.btnToggleCanvas.setAttribute('title', state.canvasVisible ? 'Çizimleri Gizle' : 'Çizimleri Göster');
-        redrawAllStrokes();
+        redrawCanvas();
       });
     }
 
@@ -841,7 +930,7 @@
       window.addEventListener('touchend', stopDrawing);
     }
 
-    // Sohbet
+    // Sohbet Butonları
     if (dom.chatToggleBtn) dom.chatToggleBtn.addEventListener('click', () => toggleChat());
     if (dom.chatCloseBtn) dom.chatCloseBtn.addEventListener('click', () => toggleChat(false));
     if (dom.chatSendBtn) dom.chatSendBtn.addEventListener('click', sendChatMessage);
@@ -851,31 +940,31 @@
       });
     }
 
-    // Yeniden boyutlandırma
+    // Boyutlandırma
     window.addEventListener('resize', resizeCanvas);
     document.addEventListener('fullscreenchange', () => setTimeout(resizeCanvas, 200));
 
-    // Video yüklendiğinde canvası ayarla
     if (dom.video) {
       dom.video.addEventListener('loadedmetadata', resizeCanvas);
       dom.video.addEventListener('play', resizeCanvas);
     }
 
-    // ResizeObserver ile video kapsayıcısını dinamik takip et
     if (window.ResizeObserver && dom.viewportWrapper) {
       const ro = new ResizeObserver(() => resizeCanvas());
       ro.observe(dom.viewportWrapper);
     }
+
+    setupMobileViewportFix();
   }
 
   // ==========================================================================
-  // 11. SAYFA YÜKLENME VE BAŞLANGIÇ
+  // 11. BAŞLATMA
   // ==========================================================================
   document.addEventListener('DOMContentLoaded', () => {
+    updateUserBadge();
     setupEventListeners();
-    requestAnimationFrame(renderLaserLoop);
+    requestAnimationFrame(animationLoop);
 
-    // URL'de oda parametresi kontrolü (?oda=xyz veya ?room=xyz)
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('oda') || params.get('room');
     if (roomParam) {
