@@ -85,3 +85,7 @@ Sistemdeki tüm sayfalar aşağıdaki 3 katmanlı hiyerarşiye ve geri dönüş 
 - **Evrensel Koyu/Açık Tema (Dark/Light Mode):** Tüm projeler Koyu (Dark) ve Açık (Light) temayı desteklemeli; kullanıcının seçtiği tema `localStorage` (`workshop_theme`) üzerinden tüm portal ve projeler arasında senkronize çalışmalıdır.
 - **Klavye Kısayolları & Geri Bildirim:** Kaydetme veya birincil işlem gerektiren araçlarda `Ctrl + S` / `Cmd + S` kısayolları, işlemler için bildirimler (toast alerts) ve silme/sıfırlama gibi kritik işlemler için onaylar (confirm) sunulmalıdır.
 - **Belgelendirme:** Her projenin ne işe yaradığını, nasıl kullanıldığını ve canlı erişim bağlantısını (`https://keremcaliskann.github.io/tools/<proje-adi>/`) içeren temiz bir `README.md` dosyası bulunmalıdır.
+
+### 14. Görev Sonu Otomatik Git Dağıtımı (Auto Commit & Push)
+- **Otomatik Dağıtım:** Bir geliştirme, yeni araç veya hata düzeltmesi tamamlanıp doğrulandıktan sonra, geliştirici asistan kullanıcıdan ekstra talep beklemeden değişiklikleri anlamlı ve standart bir commit mesajıyla (Conventional Commits: `feat`, `fix`, `docs`, `refactor` vb.) stage'e almalı (`git add`), commit etmeli (`git commit`) ve doğrudan uzak depoya (`git push origin main`) göndermelidir.
+- **Çalışma Alanı Temizliği:** Her görev bitiminde `git status` temiz olmalı, GitHub Pages üzerindeki canlı sürümün her zaman güncel kalması sağlanmalıdır.
