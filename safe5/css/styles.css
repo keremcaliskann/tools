@@ -56,7 +56,7 @@
   --safe-shadow-lg: 0 20px 35px -4px rgba(15, 23, 42, 0.08);
 }
 
-/* Zorunlu Açık Tema Sıfırlama */
+/* Zorunlu Açık Tema */
 body {
   background-color: var(--safe-bg) !important;
   color: var(--safe-text) !important;
@@ -66,43 +66,140 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ==================== ÜST BAR MOBİL/DESKTOP PROFİL BUTONU ==================== */
-.wp-header-profile-btn {
+/* ==================== YENİ UYGULAMA ÜST BARI (HEADER) ==================== */
+.safe-top-bar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--safe-border);
+  padding: 0.85rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: var(--safe-shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.safe-top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.safe-top-bar-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  box-shadow: var(--safe-shadow-sm);
+}
+
+.safe-top-bar-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--safe-text);
+  line-height: 1.2;
+}
+
+.safe-top-bar-subtitle {
+  font-size: 0.76rem;
+  color: var(--safe-text-muted);
+  font-weight: 500;
+}
+
+.safe-top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.safe-user-badge-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.35rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid var(--safe-border);
-  background: #ffffff;
-  color: var(--safe-text);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--safe-transition);
-  box-shadow: var(--safe-shadow-sm);
-}
-
-.wp-header-profile-btn:hover {
   background: var(--safe-bg-subtle);
-  border-color: var(--safe-primary-border);
+  border: 1px solid var(--safe-border);
+  font-size: 0.84rem;
+  color: var(--safe-text);
 }
 
-.wp-header-avatar {
-  width: 26px;
-  height: 26px;
+.safe-user-avatar {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: linear-gradient(135deg, #10b981, #06b6d4);
   color: #ffffff;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.wp-header-avatar.admin {
+.safe-user-avatar.admin {
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+/* ==================== GİRİŞ EKRANI (LOGIN SCREEN) ==================== */
+.safe-login-view {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+}
+
+.safe-login-card {
+  background: #ffffff;
+  border: 1px solid var(--safe-border);
+  border-radius: var(--safe-radius-lg);
+  padding: 2.5rem 2.25rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--safe-shadow-lg);
+  text-align: center;
+}
+
+.safe-login-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--safe-primary-light);
+  border: 1px solid var(--safe-primary-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1.25rem;
+}
+
+.safe-login-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--safe-text);
+  margin-bottom: 0.35rem;
+}
+
+.safe-login-subtitle {
+  font-size: 0.88rem;
+  color: var(--safe-text-muted);
+  margin-bottom: 1.75rem;
+  line-height: 1.4;
+}
+
+.safe-login-alert {
+  background: var(--safe-indigo-light);
+  border: 1px solid var(--safe-indigo-border);
+  color: var(--safe-indigo);
+  padding: 0.75rem 1rem;
+  border-radius: var(--safe-radius-sm);
+  font-size: 0.82rem;
+  margin-top: 1.5rem;
+  text-align: left;
+  line-height: 1.4;
 }
 
 /* ==================== ANA DÜZEN (SIDEBAR + CONTENT) ==================== */
@@ -116,7 +213,7 @@ body {
 
 /* ==================== YAN NAVBAR (SIDEBAR) ==================== */
 .safe-sidebar {
-  width: 280px;
+  width: 270px;
   background: var(--safe-surface);
   border-right: 1px solid var(--safe-border);
   display: flex;
@@ -129,36 +226,6 @@ body {
   overflow-y: auto;
 }
 
-.safe-sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 0.5rem 0.5rem 1.25rem;
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid var(--safe-border-subtle);
-}
-
-.safe-sidebar-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  box-shadow: var(--safe-shadow-sm);
-}
-
-.safe-brand-title {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--safe-text);
-  line-height: 1.2;
-}
-
-.safe-brand-subtitle {
-  font-size: 0.76rem;
-  color: var(--safe-text-muted);
-  font-weight: 500;
-}
-
-/* Yan Menü Butonları */
 .safe-nav-menu {
   display: flex;
   flex-direction: column;
@@ -253,10 +320,6 @@ body {
   border-radius: var(--safe-radius);
   padding: 0.85rem;
   transition: var(--safe-transition);
-}
-
-.safe-user-card:hover {
-  border-color: var(--safe-primary-border);
 }
 
 .safe-user-top {
@@ -549,40 +612,6 @@ body {
 .safe-cat-label {
   font-size: 0.82rem;
   color: var(--safe-text);
-}
-
-/* Rozet Hapları */
-.safe-badge-pill-list {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.25rem;
-}
-
-.safe-badge-pill {
-  padding: 0.4rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid var(--safe-border);
-  background: #ffffff;
-  font-size: 0.84rem;
-  color: var(--safe-text-secondary);
-  cursor: pointer;
-  transition: var(--safe-transition);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.safe-badge-pill:hover {
-  background: var(--safe-bg-subtle);
-  border-color: var(--safe-text-muted);
-}
-
-.safe-badge-pill.selected {
-  background: var(--safe-amber-light);
-  border-color: var(--safe-amber);
-  color: var(--safe-amber);
-  font-weight: 700;
 }
 
 /* Anonimlik ve Vardiya Seçimi */
@@ -880,10 +909,6 @@ body {
   outline: none;
 }
 
-.safe-card-status-select:focus {
-  border-color: var(--safe-primary);
-}
-
 .safe-status-pill {
   font-size: 0.74rem;
   font-weight: 700;
@@ -1110,7 +1135,32 @@ body {
   margin: 0 auto 1.25rem;
 }
 
-/* ==================== KULLANICI YÖNETİMİ TABLOSU ==================== */
+/* ==================== KULLANICI & ROL YÖNETİMİ ==================== */
+.safe-tabs-bar {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--safe-border);
+  margin-bottom: 1.5rem;
+}
+
+.safe-tab-btn {
+  padding: 0.65rem 1.25rem;
+  border: none;
+  background: transparent;
+  color: var(--safe-text-secondary);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: var(--safe-transition);
+}
+
+.safe-tab-btn.active {
+  color: var(--safe-primary);
+  border-bottom-color: var(--safe-primary);
+  font-weight: 700;
+}
+
 .safe-table-container {
   overflow-x: auto;
   border: 1px solid var(--safe-border);
@@ -1252,18 +1302,19 @@ body {
     position: static;
     border-right: none;
     border-bottom: 1px solid var(--safe-border);
-    padding: 1rem;
+    padding: 0.75rem 1rem;
   }
 
   .safe-nav-menu {
     flex-direction: row;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.35rem;
   }
 
   .safe-nav-item {
     white-space: nowrap;
     width: auto;
+    padding: 0.55rem 0.85rem;
   }
 
   .safe-sidebar-user {
@@ -1280,5 +1331,9 @@ body {
 
   .safe-inline-controls {
     grid-template-columns: 1fr;
+  }
+
+  .safe-top-bar {
+    padding: 0.75rem 1rem;
   }
 }

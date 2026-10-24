@@ -1,58 +1,59 @@
-# 🛡️ Safe5 — Fabrika Çalışan Geri Bildirim & Analitik Paneli
+# 🛡️ Safe5 — Fabrika Çalışan Geri Bildirim & Analitik Sistemi
 
 > **Canlı Erişim:** 👉 **[https://keremcaliskann.github.io/tools/safe5/](https://keremcaliskann.github.io/tools/safe5/)**
 
-**Safe5**, endüstriyel üretim tesisleri, fabrikalar ve atölyeler için geliştirilmiş; çalışanların birbirine 5S, İSG (İş Sağlığı ve Güvenliği), Kaizen ve Takım Ruhu odaklı yapıcı geri bildirimler ilettiği, yetkili yöneticilerin ise bu verileri gerçek zamanlı analiz edebildiği **%100 istemci taraflı (Zero-Backend), ferah ve yumuşak açık renkli (Light-only)** modern bir web uygulamasıdır.
+**Safe5**, endüstriyel üretim tesisleri, fabrikalar ve atölyeler için geliştirilmiş; çalışanların TC ve şifre ile giriş yaptığı, birbirine 5S, İSG (İş Sağlığı ve Güvenliği) ve Kaizen odaklı yapıcı geri bildirimler ilettiği, fabrika yönetiminin ise dinamik roller (RBAC) ve analitik paneller üzerinden süreçleri yönettiği **canlı bulut veritabanı (Firebase Firestore) ve Local-First** destekli tam teşekküllü bir fabrika portalıdır.
 
 ---
 
-## 🌟 Gelişmiş Özellikler & Mimari
+## 🔑 Kullanıcı Girişi & Kimlik Doğrulama (Auth)
 
-### 1. ✍️ Geri Bildirim Ver (Ana Sayfa)
-Uygulama doğrudan geri bildirim formuyla açılır:
-- **Alıcı Seçimi:** Çalışma arkadaşlarını hızlı arama ve seçme.
-- **3 Ana Bildirim Türü:**
-  - 🌟 **Takdir & Teşekkür:** Örnek çalışma, vardiya desteği, özveri.
-  - 💡 **Kaizen & Öneri:** Süreç iyileştirme, zaman tasarrufu, ergonomi.
-  - 🦺 **İSG & Güvenlik:** KKD kullanımı takdiri ve ramak kala uyarısı.
-- **5S Değerleri:** İSG, 5S Tertip & Düzen, Kaizen, Kalite ve Takım Ruhu.
-- **Özel Takdir Rozetleri:** 🏆 Ayın Yıldızı, 🦺 İSG Öncüsü, 💡 Kaizen Ustası, 🤝 Takım Ruhu, ⚙️ Hızlı Çözüm, 🎯 Sıfır Hata.
-- **İsteğe Bağlı Anonimlik:** İsmi gizleyerek yapıcı bildirim gönderme.
-- **💾 Otomatik Taslak (Auto-Draft):** Form alanlarına yazılan açıklamalar yerel hafızaya kaydedilir; sayfa yenilense veya sekme değişse bile veri kaybı yaşanmaz.
-- **🛡️ Çift Tıklama Koruması:** Gönder butonuna tıklandığında mükerrer kayıt oluşmasını engelleyen kilit mekanizması.
-
-### 2. 📬 Geri Bildirimleri İncele (Ayrı Ekran)
-- **Akış Filtreleri:** Tüm Fabrika Akışı, Bana Gelenler, Benim Gönderdiklerim.
-- **Canlı Arama (Focus Loss Korumalı):** Arama kutusuna yazarken odak kaybı olmadan anında hedefe yönelik filtreleme.
-- **👏 Takdir Alkışı (+1 Clap):** Çalışanların panodaki takdirleri ve Kaizen başarılarını alkışlayabileceği sosyal motivasyon butonu.
-- **⚙️ Durum Yönetimi (Action Tracker):** Yetkili kullanıcılar ve Admin bildirim durumunu tek tıkla güncelleyebilir (`⏳ İnceleniyor`, `⚙️ Aksiyon Alındı`, `✅ Tamamlandı`).
-- **🗑️ Bildirim Silme:** Hatalı veya uygunsuz girdileri Admin tarafından temizleme imkanı.
-
-### 3. 📊 Veri Analizi Ekranı (Yetkilendirilmiş Erişim)
-- Yalnızca **"Veri Analizi"** yetkisi verilmiş çalışanlar ve **Admin** tarafından görüntülenebilir.
-- **KPI Sayaçları:** Toplam bildirim, takdir oranı, İSG ve Kaizen sayıları.
-- **Grafikler (Chart.js + Çevrimdışı Native SVG):** Kategori dağılımı (Doughnut), departman performansı (Bar), vardiya dengesi (Polar Area), en çok takdir edilenler panosu.
-- **📥 Excel / CSV İndir:** Tek tıkla Türkçe Excel uyumlu UTF-8 BOM raporu.
-- **💾 JSON Yedekleme & Geri Yükleme:** Fabrika veritabanını dışa aktarma ve içe yükleme.
-
-### 4. 👥 Kullanıcı & Yetki Yönetimi (Sadece Admin)
-- **Kullanıcı Ekleme & Düzenleme:** Personel ekleme, var olan personelin departman, görev, vardiya ve yetkilerini güncelleme.
-- **Kullanıcı Silme:** Ayrılan personeli sistemden çıkarma.
-- **Yetki Yönetimi:**
-  - `Geri Bildirim Yetkisi`: Tüm kullanıcılarda varsayılan olarak açıktır.
-  - `Veri Analizi Yetkisi`: Admin tarafından tek tıkla atanıp kaldırılabilir.
+Sistemde serbest profil seçimi yerine gerçek kimlik doğrulama bulunur:
+- **Giriş Bilgileri:** TC Kimlik No / Sicil No ve Şifre.
+- **👑 Varsayılan İlk Yönetici (Admin) Hesabı:**
+  - **TC / Sicil No:** `11111111111`
+  - **Şifre:** `admin`
+  - *(Giriş yaptıktan sonra şifre düzenlenebilir veya yeni yöneticiler/kullanıcılar eklenebilir)*
 
 ---
 
-## 🧭 Yan Navigasyon (Sidebar) & Mobil Üst Bar
+## 🛡️ Dinamik Rol Tabanlı Yetkilendirme (RBAC)
 
-- **Masaüstü & Mobil Senkron:** Üst bardaki profil rozetiyle hem masaüstünde hem mobilde aktif kullanıcı bilgisi ve tek tıkla profil geçişi.
-- ✍️ **Geri Bildirim Ver** *(Ana Sayfa)*
-- 📬 **Geri Bildirimler** *(Akış, arama ve durum güncelleme)*
-- 📊 **Veri Analizi** *(Sadece analiz yetkilileri ve Admin)*
-- 👥 **Kullanıcı Yönetimi** *(Sadece Admin)*
+Kullanıcıların yetkileri kişilere tek tek değil, **rollerine** bağlıdır:
+1. **Roller & Yetki Matrisi:**
+   - 👑 **Yönetici (Admin):** Tüm yetkilere sahiptir.
+   - 👷 **Çalışan (Operatör):** Geri bildirim verir ve panoyu izler.
+   - 📋 **Hat Lideri / Formen:** Geri bildirim verir ve Kaizen/İSG aksiyon durumlarını yönetir.
+   - 🦺 **İSG & Kalite Sorumlusu:** Veri analizi grafiklerini izler ve aksiyonları yönetir.
+2. **Anlık Senkron Yetki Güncellemesi:**
+   - Yönetici bir rolün yetkilerini güncellediğinde (örneğin "Çalışan" rolüne "Veri Analizi" yetkisi verdiğinde), **bu roldeki tüm çalışanların yetkileri anında güncellenir.**
+3. **Rol Bazlı Ekran İzolasyonu:**
+   - Kullanıcı giriş yaptığında sadece sahip olduğu rolün izin verdiği ekranları görür. Yetkisiz menüler ve sekmeler tamamen gizlenir.
+
+---
+
+## ☁️ Canlı Bulut Veritabanı (Firebase Firestore)
+
+Fabrikadaki farklı telefonlar, tabletler ve bilgisayarların aynı verileri eşzamanlı görmesi için canlı bulut veritabanı entegrasyonu sunulur:
+- **Çok Cihazlı Gerçek Zamanlı Senkron:** Sahadaki bir operatörün telefonundan girdiği geri bildirim, hat liderinin veya amirin ekranında saniyeler içinde belirir.
+- **Local-First Fallback:** Firebase henüz bağlanmamışsa veya fabrika ağında internet kesilirse sistem sıfır kesintiyle yerel bellekte (`localStorage`) çalışmaya devam eder.
+- **Admin Bulut Ayarları:** Yönetici panelindeki "Bulut Veritabanı" sekmesinden Firebase Config JSON kodu yapıştırılarak 1 dakikada canlı buluta geçilebilir.
+
+---
+
+## 🧭 Ekranlar & Akış
+
+1. 🔐 **Giriş Portalı:** TC ve şifre ile güvenli oturum açma.
+2. ✍️ **Geri Bildirim Ver (Ana Sayfa):**
+   - Çalışma arkadaşı seçimi, bildirim türü (Takdir, Kaizen, İSG), 5S ilkesi, mesaj, vardiya ve anonimlik seçenekleri.
+3. 📬 **Geri Bildirimler Panosu:**
+   - Odak kaybı olmadan anlık arama, filtreleme, alkışlama (👏) ve Kaizen/İSG durum yönetimi (`İnceleniyor` ➔ `Aksiyon Alındı` ➔ `Tamamlandı`).
+4. 📊 **Veri Analizi (Yetkili Roller):**
+   - Kategori dağılımı (Doughnut), departman yoğunluğu (Bar), vardiya dengesi (Polar Area), liderlik listesi ve CSV/JSON dışa aktarma.
+5. 👥 **Kullanıcı & Rol Yönetimi (Admin):**
+   - Çalışan ekleme, düzenleme, silme ve dinamik rol yetki matrisi.
 
 ---
 
 ## 📄 Lisans
-Bu proje Kerem Çalışkan tarafından açık kaynak felsefesiyle geliştirilmiştir. Tamamen ücretsiz, güvenli ve istemci taraflıdır.
+Bu proje Kerem Çalışkan tarafından açık kaynak felsefesiyle geliştirilmiştir. Tamamen ücretsiz, güvenli ve modülerdir.
