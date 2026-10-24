@@ -301,6 +301,13 @@ body {
   border: 1px solid var(--safe-indigo-border);
 }
 
+.safe-nav-pill.live {
+  background: var(--safe-primary-light);
+  color: var(--safe-primary);
+  border: 1px solid var(--safe-primary-border);
+  font-weight: 700;
+}
+
 .safe-nav-count {
   font-size: 0.72rem;
   font-weight: 700;

@@ -85,6 +85,17 @@
     { id: 'SH-4', name: 'Genel Mesai (08:30 - 17:30)', startTime: '08:30', endTime: '17:30' }
   ];
 
+  // ==================== VARSAYILAN CANLI FIREBASE YAPILANDIRMASI ====================
+  const DEFAULT_FIREBASE_CONFIG = {
+    apiKey: "AIzaSyCtQrPHZBTn4BYv9zlVmHBCL-Jfuh4OW7M",
+    authDomain: "safe5-fd693.firebaseapp.com",
+    projectId: "safe5-fd693",
+    storageBucket: "safe5-fd693.firebasestorage.app",
+    messagingSenderId: "1085012535590",
+    appId: "1:1085012535590:web:cd43efac4038eb1da139e7",
+    measurementId: "G-JN9M21MPCL"
+  };
+
   // ==================== UYGULAMA DURUMU (STATE) ====================
   const state = {
     currentUser: null,
@@ -93,7 +104,7 @@
     departments: [],
     shifts: [],
     feedbacks: [],
-    firebaseConfig: null,
+    firebaseConfig: DEFAULT_FIREBASE_CONFIG,
     firestoreDb: null,
     activeTab: 'give-feedback', // 'give-feedback', 'view-feedbacks', 'analytics', 'management', 'cloud-settings'
     activeMgmtTab: 'users', // 'users', 'roles', 'departments', 'shifts'
@@ -123,7 +134,15 @@
       state.feedbacks = storedFeedbacks ? JSON.parse(storedFeedbacks) : [];
 
       if (storedFbConfig) {
-        state.firebaseConfig = JSON.parse(storedFbConfig);
+        try {
+          const parsed = JSON.parse(storedFbConfig);
+          state.firebaseConfig = (parsed && parsed.projectId) ? parsed : DEFAULT_FIREBASE_CONFIG;
+        } catch (e) {
+          state.firebaseConfig = DEFAULT_FIREBASE_CONFIG;
+        }
+      } else {
+        state.firebaseConfig = DEFAULT_FIREBASE_CONFIG;
+        localStorage.setItem(STORAGE_KEYS.FIREBASE_CONFIG, JSON.stringify(DEFAULT_FIREBASE_CONFIG));
       }
 
       if (storedAuth) {
@@ -198,41 +217,54 @@
   function initFirebaseIfConfigured() {
     if (!state.firebaseConfig || !window.firebase) return;
     try {
-      if (!window.firebase.apps.length) {
+      if (!window.firebase.apps || !window.firebase.apps.length) {
         window.firebase.initializeApp(state.firebaseConfig);
       }
       state.firestoreDb = window.firebase.firestore();
-      console.log('[Safe5] Firebase Firestore canlı bulut veritabanına bağlandı.');
+      console.log('[Safe5] Firebase Firestore canlı bulut veritabanına bağlandı:', state.firebaseConfig.projectId);
 
       listenToCloud('feedbacks', (data) => {
         if (Array.isArray(data)) {
           state.feedbacks = data;
           localStorage.setItem(STORAGE_KEYS.FEEDBACKS, JSON.stringify(data));
           if (state.activeTab === 'view-feedbacks') updateFeedListOnly();
+          if (state.activeTab === 'analytics') renderApp();
         }
       });
       listenToCloud('users', (data) => {
         if (Array.isArray(data)) {
+          const hasAdmin = data.some((u) => u.tc === 'admin');
+          if (!hasAdmin && DEFAULT_USERS[0]) {
+            data.unshift(DEFAULT_USERS[0]);
+          }
           state.users = data;
           localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(data));
+          if (state.currentUser) {
+            const fresh = state.users.find((u) => u.tc === state.currentUser.tc);
+            if (fresh) state.currentUser = fresh;
+          }
+          if (state.activeTab === 'management' && state.activeMgmtTab === 'users') renderApp();
         }
       });
       listenToCloud('roles', (data) => {
         if (Array.isArray(data)) {
           state.roles = data;
           localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(data));
+          if (state.activeTab === 'management' && state.activeMgmtTab === 'roles') renderApp();
         }
       });
       listenToCloud('departments', (data) => {
         if (Array.isArray(data)) {
           state.departments = data;
           localStorage.setItem(STORAGE_KEYS.DEPARTMENTS, JSON.stringify(data));
+          if (state.activeTab === 'give-feedback' || (state.activeTab === 'management' && state.activeMgmtTab === 'departments')) renderApp();
         }
       });
       listenToCloud('shifts', (data) => {
         if (Array.isArray(data)) {
           state.shifts = data;
           localStorage.setItem(STORAGE_KEYS.SHIFTS, JSON.stringify(data));
+          if (state.activeTab === 'give-feedback' || (state.activeTab === 'management' && state.activeMgmtTab === 'shifts')) renderApp();
         }
       });
     } catch (err) {
@@ -246,20 +278,35 @@
       state.firestoreDb.collection('safe5_data').doc(collectionName).set({
         list: dataArray,
         updatedAt: new Date().toISOString()
-      }).catch((e) => console.warn('Bulut senkronizasyon hatası:', e));
-    } catch (e) {}
+      }).catch((e) => console.warn(`[Safe5] Firestore '${collectionName}' bulut yazma uyarısı:`, e.message));
+    } catch (e) {
+      console.warn('[Safe5] syncToCloud istisnası:', e);
+    }
   }
 
   function listenToCloud(collectionName, onUpdate) {
     if (!state.firestoreDb) return;
     try {
-      state.firestoreDb.collection('safe5_data').doc(collectionName).onSnapshot((doc) => {
-        if (doc && doc.exists) {
-          const data = doc.data();
-          if (data && Array.isArray(data.list)) onUpdate(data.list);
+      const docRef = state.firestoreDb.collection('safe5_data').doc(collectionName);
+      docRef.onSnapshot(
+        (doc) => {
+          if (doc && doc.exists) {
+            const data = doc.data();
+            if (data && Array.isArray(data.list)) onUpdate(data.list);
+          } else {
+            // Belge Firestore üzerinde henüz yoksa yerel veriyi başlangıç olarak buluta yükle
+            if (state[collectionName] && state[collectionName].length > 0) {
+              syncToCloud(collectionName, state[collectionName]);
+            }
+          }
+        },
+        (error) => {
+          console.warn(`[Safe5] Firestore '${collectionName}' dinleme/yetki uyarısı:`, error.message);
         }
-      });
-    } catch (e) {}
+      );
+    } catch (e) {
+      console.warn('[Safe5] listenToCloud istisnası:', e);
+    }
   }
 
   // ==================== BİLDİRİM TOAST ====================
@@ -984,7 +1031,7 @@
                 <span class="safe-nav-icon">☁️</span>
                 <span class="safe-nav-text">Bulut (Firebase)</span>
               </div>
-              <span class="safe-nav-pill ${state.firestoreDb ? 'admin' : ''}">
+              <span class="safe-nav-pill ${state.firestoreDb ? 'live' : ''}">
                 ${state.firestoreDb ? '● Canlı' : 'Bağla'}
               </span>
             </button>
@@ -1936,6 +1983,33 @@
     `;
   }
 
+  // ==================== FIREBASE YAPILANDIRMA PARSERI ====================
+  function parseFirebaseConfigInput(rawStr) {
+    if (!rawStr) throw new Error('Boş metin');
+    let str = rawStr.trim();
+    // Yorum satırlarını temizle (// ... veya /* ... */)
+    str = str.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1').trim();
+    // Süslü parantez arasını bul
+    const match = str.match(/\{[\s\S]*\}/);
+    if (match) {
+      str = match[0];
+    }
+    // Önce standart JSON.parse dene
+    try {
+      return JSON.parse(str);
+    } catch (e) {
+      // JavaScript nesnesi biçimindeyse güvenli Function ile parse et
+      try {
+        const fn = new Function(`return (${str});`);
+        const result = fn();
+        if (result && typeof result === 'object' && result.apiKey) {
+          return result;
+        }
+      } catch (err2) {}
+      throw e;
+    }
+  }
+
   // ==================== EKRAN 5: BULUT VERİTABANI (FIREBASE) ====================
   function renderCloudSettingsScreen() {
     const isConnected = Boolean(state.firestoreDb);
@@ -1947,45 +2021,72 @@
         </span>
         <h1 class="safe-page-title">Canlı Bulut Veritabanı (Firebase Firestore)</h1>
         <p class="safe-page-subtitle">
-          Fabrikadaki tüm telefon, tablet ve bilgisayarların aynı verileri anlık olarak görmesi için Firebase Firestore bağlantısını yapılandırın.
+          Fabrikadaki tüm telefon, tablet ve bilgisayarların aynı verileri anlık olarak görmesi için Firebase Firestore veritabanına doğrudan bağlıdır.
         </p>
       </div>
 
-      <div class="safe-card" style="max-width: 780px;">
-        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem;">
-          <div style="width:14px; height:14px; border-radius:50%; background:${isConnected ? '#10b981' : '#f59e0b'};"></div>
-          <span style="font-weight:700; color:var(--safe-text);">
-            Durum: ${isConnected ? 'Firebase Firestore Canlı Veritabanına Bağlı (Tüm cihazlar senkron)' : 'Yerel Modda Çalışıyor (LocalStorage)'}
-          </span>
+      <div class="safe-card" style="max-width: 820px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.75rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div style="width:14px; height:14px; border-radius:50%; background:${isConnected ? '#10b981' : '#f59e0b'};"></div>
+            <div>
+              <div style="font-weight:700; color:var(--safe-text); font-size:1rem;">
+                Durum: ${isConnected ? '🟢 Firebase Firestore Canlı Veritabanına Bağlı' : '🟡 Yerel Modda Çalışıyor (LocalStorage)'}
+              </div>
+              <div style="font-size:0.82rem; color:var(--safe-text-muted);">
+                ${state.firebaseConfig ? `Aktif Proje ID: <b>${state.firebaseConfig.projectId}</b>` : 'Yapılandırma girilmedi'}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button type="button" class="safe-btn safe-btn-sm safe-btn-outline" id="btnResetDefaultCloud">
+              <span>🔄 Varsayılan Projeye Bağlan (safe5-fd693)</span>
+            </button>
+          </div>
         </div>
 
         <form id="formCloudConfig">
           <div class="safe-form-group">
-            <label class="safe-label">Firebase Yapılandırma JSON (firebaseConfig)</label>
-            <textarea class="safe-textarea" id="inputFirebaseJson" style="font-family:monospace; font-size:0.85rem; min-height:160px;" placeholder='{
-  "apiKey": "AIzaSy...",
-  "authDomain": "fabrika-safe5.firebaseapp.com",
-  "projectId": "fabrika-safe5",
-  "storageBucket": "fabrika-safe5.appspot.com",
-  "messagingSenderId": "123456789",
-  "appId": "1:123456789:web:abcdef"
-}'>${state.firebaseConfig ? JSON.stringify(state.firebaseConfig, null, 2) : ''}</textarea>
+            <label class="safe-label">Firebase Yapılandırma Kodu (firebaseConfig)</label>
+            <textarea class="safe-textarea" id="inputFirebaseJson" style="font-family:monospace; font-size:0.82rem; min-height:170px;" placeholder='// Firebase Console kodunu olduğu gibi yapıştırabilirsiniz'>${state.firebaseConfig ? JSON.stringify(state.firebaseConfig, null, 2) : ''}</textarea>
             <div style="font-size:0.78rem; color:var(--safe-text-muted); margin-top:0.4rem;">
-              Firebase konsolundan (firebase.google.com) aldığınız ücretsiz Web App yapılandırma kodunu buraya yapıştırın.
+              Firebase konsolundan (firebase.google.com) kopyaladığınız JS veya JSON kodunu doğrudan yapıştırabilirsiniz. Sistem otomatik algılar.
             </div>
           </div>
 
-          <div style="display:flex; gap:0.75rem;">
+          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
             <button type="submit" class="safe-btn safe-btn-primary">
-              <span>Bağlan &amp; Canlıya Al</span>
+              <span>💾 Kaydet &amp; Canlıya Bağlan</span>
             </button>
             ${state.firebaseConfig ? `
               <button type="button" class="safe-btn safe-btn-outline" id="btnDisconnectCloud" style="color:var(--safe-rose);">
-                <span>Bağlantıyı Kes</span>
+                <span>🔌 Bulut Bağlantısını Kes (Yerel Mod)</span>
               </button>
             ` : ''}
           </div>
         </form>
+
+        <div style="margin-top:1.5rem; padding:1rem; border-radius:8px; background:var(--safe-bg-subtle); border:1px solid var(--safe-border);">
+          <div style="font-weight:700; color:var(--safe-text); font-size:0.88rem; margin-bottom:0.4rem;">
+            💡 Firebase Konsolu Firestore Kuralları (Rules) Rehberi
+          </div>
+          <div style="font-size:0.82rem; color:var(--safe-text-secondary); line-height:1.5;">
+            Firebase projenizin farklı telefon ve bilgisayarlar arasında sorunsuz veri yazıp okuyabilmesi için:
+            <ol style="margin:0.5rem 0 0.5rem 1.25rem;">
+              <li><b>Firebase Console</b> (<a href="https://console.firebase.google.com/" target="_blank" rel="noopener">console.firebase.google.com</a>) açın.</li>
+              <li><b>safe5-fd693</b> projesine girip soldan <b>Firestore Database</b> menüsüne tıklayın (Henüz veritabanı yoksa <i>Create Database</i> diyerek başlatın).</li>
+              <li>Üstteki <b>Kurallar (Rules)</b> sekmesine gelin ve aşağıdaki gibi herkese açık okuma/yazma izni verip <b>Yayınla (Publish)</b> butonuna basın:</li>
+            </ol>
+            <pre style="background:var(--safe-card-bg); padding:0.6rem 0.8rem; border-radius:6px; border:1px solid var(--safe-border); font-size:0.78rem; overflow-x:auto; margin:0.4rem 0;">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -2336,24 +2437,35 @@
     if (formCloud) {
       formCloud.onsubmit = (e) => {
         e.preventDefault();
-        const jsonStr = document.getElementById('inputFirebaseJson').value.trim();
+        const rawInput = document.getElementById('inputFirebaseJson').value.trim();
         try {
-          const parsed = JSON.parse(jsonStr);
+          const parsed = parseFirebaseConfigInput(rawInput);
           state.firebaseConfig = parsed;
           localStorage.setItem(STORAGE_KEYS.FIREBASE_CONFIG, JSON.stringify(parsed));
           initFirebaseIfConfigured();
-          showToast('Firebase yapılandırması kaydedildi ve bulut senkronizasyonu başlatıldı!', 'success');
+          showToast('Firebase canlı bulut veritabanına başarıyla bağlandı!', 'success');
           renderUI();
         } catch (err) {
-          showToast('Geçersiz JSON formatı.', 'warning');
+          showToast('Geçersiz yapılandırma kodu. Lütfen kontrol edin.', 'warning');
         }
+      };
+    }
+
+    const btnResetCloud = document.getElementById('btnResetDefaultCloud');
+    if (btnResetCloud) {
+      btnResetCloud.onclick = () => {
+        state.firebaseConfig = DEFAULT_FIREBASE_CONFIG;
+        localStorage.setItem(STORAGE_KEYS.FIREBASE_CONFIG, JSON.stringify(DEFAULT_FIREBASE_CONFIG));
+        initFirebaseIfConfigured();
+        showToast('Varsayılan Firebase projesine (safe5-fd693) bağlandı!', 'success');
+        renderUI();
       };
     }
 
     const btnDisconnect = document.getElementById('btnDisconnectCloud');
     if (btnDisconnect) {
       btnDisconnect.onclick = () => {
-        if (confirm('Bulut bağlantısını kesmek istediğinize emin misiniz?')) {
+        if (confirm('Bulut bağlantısını kesmek ve yerel moda (çevrimdışı) geçmek istediğinize emin misiniz?')) {
           state.firebaseConfig = null;
           state.firestoreDb = null;
           localStorage.removeItem(STORAGE_KEYS.FIREBASE_CONFIG);

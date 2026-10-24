@@ -42,12 +42,13 @@ Kullanıcıların yetkileri kişilere tek tek değil, **dinamik rollere** bağl�
 
 ---
 
-## ☁️ Canlı Bulut Veritabanı (Firebase Firestore)
+## ☁️ Canlı Bulut Veritabanı (Firebase Firestore — `safe5-fd693`)
 
-Fabrikadaki farklı telefonlar, tabletler ve bilgisayarların aynı verileri eşzamanlı görmesi için canlı bulut veritabanı entegrasyonu sunulur:
-- **Çok Cihazlı Gerçek Zamanlı Senkron:** Sahadaki bir operatörün telefonundan girdiği geri bildirim, hat liderinin veya amirin ekranında saniyeler içinde belirir.
-- **Local-First Fallback:** Firebase henüz bağlanmamışsa veya fabrika ağında internet kesilirse sistem sıfır kesintiyle yerel bellekte (`localStorage`) çalışmaya devam eder.
-- **Admin Bulut Ayarları:** Yönetici panelindeki "Bulut Veritabanı" sekmesinden Firebase Config JSON kodu yapıştırılarak 1 dakikada canlı buluta geçilebilir.
+Fabrikadaki farklı telefonlar, tabletler ve bilgisayarların aynı verileri eşzamanlı görmesi için **Firebase Firestore** canlı veritabanı sisteme kalıcı olarak bağlanmıştır:
+- **Otomatik Bağlantı:** Uygulama açıldığı anda `safe5-fd693` Firebase projesine bağlanır; kullanıcıların veya yöneticilerin ekstra bir kod girmesine gerek yoktur.
+- **Çok Cihazlı Gerçek Zamanlı Senkron:** Sahadaki bir operatörün telefonundan girdiği geri bildirim, hat liderinin veya amirin ekranında anında canlı olarak belirir.
+- **Local-First Fallback:** İnternet kesintisi durumunda sistem sıfır kesintiyle yerel bellekte (`localStorage`) çalışmaya devam eder; bağlantı geldiğinde bulutla eşitlenir.
+- **Firestore Güvenlik Kuralları:** Firebase Konsolunda (`Firestore Database > Rules`) test veya izinli erişim kuralının (`allow read, write: if true;`) açık olduğundan emin olunmalıdır.
 
 ---
 
