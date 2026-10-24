@@ -42,11 +42,18 @@
         </span>
       </nav>
 
-      <div class="wp-header-actions">
+      <div class="wp-header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
         <div class="wp-trust-pill" style="background: rgba(5, 150, 105, 0.1); color: #059669; border: 1px solid rgba(5, 150, 105, 0.25);" title="Tüm veriler tarayıcınızın yerel hafızasında saklanır, hiçbir harici sunucuya iletilmez.">
           <span>🔒</span>
-          <span>%100 İstemci Taraflı • Sıfır Sunucu</span>
+          <span>%100 İstemci Taraflı</span>
         </div>
+
+        <!-- Aktif Kullanıcı & Mobil/Masaüstü Profil Değiştirici -->
+        <button type="button" class="wp-header-profile-btn" id="btnHeaderProfile" title="Aktif Kullanıcı / Profil Değiştir">
+          <span class="wp-header-avatar" id="headerAvatar">KY</span>
+          <span id="headerUserName" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kemal Yönetici</span>
+          <span style="font-size:0.75rem; color:#94a3b8;">▾</span>
+        </button>
       </div>
     </div>
   </header>

@@ -66,6 +66,45 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ==================== ÜST BAR MOBİL/DESKTOP PROFİL BUTONU ==================== */
+.wp-header-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--safe-border);
+  background: #ffffff;
+  color: var(--safe-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--safe-transition);
+  box-shadow: var(--safe-shadow-sm);
+}
+
+.wp-header-profile-btn:hover {
+  background: var(--safe-bg-subtle);
+  border-color: var(--safe-primary-border);
+}
+
+.wp-header-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #06b6d4);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wp-header-avatar.admin {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
 /* ==================== ANA DÜZEN (SIDEBAR + CONTENT) ==================== */
 .safe-app-layout {
   display: flex;
@@ -586,13 +625,19 @@ body {
   line-height: 1.2;
 }
 
+.safe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 .safe-btn-primary {
   background: var(--safe-primary);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
 }
 
-.safe-btn-primary:hover {
+.safe-btn-primary:hover:not(:disabled) {
   background: var(--safe-primary-hover);
   transform: translateY(-1px);
 }
@@ -603,7 +648,7 @@ body {
   border-color: var(--safe-border);
 }
 
-.safe-btn-outline:hover {
+.safe-btn-outline:hover:not(:disabled) {
   background: var(--safe-bg-subtle);
   border-color: var(--safe-text-muted);
 }
@@ -614,7 +659,7 @@ body {
   border: 1px solid var(--safe-border);
 }
 
-.safe-btn-secondary:hover {
+.safe-btn-secondary:hover:not(:disabled) {
   background: var(--safe-border);
 }
 
@@ -624,7 +669,7 @@ body {
   border: 1px solid var(--safe-rose-border);
 }
 
-.safe-btn-danger:hover {
+.safe-btn-danger:hover:not(:disabled) {
   background: #ffe4e6;
 }
 
@@ -694,7 +739,6 @@ body {
 .safe-feed-card:hover {
   border-color: var(--safe-primary-border);
   box-shadow: var(--safe-shadow);
-  transform: translateY(-1px);
 }
 
 .safe-feed-card-header {
@@ -781,10 +825,63 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--safe-text-muted);
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.safe-feed-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Sosyal Alkış / Kudos Beğeni Butonu */
+.safe-clap-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--safe-border);
+  background: #ffffff;
+  color: var(--safe-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--safe-transition);
+}
+
+.safe-clap-btn:hover {
+  background: var(--safe-primary-light);
+  border-color: var(--safe-primary-border);
+  color: var(--safe-primary);
+  transform: scale(1.05);
+}
+
+.safe-clap-btn.active {
+  background: var(--safe-primary-light);
+  border-color: var(--safe-primary);
+  color: var(--safe-primary);
+  font-weight: 700;
+}
+
+/* Kart Üzerinde Durum Güncelleme Select */
+.safe-card-status-select {
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--safe-border);
+  background: var(--safe-bg-subtle);
+  font-size: 0.78rem;
+  color: var(--safe-text);
+  cursor: pointer;
+  outline: none;
+}
+
+.safe-card-status-select:focus {
+  border-color: var(--safe-primary);
 }
 
 .safe-status-pill {
@@ -900,6 +997,52 @@ body {
   height: 270px;
   position: relative;
   margin-top: 1rem;
+}
+
+/* Çevrimdışı SVG Grafikler */
+.safe-svg-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.85rem;
+  height: 100%;
+  padding: 1rem 0 0.5rem;
+  border-bottom: 1px solid var(--safe-border);
+}
+
+.safe-svg-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+.safe-svg-bar-fill {
+  width: 100%;
+  max-width: 36px;
+  border-radius: 6px 6px 0 0;
+  background: var(--safe-primary);
+  min-height: 4px;
+  transition: height 0.4s ease;
+}
+
+.safe-svg-bar-val {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--safe-text);
+  margin-bottom: 0.25rem;
+}
+
+.safe-svg-bar-label {
+  font-size: 0.72rem;
+  color: var(--safe-text-muted);
+  margin-top: 0.4rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 /* Liderlik Listesi */
@@ -1124,7 +1267,7 @@ body {
   }
 
   .safe-sidebar-user {
-    display: none; /* Mobilde üst bar veya alt tarafa alınabilir */
+    display: none;
   }
 
   .safe-main-content {

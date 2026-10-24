@@ -1,7 +1,7 @@
 /**
  * Safe5 — Fabrika Geri Bildirim & Analitik Paneli
  * %100 İstemci Taraflı (Zero-Backend) & Local-First Veri Mimarisi
- * Açık Renk (Light Only), Yumuşak Tasarım ve Yetki Yönetim Mimarisi
+ * Açık Renk (Light Only), Yumuşak Tasarım, Durum Yönetimi ve Yetkilendirme
  */
 
 (function () {
@@ -18,7 +18,8 @@
   const STORAGE_KEYS = {
     EMPLOYEES: 'safe5_employees_v2',
     FEEDBACKS: 'safe5_feedbacks_v2',
-    SESSION: 'safe5_session_v2'
+    SESSION: 'safe5_session_v2',
+    DRAFT: 'safe5_feedback_draft_v2'
   };
 
   // ==================== VARSAYILAN KULLANICILAR & ROLLER ====================
@@ -130,6 +131,8 @@
       shift: '1. Vardiya',
       isAnonymous: false,
       status: 'resolved',
+      likes: 4,
+      likedBy: ['EMP-101', 'EMP-102', 'EMP-104', 'ADMIN-01'],
       createdAt: new Date(Date.now() - 3600000 * 4).toISOString()
     },
     {
@@ -145,6 +148,8 @@
       shift: '2. Vardiya',
       isAnonymous: false,
       status: 'resolved',
+      likes: 6,
+      likedBy: ['EMP-101', 'EMP-104', 'EMP-105', 'EMP-108', 'ADMIN-01'],
       createdAt: new Date(Date.now() - 3600000 * 18).toISOString()
     },
     {
@@ -160,6 +165,8 @@
       shift: '1. Vardiya',
       isAnonymous: false,
       status: 'in_progress',
+      likes: 3,
+      likedBy: ['EMP-108', 'EMP-101'],
       createdAt: new Date(Date.now() - 3600000 * 32).toISOString()
     },
     {
@@ -175,6 +182,8 @@
       shift: '3. Vardiya',
       isAnonymous: true,
       status: 'resolved',
+      likes: 5,
+      likedBy: ['EMP-107', 'EMP-103', 'EMP-106'],
       createdAt: new Date(Date.now() - 3600000 * 50).toISOString()
     },
     {
@@ -190,6 +199,8 @@
       shift: '1. Vardiya',
       isAnonymous: false,
       status: 'resolved',
+      likes: 2,
+      likedBy: ['EMP-106'],
       createdAt: new Date(Date.now() - 3600000 * 72).toISOString()
     },
     {
@@ -205,6 +216,8 @@
       shift: '2. Vardiya',
       isAnonymous: false,
       status: 'resolved',
+      likes: 1,
+      likedBy: ['EMP-103'],
       createdAt: new Date(Date.now() - 3600000 * 96).toISOString()
     },
     {
@@ -220,6 +233,8 @@
       shift: '1. Vardiya',
       isAnonymous: true,
       status: 'resolved',
+      likes: 4,
+      likedBy: ['EMP-104', 'ADMIN-01'],
       createdAt: new Date(Date.now() - 3600000 * 120).toISOString()
     }
   ];
@@ -252,11 +267,9 @@
 
       if (storedSession) {
         const parsed = JSON.parse(storedSession);
-        // Kullanıcı hala employees listesinde var mı?
         const found = state.employees.find((e) => e.id === parsed.id);
         state.currentUser = found || state.employees[0];
       } else {
-        // Varsayılan olarak Admin veya ilk çalışan
         state.currentUser = state.employees[0]; // Kemal Yönetici (Admin)
       }
 
@@ -290,6 +303,28 @@
     } catch (e) {}
   }
 
+  // ==================== AUTO-DRAFT (OTOMATİK TASLAK KORUMASI) ====================
+  function saveDraft(draft) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.DRAFT, JSON.stringify(draft));
+    } catch (e) {}
+  }
+
+  function getDraft() {
+    try {
+      const d = localStorage.getItem(STORAGE_KEYS.DRAFT);
+      return d ? JSON.parse(d) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.DRAFT);
+    } catch (e) {}
+  }
+
   // ==================== TOAST BİLDİRİMİ ====================
   function showToast(message, type = 'success') {
     let toast = document.getElementById('safeToast');
@@ -312,8 +347,7 @@
 
   // ==================== YETKİ KONTROL YARDIMCILARI ====================
   function canGiveFeedback() {
-    // Tüm kullanıcılarda default olarak var
-    return true;
+    return true; // Tüm kullanıcılarda default
   }
 
   function canViewAnalytics() {
@@ -326,13 +360,23 @@
     return state.currentUser && state.currentUser.role === 'admin';
   }
 
+  // ==================== ÜST BAR MOBİL/MASAÜSTÜ PROFİL SENKRONİZASYONU ====================
+  function syncHeaderProfile() {
+    const avatar = document.getElementById('headerAvatar');
+    const nameSpan = document.getElementById('headerUserName');
+    if (avatar && nameSpan && state.currentUser) {
+      avatar.textContent = state.currentUser.initials || 'SF';
+      avatar.className = `wp-header-avatar ${state.currentUser.role === 'admin' ? 'admin' : ''}`;
+      nameSpan.textContent = state.currentUser.name;
+    }
+  }
+
   // ==================== KULLANICI DEĞİŞTİRME ====================
   function switchUser(userId) {
     const user = state.employees.find((e) => e.id === userId);
     if (user) {
       state.currentUser = user;
       saveSession();
-      // Eğer kullanıcı veri analizi veya admin yetkisine sahip değilse ve o sekmedeyse, ana sayfaya al
       if (state.activeTab === 'user-management' && !isAdmin()) {
         state.activeTab = 'give-feedback';
       }
@@ -344,7 +388,7 @@
     }
   }
 
-  // ==================== KULLANICI EKLEME & SİLME & YETKİLENDİRME (ADMIN) ====================
+  // ==================== KULLANICI YÖNETİMİ (ADMIN: EKLE, DÜZENLE, SİL, YETKİ) ====================
   function addUser(data) {
     if (!isAdmin()) {
       showToast('Yalnızca yöneticiler yeni kullanıcı ekleyebilir.', 'warning');
@@ -384,6 +428,43 @@
     state.employees.push(newUser);
     saveEmployees();
     showToast(`${newUser.name} başarıyla sisteme eklendi!`, 'success');
+    renderUI();
+    return true;
+  }
+
+  function editUser(userId, data) {
+    if (!isAdmin()) {
+      showToast('Yalnızca yöneticiler kullanıcı düzenleyebilir.', 'warning');
+      return false;
+    }
+
+    const target = state.employees.find((e) => e.id === userId);
+    if (!target) return false;
+
+    target.name = data.name.trim();
+    target.department = data.department;
+    target.title = data.title.trim();
+    target.shift = data.shift;
+    target.initials = target.name
+      .split(' ')
+      .map((p) => p[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+
+    if (!Array.isArray(target.permissions)) target.permissions = ['feedback'];
+    if (data.canAnalytics && !target.permissions.includes('analytics')) {
+      target.permissions.push('analytics');
+    } else if (!data.canAnalytics && target.permissions.includes('analytics') && target.role !== 'admin') {
+      target.permissions = target.permissions.filter((p) => p !== 'analytics');
+    }
+
+    saveEmployees();
+    if (state.currentUser && state.currentUser.id === userId) {
+      state.currentUser = target;
+      saveSession();
+    }
+    showToast(`${target.name} bilgileri güncellendi.`, 'success');
     renderUI();
     return true;
   }
@@ -430,10 +511,10 @@
 
     if (user.permissions.includes(permission)) {
       user.permissions = user.permissions.filter((p) => p !== permission);
-      showToast(`${user.name} kullanıcısından '${permission === 'analytics' ? 'Veri Analizi' : permission}' yetkisi alındı.`, 'info');
+      showToast(`${user.name} kullanıcısından 'Veri Analizi' yetkisi alındı.`, 'info');
     } else {
       user.permissions.push(permission);
-      showToast(`${user.name} kullanıcısına '${permission === 'analytics' ? 'Veri Analizi' : permission}' yetkisi verildi!`, 'success');
+      showToast(`${user.name} kullanıcısına 'Veri Analizi' yetkisi verildi!`, 'success');
     }
 
     saveEmployees();
@@ -450,7 +531,7 @@
     }
 
     if (!message || message.trim().length < 5) {
-      showToast('Lütfen en az 5 karakterlik açıklama girin.', 'warning');
+      showToast('Lütfen en az 5 karakterlik anlamlı bir açıklama girin.', 'warning');
       return false;
     }
 
@@ -473,14 +554,62 @@
       shift: shift || '1. Vardiya',
       isAnonymous: Boolean(isAnonymous),
       status: type === 'kaizen' || type === 'isg' ? 'in_progress' : 'resolved',
+      likes: 0,
+      likedBy: [],
       createdAt: new Date().toISOString()
     };
 
     state.feedbacks.unshift(newFeedback);
     saveFeedbacks();
+    clearDraft();
 
     showToast(`Geri bildirim iletildi! ${recipient.name} takdir edildi. 🎉`, 'success');
     return true;
+  }
+
+  // ==================== GERİ BİLDİRİM SİLME & DURUM GÜNCELLEME ====================
+  function updateFeedbackStatus(fbId, newStatus) {
+    const target = state.feedbacks.find((f) => f.id === fbId);
+    if (!target) return;
+    target.status = newStatus;
+    saveFeedbacks();
+    showToast(`Durum güncellendi: ${newStatus === 'resolved' ? 'Tamamlandı' : newStatus === 'in_progress' ? 'Aksiyon Alındı' : 'İnceleniyor'}`, 'success');
+    updateFeedListOnly();
+  }
+
+  function deleteFeedback(fbId) {
+    if (!isAdmin()) {
+      showToast('Yalnızca yöneticiler geri bildirim silebilir.', 'warning');
+      return;
+    }
+    if (confirm('Bu geri bildirimi kalıcı olarak silmek istediğinize emin misiniz?')) {
+      state.feedbacks = state.feedbacks.filter((f) => f.id !== fbId);
+      saveFeedbacks();
+      showToast('Geri bildirim silindi.', 'success');
+      updateFeedListOnly();
+    }
+  }
+
+  function toggleFeedbackLike(fbId) {
+    const fb = state.feedbacks.find((f) => f.id === fbId);
+    if (!fb) return;
+    if (!state.currentUser) return;
+
+    if (!Array.isArray(fb.likedBy)) fb.likedBy = [];
+    const myId = state.currentUser.id;
+    const index = fb.likedBy.indexOf(myId);
+
+    if (index > -1) {
+      fb.likedBy.splice(index, 1);
+      fb.likes = Math.max(0, (fb.likes || 1) - 1);
+    } else {
+      fb.likedBy.push(myId);
+      fb.likes = (fb.likes || 0) + 1;
+      showToast('Alkış iletildi! 👏', 'success');
+    }
+
+    saveFeedbacks();
+    updateFeedListOnly();
   }
 
   // ==================== ANALİTİK HESAPLAMA ====================
@@ -525,7 +654,6 @@
       deptMap[dept] = (deptMap[dept] || 0) + 1;
     });
 
-    // En çok takdir alanlar (Top 5)
     const kudosLeaderboard = {};
     state.feedbacks.forEach((f) => {
       if (f.type === 'kudos' || f.type === 'kaizen') {
@@ -560,14 +688,14 @@
     };
   }
 
-  // ==================== CSV / EXPORT ====================
+  // ==================== CSV & JSON YEDEKLEME / GERİ YÜKLEME ====================
   function exportCSV() {
     if (state.feedbacks.length === 0) {
       showToast('Dışa aktarılacak geri bildirim bulunmuyor.', 'warning');
       return;
     }
 
-    const headers = ['ID', 'Tarih', 'Gönderen', 'Alıcı', 'Tür', 'Kategori', 'Rozet', 'Vardiya', 'Durum', 'Mesaj'];
+    const headers = ['ID', 'Tarih', 'Gönderen', 'Alıcı', 'Tür', 'Kategori', 'Rozet', 'Vardiya', 'Durum', 'Alkış', 'Mesaj'];
     const rows = state.feedbacks.map((f) => {
       const cleanMsg = (f.message || '').replace(/"/g, '""');
       return [
@@ -580,6 +708,7 @@
         f.badge || '',
         f.shift || '1. Vardiya',
         f.status || 'resolved',
+        f.likes || 0,
         `"${cleanMsg}"`
       ].join(';');
     });
@@ -595,63 +724,126 @@
     showToast('CSV raporu Excel uyumlu olarak indirildi.', 'success');
   }
 
-  // ==================== GRAFİK ÇİZİMİ ====================
+  function exportJSON() {
+    const backup = {
+      appName: 'Safe5',
+      version: '2.0',
+      exportedAt: new Date().toISOString(),
+      employees: state.employees,
+      feedbacks: state.feedbacks
+    };
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `safe5_fabrika_yedek_${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast('Tüm fabrika veritabanı JSON olarak yedeklendi.', 'success');
+  }
+
+  function importJSON(file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (Array.isArray(data.employees) && Array.isArray(data.feedbacks)) {
+          state.employees = data.employees;
+          state.feedbacks = data.feedbacks;
+          saveEmployees();
+          saveFeedbacks();
+          showToast('Fabrika verileri başarıyla geri yüklendi!', 'success');
+          renderUI();
+        } else {
+          showToast('Geçersiz yedek dosyası formatı.', 'warning');
+        }
+      } catch (err) {
+        showToast('Dosya okunurken bir hata oluştu.', 'warning');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function resetDemoData() {
+    if (confirm('Tüm veriler varsayılan fabrika demo verilerine sıfırlansın mı?')) {
+      state.employees = JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES));
+      state.feedbacks = JSON.parse(JSON.stringify(DEFAULT_FEEDBACKS));
+      state.currentUser = state.employees[0];
+      saveEmployees();
+      saveFeedbacks();
+      saveSession();
+      clearDraft();
+      showToast('Fabrika verileri sıfırlandı ve demo içerik yüklendi.', 'success');
+      renderUI();
+    }
+  }
+
+  // ==================== GRAFİK ÇİZİMİ (CHART.JS + ÇEVRİMDIŞI SVG FALLBACK) ====================
   function renderCharts(analytics) {
     const textColor = '#1e293b';
     const gridColor = 'rgba(0, 0, 0, 0.05)';
 
     // 1. Kategori Dağılımı
     const catCanvas = document.getElementById('chartCategory');
-    if (catCanvas && window.Chart) {
-      if (state.chartInstances.cat) state.chartInstances.cat.destroy();
-      const ctx = catCanvas.getContext('2d');
-      state.chartInstances.cat = new window.Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: Object.values(analytics.categories).map((c) => c.label),
-          datasets: [{
-            data: Object.values(analytics.categories).map((c) => c.count),
-            backgroundColor: Object.values(analytics.categories).map((c) => c.color),
-            borderWidth: 2,
-            borderColor: '#ffffff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12, padding: 12 } }
+    if (catCanvas) {
+      if (window.Chart) {
+        if (state.chartInstances.cat) state.chartInstances.cat.destroy();
+        const ctx = catCanvas.getContext('2d');
+        state.chartInstances.cat = new window.Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: Object.values(analytics.categories).map((c) => c.label),
+            datasets: [{
+              data: Object.values(analytics.categories).map((c) => c.count),
+              backgroundColor: Object.values(analytics.categories).map((c) => c.color),
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12, padding: 12 } }
+            }
           }
-        }
-      });
+        });
+      } else {
+        renderSvgDoughnut(catCanvas.parentElement, analytics.categories);
+      }
     }
 
     // 2. Departman Dağılımı
     const deptCanvas = document.getElementById('chartDepartment');
-    if (deptCanvas && window.Chart) {
-      if (state.chartInstances.dept) state.chartInstances.dept.destroy();
-      const ctx = deptCanvas.getContext('2d');
-      state.chartInstances.dept = new window.Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(analytics.deptMap),
-          datasets: [{
-            label: 'Bildirim Sayısı',
-            data: Object.values(analytics.deptMap),
-            backgroundColor: '#059669',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } },
-            x: { ticks: { color: textColor, maxRotation: 20 }, grid: { display: false } }
+    if (deptCanvas) {
+      if (window.Chart) {
+        if (state.chartInstances.dept) state.chartInstances.dept.destroy();
+        const ctx = deptCanvas.getContext('2d');
+        state.chartInstances.dept = new window.Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(analytics.deptMap),
+            datasets: [{
+              label: 'Bildirim Sayısı',
+              data: Object.values(analytics.deptMap),
+              backgroundColor: '#059669',
+              borderRadius: 6
+            }]
           },
-          plugins: { legend: { display: false } }
-        }
-      });
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } },
+              x: { ticks: { color: textColor, maxRotation: 20 }, grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+          }
+        });
+      } else {
+        renderSvgBars(deptCanvas.parentElement, analytics.deptMap);
+      }
     }
 
     // 3. Vardiya Dağılımı
@@ -677,17 +869,69 @@
     }
   }
 
+  function renderSvgBars(container, dataMap) {
+    const keys = Object.keys(dataMap);
+    const maxVal = Math.max(...Object.values(dataMap), 1);
+    let html = `<div class="safe-svg-bar-chart">`;
+    keys.forEach((k) => {
+      const val = dataMap[k];
+      const pct = Math.round((val / maxVal) * 100);
+      html += `
+        <div class="safe-svg-bar-col">
+          <span class="safe-svg-bar-val">${val}</span>
+          <div class="safe-svg-bar-fill" style="height: ${pct}%;"></div>
+          <span class="safe-svg-bar-label" title="${k}">${k}</span>
+        </div>
+      `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+  }
+
+  function renderSvgDoughnut(container, categories) {
+    const total = Object.values(categories).reduce((acc, c) => acc + c.count, 0) || 1;
+    let listHtml = `<div style="padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">`;
+    Object.values(categories).forEach((c) => {
+      const pct = Math.round((c.count / total) * 100);
+      listHtml += `
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem;">
+          <span style="display:flex; align-items:center; gap:0.4rem;">
+            <span style="width:10px; height:10px; border-radius:50%; background:${c.color};"></span>
+            ${c.label}
+          </span>
+          <b>${c.count} (%${pct})</b>
+        </div>
+        <div style="width:100%; height:6px; background:var(--safe-border); border-radius:3px; overflow:hidden;">
+          <div style="width:${pct}%; height:100%; background:${c.color};"></div>
+        </div>
+      `;
+    });
+    listHtml += `</div>`;
+    container.innerHTML = listHtml;
+  }
+
+  // ==================== HEDEFE YÖNELİK LİSTE GÜNCELLEMESİ (FOCUS LOSS KORUMASI) ====================
+  function updateFeedListOnly() {
+    const container = document.getElementById('safeFeedListContainer');
+    if (container) {
+      container.innerHTML = renderFeedCardsHtml();
+      bindFeedCardEvents();
+    }
+  }
+
   // ==================== ANA ARAYÜZ (RENDER UI) ====================
   function renderUI() {
     enforceLightTheme();
     const appRoot = document.getElementById('safeAppRoot');
     if (!appRoot) return;
 
+    syncHeaderProfile();
+
     const user = state.currentUser;
     const userIsAdmin = isAdmin();
     const userCanAnalytics = canViewAnalytics();
 
-    // ==================== 1. SIDEBAR NAVBAR ====================
+    // 1. SIDEBAR NAVBAR
     const sidebarHtml = `
       <aside class="safe-sidebar">
         <!-- Logo & Başlık -->
@@ -775,24 +1019,19 @@
       </aside>
     `;
 
-    // ==================== 2. SAĞ İÇERİK EKRANLARI ====================
+    // 2. SAĞ İÇERİK EKRANI
     let screenHtml = '';
-
     if (state.activeTab === 'give-feedback') {
-      // EKRAN 1: GERİ BİLDİRİM VERME (ANASAYFA)
       screenHtml = renderGiveFeedbackScreen();
     } else if (state.activeTab === 'view-feedbacks') {
-      // EKRAN 2: GERİ BİLDİRİMLERİ GÖRME (AYRI EKRAN)
       screenHtml = renderViewFeedbacksScreen();
     } else if (state.activeTab === 'analytics') {
-      // EKRAN 3: VERİ ANALİZİ EKRANI (YETKİYE GÖRE)
       screenHtml = renderAnalyticsScreen();
     } else if (state.activeTab === 'user-management') {
-      // EKRAN 4: KULLANICI & YETKİ YÖNETİMİ (SADECE ADMİN)
       screenHtml = renderUserManagementScreen();
     }
 
-    // Birleşik Düzen
+    // Tam Birleştirme
     appRoot.innerHTML = `
       <div class="safe-app-layout">
         ${sidebarHtml}
@@ -812,7 +1051,7 @@
             Farklı yetkilere sahip çalışanlar ve Admin rolü arasında geçiş yaparak ekranları test edebilirsiniz:
           </p>
 
-          <div style="display:flex; flex-direction:column; gap:0.65rem;">
+          <div style="display:flex; flex-direction:column; gap:0.65rem; max-height: 400px; overflow-y: auto;">
             ${state.employees.map((emp) => {
               const isCurrent = user && user.id === emp.id;
               const hasAnalyt = Array.isArray(emp.permissions) && emp.permissions.includes('analytics');
@@ -846,7 +1085,7 @@
       <div class="safe-modal-backdrop" id="modalAddUser">
         <div class="safe-modal-box">
           <div class="safe-modal-header">
-            <h3 class="safe-modal-title"><span>👤</span> Yeni Kullanıcı / Personel Ekle</h3>
+            <h3 class="safe-modal-title"><span>➕</span> Yeni Kullanıcı Ekle</h3>
             <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
           </div>
           <form id="formAddUser">
@@ -871,7 +1110,7 @@
 
             <div class="safe-form-group">
               <label class="safe-label">Görevi / Ünvanı</label>
-              <input type="text" class="safe-input" id="newUserTitle" placeholder="Örn: Montaj Operatörü, Hat Lideri..." required />
+              <input type="text" class="safe-input" id="newUserTitle" placeholder="Örn: Montaj Operatörü" required />
             </div>
 
             <div class="safe-form-group">
@@ -884,17 +1123,14 @@
               </select>
             </div>
 
-            <!-- Yetkilendirme Bölümü -->
             <div class="safe-form-group" style="background:var(--safe-bg-subtle); padding:1rem; border-radius:10px; border:1px solid var(--safe-border);">
               <label class="safe-label" style="margin-bottom:0.6rem;">Kullanıcı Yetkileri</label>
-              
               <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.6rem;">
                 <input type="checkbox" checked disabled style="width:18px; height:18px; accent-color:var(--safe-primary);" />
                 <span style="font-size:0.88rem; font-weight:600; color:var(--safe-text);">
                   ✍️ Geri Bildirim Yetkisi <span style="font-size:0.75rem; color:var(--safe-primary);">(Varsayılan)</span>
                 </span>
               </div>
-
               <div style="display:flex; align-items:center; gap:0.6rem;">
                 <input type="checkbox" id="newUserCanAnalytics" style="width:18px; height:18px; accent-color:var(--safe-primary); cursor:pointer;" />
                 <label for="newUserCanAnalytics" style="font-size:0.88rem; font-weight:600; color:var(--safe-text); cursor:pointer;">
@@ -909,11 +1145,71 @@
           </form>
         </div>
       </div>
+
+      <!-- KULLANICI DÜZENLEME MODALI (ADMIN) -->
+      <div class="safe-modal-backdrop" id="modalEditUser">
+        <div class="safe-modal-box">
+          <div class="safe-modal-header">
+            <h3 class="safe-modal-title"><span>✏️</span> Personel Bilgilerini Düzenle</h3>
+            <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
+          </div>
+          <form id="formEditUser">
+            <input type="hidden" id="editUserId" />
+            <div class="safe-form-group">
+              <label class="safe-label">Ad Soyad <span style="color:var(--safe-primary);">*</span></label>
+              <input type="text" class="safe-input" id="editUserName" required />
+            </div>
+
+            <div class="safe-form-group">
+              <label class="safe-label">Bölüm / Departman</label>
+              <select class="safe-select" id="editUserDept">
+                <option value="Montaj Hattı">Montaj Hattı</option>
+                <option value="Talaşlı İmalat">Talaşlı İmalat</option>
+                <option value="Kalite Güvence">Kalite Güvence</option>
+                <option value="Bakım & Onarım">Bakım & Onarım</option>
+                <option value="Depo & Lojistik">Depo & Lojistik</option>
+                <option value="Kaynak & Gövde">Kaynak & Gövde</option>
+                <option value="İSG & Çevre">İSG & Çevre</option>
+                <option value="Kaizen & Metot">Kaizen & Metot</option>
+                <option value="Fabrika Yönetimi">Fabrika Yönetimi</option>
+              </select>
+            </div>
+
+            <div class="safe-form-group">
+              <label class="safe-label">Görevi / Ünvanı</label>
+              <input type="text" class="safe-input" id="editUserTitle" required />
+            </div>
+
+            <div class="safe-form-group">
+              <label class="safe-label">Vardiya</label>
+              <select class="safe-select" id="editUserShift">
+                <option value="1. Vardiya (08:00 - 16:00)">1. Vardiya (08:00 - 16:00)</option>
+                <option value="2. Vardiya (16:00 - 24:00)">2. Vardiya (16:00 - 24:00)</option>
+                <option value="3. Vardiya (24:00 - 08:00)">3. Vardiya (24:00 - 08:00)</option>
+                <option value="Genel Mesai (08:30 - 17:30)">Genel Mesai (08:30 - 17:30)</option>
+              </select>
+            </div>
+
+            <div class="safe-form-group" style="background:var(--safe-bg-subtle); padding:1rem; border-radius:10px; border:1px solid var(--safe-border);">
+              <label class="safe-label" style="margin-bottom:0.6rem;">Yetkiler</label>
+              <div style="display:flex; align-items:center; gap:0.6rem;">
+                <input type="checkbox" id="editUserCanAnalytics" style="width:18px; height:18px; accent-color:var(--safe-primary); cursor:pointer;" />
+                <label for="editUserCanAnalytics" style="font-size:0.88rem; font-weight:600; color:var(--safe-text); cursor:pointer;">
+                  📊 Veri Analizi Ekranı Yetkisi
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width:100%;">
+              <span>Değişiklikleri Kaydet</span>
+            </button>
+          </form>
+        </div>
+      </div>
     `;
 
     bindEvents();
 
-    // Veri Analizi sekmesindeyse grafikleri çiz
     if (state.activeTab === 'analytics' && userCanAnalytics) {
       setTimeout(() => {
         renderCharts(computeAnalytics());
@@ -924,6 +1220,7 @@
   // ==================== EKRAN 1: GERİ BİLDİRİM VERME (ANASAYFA) ====================
   function renderGiveFeedbackScreen() {
     const user = state.currentUser;
+    const draft = getDraft() || {};
 
     return `
       <div class="safe-page-header">
@@ -940,10 +1237,10 @@
           <div class="safe-form-group">
             <label class="safe-label">Kime Geri Bildirim Veriyorsun? <span style="color:var(--safe-primary);">*</span></label>
             <select class="safe-select" id="inputRecipient" required>
-              <option value="" disabled selected>-- Çalışma Arkadaşını Seçin --</option>
+              <option value="" disabled ${!draft.toId ? 'selected' : ''}>-- Çalışma Arkadaşını Seçin --</option>
               ${state.employees
                 .filter((e) => !user || e.id !== user.id)
-                .map((e) => `<option value="${e.id}">${e.name} — ${e.department} (${e.title})</option>`)
+                .map((e) => `<option value="${e.id}" ${draft.toId === e.id ? 'selected' : ''}>${e.name} — ${e.department} (${e.title})</option>`)
                 .join('')}
             </select>
           </div>
@@ -1011,13 +1308,13 @@
           <!-- 5. Mesaj Kutusu -->
           <div class="safe-form-group">
             <label class="safe-label">Açıklama / Mesaj Notun <span style="color:var(--safe-primary);">*</span></label>
-            <textarea class="safe-textarea" id="inputMessage" placeholder="Örn: 1. hatta hidrolik pres sızıntısını 15 dakikada çözdü ve 5S tertibini uyguladı..." required></textarea>
+            <textarea class="safe-textarea" id="inputMessage" placeholder="Örn: 1. hatta hidrolik pres sızıntısını 15 dakikada çözdü ve 5S tertibini uyguladı..." required>${draft.message || ''}</textarea>
           </div>
 
           <!-- 6. Anonimlik ve Vardiya -->
           <div class="safe-inline-controls">
             <label class="safe-switch-label">
-              <input type="checkbox" id="inputIsAnonymous" ${state.isAnonymous ? 'checked' : ''} style="width:20px; height:20px; accent-color:var(--safe-primary); cursor:pointer;" />
+              <input type="checkbox" id="inputIsAnonymous" ${(draft.isAnonymous ?? state.isAnonymous) ? 'checked' : ''} style="width:20px; height:20px; accent-color:var(--safe-primary); cursor:pointer;" />
               <div>
                 <div>🕵️‍♂️ Anonim Gönder</div>
                 <div style="font-size:0.75rem; color:var(--safe-text-muted); font-weight:normal;">İsmim gizlensin, sadece mesajım görünsün</div>
@@ -1027,16 +1324,16 @@
             <div>
               <label class="safe-label" style="font-size:0.8rem; margin-bottom:0.25rem;">Vardiya Bilgisi</label>
               <select class="safe-select" id="inputShift">
-                <option value="1. Vardiya" selected>1. Vardiya (08:00 - 16:00)</option>
-                <option value="2. Vardiya">2. Vardiya (16:00 - 24:00)</option>
-                <option value="3. Vardiya">3. Vardiya (24:00 - 08:00)</option>
-                <option value="Genel Mesai">Genel Mesai (08:30 - 17:30)</option>
+                <option value="1. Vardiya" ${(draft.shift || '1. Vardiya') === '1. Vardiya' ? 'selected' : ''}>1. Vardiya (08:00 - 16:00)</option>
+                <option value="2. Vardiya" ${draft.shift === '2. Vardiya' ? 'selected' : ''}>2. Vardiya (16:00 - 24:00)</option>
+                <option value="3. Vardiya" ${draft.shift === '3. Vardiya' ? 'selected' : ''}>3. Vardiya (24:00 - 08:00)</option>
+                <option value="Genel Mesai" ${draft.shift === 'Genel Mesai' ? 'selected' : ''}>Genel Mesai (08:30 - 17:30)</option>
               </select>
             </div>
           </div>
 
           <!-- Gönder Butonu -->
-          <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width: 100%;">
+          <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" id="btnSubmitFeedback" style="width: 100%;">
             <span>🚀</span>
             <span>Geri Bildirimi İlet</span>
           </button>
@@ -1045,33 +1342,9 @@
     `;
   }
 
-  // ==================== EKRAN 2: GERİ BİLDİRİMLERİ İNCELEME (AYRI EKRAN) ====================
+  // ==================== EKRAN 2: GERİ BİLDİRİMLERİ İNCELEME ====================
   function renderViewFeedbacksScreen() {
     const user = state.currentUser;
-    let list = [...state.feedbacks];
-
-    // Sekme Filtresi (Tümü / Gelenler / Gönderilenler)
-    if (state.feedFilter === 'received' && user) {
-      list = list.filter((f) => f.toId === user.id);
-    } else if (state.feedFilter === 'sent' && user) {
-      list = list.filter((f) => f.fromId === user.id);
-    }
-
-    // Tür Filtresi
-    if (state.feedTypeFilter !== 'all') {
-      list = list.filter((f) => f.type === state.feedTypeFilter);
-    }
-
-    // Arama Filtresi
-    if (state.searchQuery.trim()) {
-      const q = state.searchQuery.toLowerCase();
-      list = list.filter((f) =>
-        f.fromName.toLowerCase().includes(q) ||
-        f.toName.toLowerCase().includes(q) ||
-        (f.message && f.message.toLowerCase().includes(q))
-      );
-    }
-
     const receivedCount = user ? state.feedbacks.filter((f) => f.toId === user.id).length : 0;
     const sentCount = user ? state.feedbacks.filter((f) => f.fromId === user.id).length : 0;
 
@@ -1104,56 +1377,116 @@
             <option value="isg" ${state.feedTypeFilter === 'isg' ? 'selected' : ''}>🦺 İSG &amp; Güvenlik</option>
           </select>
 
+          <!-- Arama Kutusu (Focus kaybı olmadan hedefe yönelik çalışır) -->
           <input type="text" class="safe-input" id="feedSearchInput" placeholder="Personel veya mesajda ara..." style="max-width:220px; padding:0.5rem 0.8rem; font-size:0.86rem;" value="${state.searchQuery}" />
         </div>
       </div>
 
-      <!-- Kart Listesi -->
-      <div class="safe-feed-list">
-        ${list.length > 0 ? list.map((f) => {
-          const timeDiff = getTimeAgo(f.createdAt);
-          const isRecipient = user && user.id === f.toId;
+      <!-- Hedefe Yönelik Liste Konteyneri -->
+      <div class="safe-feed-list" id="safeFeedListContainer">
+        ${renderFeedCardsHtml()}
+      </div>
+    `;
+  }
 
-          return `
-            <div class="safe-feed-card" style="${isRecipient ? 'border-left: 4px solid var(--safe-primary);' : ''}">
-              <div class="safe-feed-card-header">
-                <div class="safe-feed-actors">
-                  <span>${f.fromName}</span>
-                  <span class="safe-feed-arrow">➔</span>
-                  <span style="color:var(--safe-primary);">${f.toName}</span>
-                </div>
-                <div class="safe-feed-date">${timeDiff} • ${f.shift || '1. Vardiya'}</div>
-              </div>
+  // Geri Bildirim Kartları HTML Üretici
+  function renderFeedCardsHtml() {
+    const user = state.currentUser;
+    const canManageStatus = canViewAnalytics() || isAdmin();
+    let list = [...state.feedbacks];
 
-              <div class="safe-feed-tags">
-                <span class="safe-tag ${f.type}">
-                  ${f.type === 'kudos' ? '🌟 Takdir &amp; Teşekkür' : f.type === 'isg' ? '🦺 İSG Bildirimi' : '💡 Kaizen Önerisi'}
-                </span>
-                ${f.badge ? `<span class="safe-tag badge-custom">${f.badge}</span>` : ''}
-                <span class="safe-tag badge-custom">${getCategoryName(f.category)}</span>
-              </div>
+    if (state.feedFilter === 'received' && user) {
+      list = list.filter((f) => f.toId === user.id);
+    } else if (state.feedFilter === 'sent' && user) {
+      list = list.filter((f) => f.fromId === user.id);
+    }
 
-              <div class="safe-feed-body">
-                "${f.message}"
-              </div>
+    if (state.feedTypeFilter !== 'all') {
+      list = list.filter((f) => f.type === state.feedTypeFilter);
+    }
 
-              <div class="safe-feed-footer">
-                <span>Tarih: ${new Date(f.createdAt).toLocaleDateString('tr-TR')}</span>
+    if (state.searchQuery.trim()) {
+      const q = state.searchQuery.toLowerCase();
+      list = list.filter((f) =>
+        (f.fromName && f.fromName.toLowerCase().includes(q)) ||
+        (f.toName && f.toName.toLowerCase().includes(q)) ||
+        (f.message && f.message.toLowerCase().includes(q))
+      );
+    }
+
+    if (list.length === 0) {
+      return `
+        <div class="safe-card" style="text-align:center; padding:3.5rem 1rem;">
+          <div style="font-size:2.5rem; margin-bottom:0.75rem;">📭</div>
+          <h3 style="color:var(--safe-text); margin-bottom:0.35rem;">Bu filtreye uygun bildirim bulunamadı.</h3>
+          <p style="color:var(--safe-text-muted); font-size:0.88rem;">Sol menüden 'Geri Bildirim Ver' sekmesine giderek yeni bir takdir iletebilirsiniz.</p>
+        </div>
+      `;
+    }
+
+    return list.map((f) => {
+      const timeDiff = getTimeAgo(f.createdAt);
+      const isRecipient = user && user.id === f.toId;
+      const isLiked = Array.isArray(f.likedBy) && user && f.likedBy.includes(user.id);
+      const likesCount = f.likes || 0;
+
+      return `
+        <div class="safe-feed-card" style="${isRecipient ? 'border-left: 4px solid var(--safe-primary);' : ''}">
+          <div class="safe-feed-card-header">
+            <div class="safe-feed-actors">
+              <span>${f.fromName}</span>
+              <span class="safe-feed-arrow">➔</span>
+              <span style="color:var(--safe-primary);">${f.toName}</span>
+            </div>
+            <div class="safe-feed-date">${timeDiff} • ${f.shift || '1. Vardiya'}</div>
+          </div>
+
+          <div class="safe-feed-tags">
+            <span class="safe-tag ${f.type}">
+              ${f.type === 'kudos' ? '🌟 Takdir &amp; Teşekkür' : f.type === 'isg' ? '🦺 İSG Bildirimi' : '💡 Kaizen Önerisi'}
+            </span>
+            ${f.badge ? `<span class="safe-tag badge-custom">${f.badge}</span>` : ''}
+            <span class="safe-tag badge-custom">${getCategoryName(f.category)}</span>
+          </div>
+
+          <div class="safe-feed-body">
+            "${f.message}"
+          </div>
+
+          <div class="safe-feed-footer">
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <!-- Alkışla / Kudos Beğeni Butonu -->
+              <button type="button" class="safe-clap-btn ${isLiked ? 'active' : ''}" data-clap-id="${f.id}" title="Bu bildirimi takdir et / alkışla">
+                <span>👏</span>
+                <span>Alkış (${likesCount})</span>
+              </button>
+              <span style="font-size:0.75rem; color:var(--safe-text-muted);">${new Date(f.createdAt).toLocaleDateString('tr-TR')}</span>
+            </div>
+
+            <!-- Sağ Aksiyonlar: Durum Yönetimi & Silme -->
+            <div class="safe-feed-footer-actions">
+              ${canManageStatus ? `
+                <select class="safe-card-status-select" data-status-fb-id="${f.id}" title="Bildirim durumunu güncelle">
+                  <option value="resolved" ${f.status === 'resolved' ? 'selected' : ''}>✅ Tamamlandı</option>
+                  <option value="in_progress" ${f.status === 'in_progress' ? 'selected' : ''}>⚙️ Aksiyon Alındı</option>
+                  <option value="pending" ${f.status === 'pending' ? 'selected' : ''}>⏳ İnceleniyor</option>
+                </select>
+              ` : `
                 <span class="safe-status-pill ${f.status || 'resolved'}">
                   ${f.status === 'resolved' ? '✓ Tamamlandı' : f.status === 'in_progress' ? '⚙️ Aksiyon Alındı' : '⏳ İnceleniyor'}
                 </span>
-              </div>
+              `}
+
+              ${isAdmin() ? `
+                <button type="button" class="safe-btn safe-btn-sm safe-btn-danger" data-delete-fb-id="${f.id}" title="Bildirimi sil">
+                  <span>🗑️</span>
+                </button>
+              ` : ''}
             </div>
-          `;
-        }).join('') : `
-          <div class="safe-card" style="text-align:center; padding:3.5rem 1rem;">
-            <div style="font-size:2.5rem; margin-bottom:0.75rem;">📭</div>
-            <h3 style="color:var(--safe-text); margin-bottom:0.35rem;">Bu filtreye uygun bildirim bulunamadı.</h3>
-            <p style="color:var(--safe-text-muted); font-size:0.88rem;">Sol menüden 'Geri Bildirim Ver' sekmesine giderek yeni bir takdir iletebilirsiniz.</p>
           </div>
-        `}
-      </div>
-    `;
+        </div>
+      `;
+    }).join('');
   }
 
   // ==================== EKRAN 3: VERİ ANALİZİ EKRANI ====================
@@ -1183,10 +1516,21 @@
           <p class="safe-page-subtitle">Metrikler, kategori oranları, departman ve vardiya analizleri</p>
         </div>
 
-        <button type="button" class="safe-btn safe-btn-primary" id="btnExportCSV">
-          <span>📥</span>
-          <span>Excel / CSV Raporu İndir</span>
-        </button>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button type="button" class="safe-btn safe-btn-primary" id="btnExportCSV">
+            <span>📊</span>
+            <span>Excel / CSV İndir</span>
+          </button>
+          <button type="button" class="safe-btn safe-btn-secondary" id="btnExportJSON">
+            <span>💾</span>
+            <span>JSON Yedek</span>
+          </button>
+          <label class="safe-btn safe-btn-outline" style="cursor:pointer; margin:0;">
+            <span>📥</span>
+            <span>Yedek Yükle</span>
+            <input type="file" id="inputImportJSON" accept=".json" style="display:none;" />
+          </label>
+        </div>
       </div>
 
       <!-- KPI KARTLARI -->
@@ -1320,13 +1664,19 @@
         <div>
           <span class="safe-page-badge indigo">👑 Yönetici Paneli</span>
           <h1 class="safe-page-title">Kullanıcı &amp; Yetki Yönetimi</h1>
-          <p class="safe-page-subtitle">Fabrika çalışanlarını yönetin, yeni personel ekleyin ve 'Veri Analizi' yetkilerini düzenleyin.</p>
+          <p class="safe-page-subtitle">Fabrika çalışanlarını yönetin, yeni personel ekleyin, bilgileri güncelleyin ve 'Veri Analizi' yetkilerini düzenleyin.</p>
         </div>
 
-        <button type="button" class="safe-btn safe-btn-primary" id="btnOpenAddUser">
-          <span>➕</span>
-          <span>Yeni Kullanıcı Ekle</span>
-        </button>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button type="button" class="safe-btn safe-btn-primary" id="btnOpenAddUser">
+            <span>➕</span>
+            <span>Yeni Kullanıcı Ekle</span>
+          </button>
+          <button type="button" class="safe-btn safe-btn-outline" id="btnResetDemoData" style="color:var(--safe-rose);">
+            <span>🔄</span>
+            <span>Demo Sıfırla</span>
+          </button>
+        </div>
       </div>
 
       <div class="safe-table-container">
@@ -1371,12 +1721,9 @@
                   </td>
                   <td>
                     <div style="display:flex; flex-direction:column; gap:0.4rem;">
-                      <!-- Geri Bildirim Yetkisi (Default & Sabit) -->
                       <span class="safe-perm-tag feedback" title="Tüm çalışanlarda varsayılan olarak aktiftir">
                         ✓ Geri Bildirim (Default)
                       </span>
-
-                      <!-- Veri Analizi Yetkisi (Açılıp Kapanabilir) -->
                       <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer; font-size:0.8rem; user-select:none;">
                         <input type="checkbox" class="safe-perm-toggle" data-user-id="${emp.id}" data-perm="analytics" ${hasAnalytics ? 'checked' : ''} style="accent-color:var(--safe-primary); width:16px; height:16px; cursor:pointer;" />
                         <span style="font-weight:${hasAnalytics ? '700' : 'normal'}; color:${hasAnalytics ? 'var(--safe-sky)' : 'var(--safe-text-muted)'};">
@@ -1386,11 +1733,16 @@
                     </div>
                   </td>
                   <td>
-                    ${!isSelf ? `
-                      <button type="button" class="safe-btn safe-btn-sm safe-btn-danger" data-remove-user="${emp.id}">
-                        <span>🗑️ Sil</span>
+                    <div style="display:flex; gap:0.4rem; align-items:center;">
+                      <button type="button" class="safe-btn safe-btn-sm safe-btn-outline" data-edit-user="${emp.id}" title="Personeli düzenle">
+                        <span>✏️ Düzenle</span>
                       </button>
-                    ` : '<span style="font-size:0.75rem; color:var(--safe-text-muted);">(Aktif Yönetici)</span>'}
+                      ${!isSelf ? `
+                        <button type="button" class="safe-btn safe-btn-sm safe-btn-danger" data-remove-user="${emp.id}" title="Personeli sil">
+                          <span>🗑️</span>
+                        </button>
+                      ` : ''}
+                    </div>
                   </td>
                 </tr>
               `;
@@ -1422,9 +1774,36 @@
     return `${Math.floor(diffSec / 86400)} gün önce`;
   }
 
-  // ==================== OLAY DİNLEYİCİLERİ (EVENTS) ====================
+  // ==================== KART OLAY DİNLEYİCİLERİ ====================
+  function bindFeedCardEvents() {
+    // Alkışlama
+    document.querySelectorAll('[data-clap-id]').forEach((btn) => {
+      btn.onclick = () => {
+        const id = btn.getAttribute('data-clap-id');
+        toggleFeedbackLike(id);
+      };
+    });
+
+    // Durum Değiştirme
+    document.querySelectorAll('[data-status-fb-id]').forEach((sel) => {
+      sel.onchange = (e) => {
+        const id = sel.getAttribute('data-status-fb-id');
+        updateFeedbackStatus(id, e.target.value);
+      };
+    });
+
+    // Silme
+    document.querySelectorAll('[data-delete-fb-id]').forEach((btn) => {
+      btn.onclick = () => {
+        const id = btn.getAttribute('data-delete-fb-id');
+        deleteFeedback(id);
+      };
+    });
+  }
+
+  // ==================== GENEL OLAY DİNLEYİCİLERİ ====================
   function bindEvents() {
-    // 1. Sidebar Navigasyon Butonları
+    // 1. Sidebar Navigasyon
     document.querySelectorAll('[data-nav-tab]').forEach((btn) => {
       btn.addEventListener('click', () => {
         state.activeTab = btn.getAttribute('data-nav-tab');
@@ -1432,15 +1811,52 @@
       });
     });
 
-    // 2. Geri Bildirim Formu Gönderimi
+    // 2. Üst Bar Profil Butonu & Sidebar Profil Butonu
+    const modalSwitch = document.getElementById('modalSwitchProfile');
+    const btnSwitch = document.getElementById('btnSwitchProfile');
+    const btnHeaderProfile = document.getElementById('btnHeaderProfile');
+
+    const openProfileModal = () => {
+      if (modalSwitch) modalSwitch.classList.add('active');
+    };
+
+    if (btnSwitch) btnSwitch.addEventListener('click', openProfileModal);
+    if (btnHeaderProfile) btnHeaderProfile.addEventListener('click', openProfileModal);
+
+    // 3. Geri Bildirim Formu & Otomatik Taslak (Auto-Draft)
     const form = document.getElementById('safeFeedbackForm');
     if (form) {
+      const inputRec = document.getElementById('inputRecipient');
+      const inputMsg = document.getElementById('inputMessage');
+      const inputSh = document.getElementById('inputShift');
+      const inputAnon = document.getElementById('inputIsAnonymous');
+      const btnSubmit = document.getElementById('btnSubmitFeedback');
+
+      const triggerAutoDraft = () => {
+        saveDraft({
+          toId: inputRec ? inputRec.value : '',
+          message: inputMsg ? inputMsg.value : '',
+          shift: inputSh ? inputSh.value : '1. Vardiya',
+          isAnonymous: inputAnon ? inputAnon.checked : false
+        });
+      };
+
+      if (inputRec) inputRec.addEventListener('change', triggerAutoDraft);
+      if (inputMsg) inputMsg.addEventListener('input', triggerAutoDraft);
+      if (inputSh) inputSh.addEventListener('change', triggerAutoDraft);
+      if (inputAnon) inputAnon.addEventListener('change', triggerAutoDraft);
+
       form.addEventListener('submit', (e) => {
         e.preventDefault();
-        const toId = document.getElementById('inputRecipient').value;
-        const message = document.getElementById('inputMessage').value;
-        const shift = document.getElementById('inputShift').value;
-        const isAnonymous = document.getElementById('inputIsAnonymous').checked;
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.innerHTML = '<span>⏳</span> <span>İletiliyor...</span>';
+        }
+
+        const toId = inputRec.value;
+        const message = inputMsg.value;
+        const shift = inputSh.value;
+        const isAnonymous = inputAnon.checked;
 
         const success = submitFeedback({
           toId,
@@ -1454,16 +1870,18 @@
 
         if (success) {
           form.reset();
-          // Gönderdikten sonra geri bildirimleri görme ekranına geçebilir
           setTimeout(() => {
             state.activeTab = 'view-feedbacks';
             renderUI();
-          }, 800);
+          }, 600);
+        } else if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = '<span>🚀</span> <span>Geri Bildirimi İlet</span>';
         }
       });
     }
 
-    // 3. Tür ve Kategori Seçicileri
+    // 4. Tür ve Kategori Seçicileri
     document.querySelectorAll('.safe-type-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         state.selectedType = btn.getAttribute('data-type');
@@ -1488,11 +1906,13 @@
       });
     });
 
-    // 4. Geri Bildirim İnceleme Ekranı Filtreleri
+    // 5. Geri Bildirim İnceleme Ekranı Filtreleri (ODAK KAYBI OLMADAN GÜNCELLEME)
     document.querySelectorAll('[data-feed-filter]').forEach((tab) => {
       tab.addEventListener('click', () => {
         state.feedFilter = tab.getAttribute('data-feed-filter');
-        renderUI();
+        document.querySelectorAll('[data-feed-filter]').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        updateFeedListOnly();
       });
     });
 
@@ -1500,7 +1920,7 @@
     if (feedTypeSelect) {
       feedTypeSelect.addEventListener('change', (e) => {
         state.feedTypeFilter = e.target.value;
-        renderUI();
+        updateFeedListOnly();
       });
     }
 
@@ -1508,21 +1928,33 @@
     if (feedSearchInput) {
       feedSearchInput.addEventListener('input', (e) => {
         state.searchQuery = e.target.value;
-        renderUI();
+        updateFeedListOnly();
       });
     }
 
-    // 5. CSV Rapor İndirme
+    // Kart içi butonları bağla
+    bindFeedCardEvents();
+
+    // 6. CSV ve JSON Dışa / İçe Aktarma
     const btnCSV = document.getElementById('btnExportCSV');
     if (btnCSV) btnCSV.addEventListener('click', exportCSV);
 
-    // 6. Profil / Kullanıcı Değiştirme Modalı
-    const modalSwitch = document.getElementById('modalSwitchProfile');
-    const btnSwitch = document.getElementById('btnSwitchProfile');
-    if (btnSwitch && modalSwitch) {
-      btnSwitch.addEventListener('click', () => modalSwitch.classList.add('active'));
+    const btnJSON = document.getElementById('btnExportJSON');
+    if (btnJSON) btnJSON.addEventListener('click', exportJSON);
+
+    const inputJSON = document.getElementById('inputImportJSON');
+    if (inputJSON) {
+      inputJSON.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          importJSON(e.target.files[0]);
+        }
+      });
     }
 
+    const btnReset = document.getElementById('btnResetDemoData');
+    if (btnReset) btnReset.addEventListener('click', resetDemoData);
+
+    // 7. Profil Seçme
     document.querySelectorAll('[data-pick-user]').forEach((card) => {
       card.addEventListener('click', () => {
         const uid = card.getAttribute('data-pick-user');
@@ -1530,7 +1962,7 @@
       });
     });
 
-    // 7. Yeni Kullanıcı Ekleme Modalı (Admin)
+    // 8. Yeni Kullanıcı Ekleme
     const modalAdd = document.getElementById('modalAddUser');
     const btnOpenAdd = document.getElementById('btnOpenAddUser');
     if (btnOpenAdd && modalAdd) {
@@ -1556,13 +1988,47 @@
           role: 'worker'
         });
 
-        if (ok && modalAdd) {
-          modalAdd.classList.remove('active');
-        }
+        if (ok && modalAdd) modalAdd.classList.remove('active');
       });
     }
 
-    // 8. Kullanıcı Silme
+    // 9. Kullanıcı Düzenleme
+    const modalEdit = document.getElementById('modalEditUser');
+    const formEdit = document.getElementById('formEditUser');
+
+    document.querySelectorAll('[data-edit-user]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const uid = btn.getAttribute('data-edit-user');
+        const user = state.employees.find((e) => e.id === uid);
+        if (!user || !modalEdit) return;
+
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('editUserName').value = user.name;
+        document.getElementById('editUserDept').value = user.department;
+        document.getElementById('editUserTitle').value = user.title;
+        document.getElementById('editUserShift').value = user.shift;
+        document.getElementById('editUserCanAnalytics').checked = Array.isArray(user.permissions) && user.permissions.includes('analytics');
+
+        modalEdit.classList.add('active');
+      });
+    });
+
+    if (formEdit) {
+      formEdit.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const uid = document.getElementById('editUserId').value;
+        const name = document.getElementById('editUserName').value;
+        const dept = document.getElementById('editUserDept').value;
+        const title = document.getElementById('editUserTitle').value;
+        const shift = document.getElementById('editUserShift').value;
+        const canAnalytics = document.getElementById('editUserCanAnalytics').checked;
+
+        const ok = editUser(uid, { name, department: dept, title, shift, canAnalytics });
+        if (ok && modalEdit) modalEdit.classList.remove('active');
+      });
+    }
+
+    // 10. Kullanıcı Silme & Yetki Değiştirme
     document.querySelectorAll('[data-remove-user]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const uid = btn.getAttribute('data-remove-user');
@@ -1570,7 +2036,6 @@
       });
     });
 
-    // 9. Yetki Değiştirme (Analytics Toggle)
     document.querySelectorAll('.safe-perm-toggle').forEach((chk) => {
       chk.addEventListener('change', () => {
         const uid = chk.getAttribute('data-user-id');
@@ -1579,7 +2044,7 @@
       });
     });
 
-    // 10. Modalları Kapatma
+    // 11. Modalları Kapatma (Buton, Tıklama ve Escape Tuşu)
     document.querySelectorAll('[data-modal-close]').forEach((el) => {
       el.addEventListener('click', () => {
         document.querySelectorAll('.safe-modal-backdrop').forEach((m) => m.classList.remove('active'));
@@ -1592,6 +2057,13 @@
       });
     });
   }
+
+  // Escape Tuşu ile Modal Kapatma
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.safe-modal-backdrop').forEach((m) => m.classList.remove('active'));
+    }
+  });
 
   // ==================== BAŞLATICI ====================
   document.addEventListener('DOMContentLoaded', () => {
