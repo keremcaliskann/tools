@@ -1,28 +1,119 @@
 /**
  * Safe5 — Fabrika Geri Bildirim & Analitik Paneli
  * %100 İstemci Taraflı (Zero-Backend) & Local-First Veri Mimarisi
+ * Açık Renk (Light Only), Yumuşak Tasarım ve Yetki Yönetim Mimarisi
  */
 
 (function () {
   'use strict';
 
+  // ==================== TEMA ZORLAMASI (SADECE AÇIK RENK) ====================
+  function enforceLightTheme() {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.classList.remove('dark');
+  }
+  enforceLightTheme();
+
   // ==================== STORAGE KEYS ====================
   const STORAGE_KEYS = {
-    EMPLOYEES: 'safe5_employees_v1',
-    FEEDBACKS: 'safe5_feedbacks_v1',
-    SESSION: 'safe5_current_session_v1'
+    EMPLOYEES: 'safe5_employees_v2',
+    FEEDBACKS: 'safe5_feedbacks_v2',
+    SESSION: 'safe5_session_v2'
   };
 
-  // ==================== VARSAYILAN FABRİKA VERİLERİ (DEMO SEED) ====================
+  // ==================== VARSAYILAN KULLANICILAR & ROLLER ====================
+  // Tüm yetkiler: 'feedback' (default), 'analytics' (yetkilendirmeyle)
   const DEFAULT_EMPLOYEES = [
-    { id: 'EMP-101', name: 'Mehmet Demir', role: 'worker', department: 'Montaj Hattı', title: 'Montaj Usta Başı', shift: '1. Vardiya (08:00 - 16:00)', initials: 'MD' },
-    { id: 'EMP-102', name: 'Ayşe Yılmaz', role: 'worker', department: 'Kalite Güvence', title: 'Kalite Kontrol Teknisyeni', shift: '1. Vardiya (08:00 - 16:00)', initials: 'AY' },
-    { id: 'EMP-103', name: 'Ali Çelik', role: 'worker', department: 'Talaşlı İmalat', title: 'CNC Torna Operatörü', shift: '2. Vardiya (16:00 - 24:00)', initials: 'AÇ' },
-    { id: 'EMP-104', name: 'Fatma Kurt', role: 'worker', department: 'İSG & Çevre', title: 'İş Güvenliği Uzmanı', shift: 'Gündüz (08:30 - 17:30)', initials: 'FK' },
-    { id: 'EMP-105', name: 'Emre Şahin', role: 'worker', department: 'Bakım & Onarım', title: 'Mekanik Bakım Teknisyeni', shift: '2. Vardiya (16:00 - 24:00)', initials: 'EŞ' },
-    { id: 'EMP-106', name: 'Zeynep Kaya', role: 'worker', department: 'Depo & Lojistik', title: 'Lojistik Operatörü', shift: '1. Vardiya (08:00 - 16:00)', initials: 'ZK' },
-    { id: 'EMP-107', name: 'Mustafa Öztürk', role: 'worker', department: 'Kaynak & Gövde', title: 'Robotik Kaynak Operatörü', shift: '3. Vardiya (24:00 - 08:00)', initials: 'MÖ' },
-    { id: 'EMP-108', name: 'Selin Arslan', role: 'worker', department: 'Kaizen & Metot', title: 'Sürekli İyileştirme Müh.', shift: 'Gündüz (08:30 - 17:30)', initials: 'SA' }
+    {
+      id: 'ADMIN-01',
+      name: 'Kemal Yönetici',
+      role: 'admin',
+      department: 'Fabrika Yönetimi',
+      title: 'Fabrika Müdürü',
+      shift: 'Genel Mesai (08:30 - 17:30)',
+      initials: 'KY',
+      permissions: ['feedback', 'analytics']
+    },
+    {
+      id: 'EMP-101',
+      name: 'Mehmet Demir',
+      role: 'worker',
+      department: 'Montaj Hattı',
+      title: 'Montaj Usta Başı',
+      shift: '1. Vardiya (08:00 - 16:00)',
+      initials: 'MD',
+      permissions: ['feedback']
+    },
+    {
+      id: 'EMP-102',
+      name: 'Ayşe Yılmaz',
+      role: 'worker',
+      department: 'Kalite Güvence',
+      title: 'Kalite Kontrol Teknisyeni',
+      shift: '1. Vardiya (08:00 - 16:00)',
+      initials: 'AY',
+      permissions: ['feedback', 'analytics'] // Analiz yetkisi verilmiş çalışan
+    },
+    {
+      id: 'EMP-103',
+      name: 'Ali Çelik',
+      role: 'worker',
+      department: 'Talaşlı İmalat',
+      title: 'CNC Torna Operatörü',
+      shift: '2. Vardiya (16:00 - 24:00)',
+      initials: 'AÇ',
+      permissions: ['feedback']
+    },
+    {
+      id: 'EMP-104',
+      name: 'Fatma Kurt',
+      role: 'worker',
+      department: 'İSG & Çevre',
+      title: 'İş Güvenliği Uzmanı',
+      shift: 'Genel Mesai (08:30 - 17:30)',
+      initials: 'FK',
+      permissions: ['feedback', 'analytics'] // Analiz yetkisi verilmiş çalışan
+    },
+    {
+      id: 'EMP-105',
+      name: 'Emre Şahin',
+      role: 'worker',
+      department: 'Bakım & Onarım',
+      title: 'Mekanik Bakım Teknisyeni',
+      shift: '2. Vardiya (16:00 - 24:00)',
+      initials: 'EŞ',
+      permissions: ['feedback']
+    },
+    {
+      id: 'EMP-106',
+      name: 'Zeynep Kaya',
+      role: 'worker',
+      department: 'Depo & Lojistik',
+      title: 'Lojistik Operatörü',
+      shift: '1. Vardiya (08:00 - 16:00)',
+      initials: 'ZK',
+      permissions: ['feedback']
+    },
+    {
+      id: 'EMP-107',
+      name: 'Mustafa Öztürk',
+      role: 'worker',
+      department: 'Kaynak & Gövde',
+      title: 'Robotik Kaynak Operatörü',
+      shift: '3. Vardiya (24:00 - 08:00)',
+      initials: 'MÖ',
+      permissions: ['feedback']
+    },
+    {
+      id: 'EMP-108',
+      name: 'Selin Arslan',
+      role: 'worker',
+      department: 'Kaizen & Metot',
+      title: 'Sürekli İyileştirme Müh.',
+      shift: 'Genel Mesai (08:30 - 17:30)',
+      initials: 'SA',
+      permissions: ['feedback', 'analytics']
+    }
   ];
 
   const DEFAULT_FEEDBACKS = [
@@ -133,25 +224,23 @@
     }
   ];
 
-  // ==================== APPLICATION STATE ====================
+  // ==================== UYGULAMA DURUMU (STATE) ====================
   const state = {
     employees: [],
     feedbacks: [],
-    currentUser: null, // { id, name, role: 'worker' | 'admin', department, ... }
-    adminPin: '1234',
+    currentUser: null,
+    activeTab: 'give-feedback', // 'give-feedback' (Varsayılan Anasayfa!), 'view-feedbacks', 'analytics', 'user-management'
     selectedType: 'kudos',
     selectedCategory: 'isg',
     selectedBadge: '🏆 Ayın Yıldızı',
     isAnonymous: false,
-    feedFilter: 'all', // 'all' | 'received' | 'sent'
-    adminFilterCategory: 'all',
-    adminFilterShift: 'all',
-    adminFilterStatus: 'all',
-    adminSearchQuery: '',
+    feedFilter: 'all', // 'all', 'received', 'sent'
+    feedTypeFilter: 'all', // 'all', 'kudos', 'kaizen', 'isg'
+    searchQuery: '',
     chartInstances: {}
   };
 
-  // ==================== DATA MANAGEMENT (LOCAL-FIRST) ====================
+  // ==================== VERİ YÖNETİMİ (LOCAL STORAGE) ====================
   function loadData() {
     try {
       const storedEmp = localStorage.getItem(STORAGE_KEYS.EMPLOYEES);
@@ -162,17 +251,19 @@
       state.feedbacks = storedFb ? JSON.parse(storedFb) : JSON.parse(JSON.stringify(DEFAULT_FEEDBACKS));
 
       if (storedSession) {
-        state.currentUser = JSON.parse(storedSession);
+        const parsed = JSON.parse(storedSession);
+        // Kullanıcı hala employees listesinde var mı?
+        const found = state.employees.find((e) => e.id === parsed.id);
+        state.currentUser = found || state.employees[0];
       } else {
-        // Varsayılan olarak ilk çalışanla başlat
-        state.currentUser = state.employees[0];
+        // Varsayılan olarak Admin veya ilk çalışan
+        state.currentUser = state.employees[0]; // Kemal Yönetici (Admin)
       }
 
-      // İlk defa açılıyorsa yerel hafızaya kaydet
       if (!storedEmp) saveEmployees();
       if (!storedFb) saveFeedbacks();
-    } catch (err) {
-      console.warn('[Safe5] LocalStorage okuma hatası, varsayılanlar yüklendi:', err);
+    } catch (e) {
+      console.warn('[Safe5] Veri yüklenirken hata:', e);
       state.employees = JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES));
       state.feedbacks = JSON.parse(JSON.stringify(DEFAULT_FEEDBACKS));
       state.currentUser = state.employees[0];
@@ -182,30 +273,24 @@
   function saveEmployees() {
     try {
       localStorage.setItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(state.employees));
-    } catch (e) {
-      console.error('[Safe5] Çalışan kaydedilemedi:', e);
-    }
+    } catch (e) {}
   }
 
   function saveFeedbacks() {
     try {
       localStorage.setItem(STORAGE_KEYS.FEEDBACKS, JSON.stringify(state.feedbacks));
-    } catch (e) {
-      console.error('[Safe5] Geri bildirim kaydedilemedi:', e);
-    }
+    } catch (e) {}
   }
 
   function saveSession() {
     try {
       if (state.currentUser) {
         localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(state.currentUser));
-      } else {
-        localStorage.removeItem(STORAGE_KEYS.SESSION);
       }
     } catch (e) {}
   }
 
-  // ==================== TOAST & NOTIFICATIONS ====================
+  // ==================== TOAST BİLDİRİMİ ====================
   function showToast(message, type = 'success') {
     let toast = document.getElementById('safeToast');
     if (!toast) {
@@ -222,45 +307,150 @@
     clearTimeout(toast._timeout);
     toast._timeout = setTimeout(() => {
       toast.classList.remove('show');
-    }, 3200);
+    }, 3000);
   }
 
-  // ==================== AUTH & ROLE CONTROL ====================
-  function setRole(role, employeeId = null) {
-    if (role === 'admin') {
-      state.currentUser = {
-        id: 'ADMIN-01',
-        name: 'Fabrika Yönetimi / İK & İSG Kurulu',
-        role: 'admin',
-        department: 'Yönetim & Süreç Kontrol',
-        title: 'Fabrika Yöneticisi',
-        initials: 'ADM'
-      };
-      showToast('Yönetici modu aktif edildi. Analitik ve denetim paneline hoş geldiniz.', 'success');
-    } else {
-      const emp = state.employees.find((e) => e.id === employeeId) || state.employees[0];
-      state.currentUser = {
-        ...emp,
-        role: 'worker'
-      };
-      showToast(`${emp.name} olarak oturum açıldı.`, 'success');
+  // ==================== YETKİ KONTROL YARDIMCILARI ====================
+  function canGiveFeedback() {
+    // Tüm kullanıcılarda default olarak var
+    return true;
+  }
+
+  function canViewAnalytics() {
+    if (!state.currentUser) return false;
+    if (state.currentUser.role === 'admin') return true;
+    return Array.isArray(state.currentUser.permissions) && state.currentUser.permissions.includes('analytics');
+  }
+
+  function isAdmin() {
+    return state.currentUser && state.currentUser.role === 'admin';
+  }
+
+  // ==================== KULLANICI DEĞİŞTİRME ====================
+  function switchUser(userId) {
+    const user = state.employees.find((e) => e.id === userId);
+    if (user) {
+      state.currentUser = user;
+      saveSession();
+      // Eğer kullanıcı veri analizi veya admin yetkisine sahip değilse ve o sekmedeyse, ana sayfaya al
+      if (state.activeTab === 'user-management' && !isAdmin()) {
+        state.activeTab = 'give-feedback';
+      }
+      if (state.activeTab === 'analytics' && !canViewAnalytics()) {
+        state.activeTab = 'give-feedback';
+      }
+      showToast(`${user.name} kullanıcısına geçildi.`, 'success');
+      renderUI();
+    }
+  }
+
+  // ==================== KULLANICI EKLEME & SİLME & YETKİLENDİRME (ADMIN) ====================
+  function addUser(data) {
+    if (!isAdmin()) {
+      showToast('Yalnızca yöneticiler yeni kullanıcı ekleyebilir.', 'warning');
+      return false;
     }
 
-    saveSession();
+    const { name, department, title, shift, canAnalytics, role } = data;
+    if (!name || name.trim().length < 3) {
+      showToast('Lütfen geçerli bir isim girin.', 'warning');
+      return false;
+    }
+
+    const initials = name
+      .trim()
+      .split(' ')
+      .map((p) => p[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+
+    const permissions = ['feedback'];
+    if (canAnalytics) {
+      permissions.push('analytics');
+    }
+
+    const newUser = {
+      id: 'EMP-' + Math.floor(100 + Math.random() * 900),
+      name: name.trim(),
+      role: role || 'worker',
+      department: department || 'Montaj Hattı',
+      title: title || 'Operatör',
+      shift: shift || '1. Vardiya (08:00 - 16:00)',
+      initials: initials || 'ÇL',
+      permissions
+    };
+
+    state.employees.push(newUser);
+    saveEmployees();
+    showToast(`${newUser.name} başarıyla sisteme eklendi!`, 'success');
+    renderUI();
+    return true;
+  }
+
+  function removeUser(userId) {
+    if (!isAdmin()) {
+      showToast('Yalnızca yöneticiler kullanıcı silebilir.', 'warning');
+      return;
+    }
+
+    if (state.currentUser && state.currentUser.id === userId) {
+      showToast('O an aktif olan yönetici hesabını silemezsiniz.', 'warning');
+      return;
+    }
+
+    const target = state.employees.find((e) => e.id === userId);
+    if (!target) return;
+
+    if (confirm(`"${target.name}" personelini silmek istediğinize emin misiniz?`)) {
+      state.employees = state.employees.filter((e) => e.id !== userId);
+      saveEmployees();
+      showToast(`${target.name} sistemden silindi.`, 'success');
+      renderUI();
+    }
+  }
+
+  function toggleUserPermission(userId, permission) {
+    if (!isAdmin()) {
+      showToast('Yetkileri yalnızca yönetici düzenleyebilir.', 'warning');
+      return;
+    }
+
+    const user = state.employees.find((e) => e.id === userId);
+    if (!user) return;
+
+    if (!Array.isArray(user.permissions)) {
+      user.permissions = ['feedback'];
+    }
+
+    if (permission === 'feedback') {
+      showToast('Geri bildirim yetkisi temel haktır, kaldırılamaz.', 'warning');
+      return;
+    }
+
+    if (user.permissions.includes(permission)) {
+      user.permissions = user.permissions.filter((p) => p !== permission);
+      showToast(`${user.name} kullanıcısından '${permission === 'analytics' ? 'Veri Analizi' : permission}' yetkisi alındı.`, 'info');
+    } else {
+      user.permissions.push(permission);
+      showToast(`${user.name} kullanıcısına '${permission === 'analytics' ? 'Veri Analizi' : permission}' yetkisi verildi!`, 'success');
+    }
+
+    saveEmployees();
     renderUI();
   }
 
-  // ==================== FEEDBACK SUBMISSION ====================
-  function submitFeedback(formData) {
-    const { toId, type, category, badge, message, shift, isAnonymous } = formData;
+  // ==================== GERİ BİLDİRİM GÖNDERME ====================
+  function submitFeedback(data) {
+    const { toId, type, category, badge, message, shift, isAnonymous } = data;
 
     if (!toId) {
-      showToast('Lütfen geri bildirim göndereceğiniz çalışma arkadaşınızı seçin.', 'warning');
+      showToast('Lütfen geri bildirim vereceğiniz çalışma arkadaşınızı seçin.', 'warning');
       return false;
     }
 
     if (!message || message.trim().length < 5) {
-      showToast('Lütfen en az 5 karakterlik anlamlı bir açıklama girin.', 'warning');
+      showToast('Lütfen en az 5 karakterlik açıklama girin.', 'warning');
       return false;
     }
 
@@ -289,40 +479,33 @@
     state.feedbacks.unshift(newFeedback);
     saveFeedbacks();
 
-    showToast(`Geri bildirim başarıyla iletildi! ${recipient.name} takdir edildi. 🎉`, 'success');
-    renderUI();
+    showToast(`Geri bildirim iletildi! ${recipient.name} takdir edildi. 🎉`, 'success');
     return true;
   }
 
-  // ==================== ANALYTICS COMPUTATION ====================
+  // ==================== ANALİTİK HESAPLAMA ====================
   function computeAnalytics() {
     const total = state.feedbacks.length;
     const kudosCount = state.feedbacks.filter((f) => f.type === 'kudos').length;
     const isgCount = state.feedbacks.filter((f) => f.type === 'isg' || f.category === 'isg').length;
     const kaizenCount = state.feedbacks.filter((f) => f.type === 'kaizen' || f.category === 'kaizen').length;
-    const resolvedKaizens = state.feedbacks.filter((f) => (f.type === 'kaizen' || f.type === 'isg') && f.status === 'resolved').length;
-
+    const resolvedCount = state.feedbacks.filter((f) => f.status === 'resolved').length;
     const kudosPercent = total > 0 ? Math.round((kudosCount / total) * 100) : 0;
 
-    // Kategori Dağılımı
     const categories = {
-      isg: { label: 'İSG & Güvenlik', count: 0, color: '#f59e0b' },
-      '5s': { label: '5S & Düzen', count: 0, color: '#8b5cf6' },
-      kaizen: { label: 'Kaizen & Süreç', count: 0, color: '#06b6d4' },
-      quality: { label: 'Kalite & Özen', count: 0, color: '#3b82f6' },
-      teamwork: { label: 'Takım Ruhu', count: 0, color: '#10b981' }
+      isg: { label: 'İSG & Emniyet', count: 0, color: '#d97706' },
+      '5s': { label: '5S Düzen', count: 0, color: '#7c3aed' },
+      kaizen: { label: 'Kaizen', count: 0, color: '#0284c7' },
+      quality: { label: 'Kalite', count: 0, color: '#4f46e5' },
+      teamwork: { label: 'Takım Ruhu', count: 0, color: '#059669' }
     };
 
     state.feedbacks.forEach((f) => {
       const catKey = f.category || 'teamwork';
-      if (categories[catKey]) {
-        categories[catKey].count++;
-      } else {
-        categories.teamwork.count++;
-      }
+      if (categories[catKey]) categories[catKey].count++;
+      else categories.teamwork.count++;
     });
 
-    // Vardiya Dağılımı
     const shifts = {
       '1. Vardiya': 0,
       '2. Vardiya': 0,
@@ -335,7 +518,6 @@
       else shifts['1. Vardiya']++;
     });
 
-    // Bölüm Dağılımı
     const deptMap = {};
     state.feedbacks.forEach((f) => {
       const emp = state.employees.find((e) => e.id === f.toId);
@@ -343,7 +525,7 @@
       deptMap[dept] = (deptMap[dept] || 0) + 1;
     });
 
-    // En Çok Takdir Alanlar (Top 5)
+    // En çok takdir alanlar (Top 5)
     const kudosLeaderboard = {};
     state.feedbacks.forEach((f) => {
       if (f.type === 'kudos' || f.type === 'kaizen') {
@@ -370,7 +552,7 @@
       kudosPercent,
       isgCount,
       kaizenCount,
-      resolvedKaizens,
+      resolvedCount,
       categories,
       shifts,
       deptMap,
@@ -378,742 +560,511 @@
     };
   }
 
-  // ==================== EXPORT & IMPORT ====================
+  // ==================== CSV / EXPORT ====================
   function exportCSV() {
     if (state.feedbacks.length === 0) {
       showToast('Dışa aktarılacak geri bildirim bulunmuyor.', 'warning');
       return;
     }
 
-    const headers = [
-      'ID',
-      'Tarih',
-      'Gönderen',
-      'Alıcı',
-      'Alıcı Bölüm',
-      'Tür',
-      'Kategori',
-      'Rozet',
-      'Vardiya',
-      'Anonimlik',
-      'Durum',
-      'Mesaj'
-    ];
-
+    const headers = ['ID', 'Tarih', 'Gönderen', 'Alıcı', 'Tür', 'Kategori', 'Rozet', 'Vardiya', 'Durum', 'Mesaj'];
     const rows = state.feedbacks.map((f) => {
-      const emp = state.employees.find((e) => e.id === f.toId);
-      const dept = emp ? emp.department : 'Genel';
       const cleanMsg = (f.message || '').replace(/"/g, '""');
       return [
         f.id,
         new Date(f.createdAt).toLocaleString('tr-TR'),
-        f.fromName || 'Anonim',
+        f.fromName,
         f.toName,
-        dept,
         f.type,
         f.category,
         f.badge || '',
         f.shift || '1. Vardiya',
-        f.isAnonymous ? 'Anonim' : 'İsimli',
         f.status || 'resolved',
         `"${cleanMsg}"`
       ].join(';');
     });
 
-    // UTF-8 BOM ekleyerek Türkçe karakterlerin Excel'de düzgün açılmasını sağlıyoruz
     const csvContent = '\uFEFF' + headers.join(';') + '\n' + rows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `safe5_fabrika_geribildirim_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `safe5_geribildirim_raporu_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
     showToast('CSV raporu Excel uyumlu olarak indirildi.', 'success');
   }
 
-  function exportJSON() {
-    const backup = {
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      employees: state.employees,
-      feedbacks: state.feedbacks
-    };
-
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `safe5_yedek_${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast('Tüm fabrika veritabanı JSON olarak yedeklendi.', 'success');
-  }
-
-  function importJSON(file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (Array.isArray(data.employees) && Array.isArray(data.feedbacks)) {
-          state.employees = data.employees;
-          state.feedbacks = data.feedbacks;
-          saveEmployees();
-          saveFeedbacks();
-          showToast('Yedek başarıyla geri yüklendi!', 'success');
-          renderUI();
-        } else {
-          showToast('Geçersiz yedek dosyası formatı.', 'warning');
-        }
-      } catch (err) {
-        showToast('Dosya okunurken hata oluştu.', 'warning');
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  function resetDemoData() {
-    if (confirm('Tüm veriler varsayılan fabrika demo verilerine sıfırlansın mı?')) {
-      state.employees = JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES));
-      state.feedbacks = JSON.parse(JSON.stringify(DEFAULT_FEEDBACKS));
-      state.currentUser = state.employees[0];
-      saveEmployees();
-      saveFeedbacks();
-      saveSession();
-      showToast('Fabrika verileri sıfırlandı ve demo içerik yüklendi.', 'success');
-      renderUI();
-    }
-  }
-
-  // ==================== CHART RENDERING (Chart.js or SVG Fallback) ====================
+  // ==================== GRAFİK ÇİZİMİ ====================
   function renderCharts(analytics) {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const textColor = isDark ? '#f8fafc' : '#0f172a';
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
+    const textColor = '#1e293b';
+    const gridColor = 'rgba(0, 0, 0, 0.05)';
 
-    // 1. Kategori Dağılım Grafiği (Doughnut / Bar)
+    // 1. Kategori Dağılımı
     const catCanvas = document.getElementById('chartCategory');
-    if (catCanvas) {
-      if (window.Chart) {
-        if (state.chartInstances.category) state.chartInstances.category.destroy();
-        const ctx = catCanvas.getContext('2d');
-        const catLabels = Object.values(analytics.categories).map((c) => c.label);
-        const catData = Object.values(analytics.categories).map((c) => c.count);
-        const catColors = Object.values(analytics.categories).map((c) => c.color);
-
-        state.chartInstances.category = new window.Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: catLabels,
-            datasets: [{
-              data: catData,
-              backgroundColor: catColors,
-              borderColor: isDark ? '#1e293b' : '#ffffff',
-              borderWidth: 2
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: 'bottom',
-                labels: { color: textColor, boxWidth: 12, padding: 14 }
-              }
-            }
+    if (catCanvas && window.Chart) {
+      if (state.chartInstances.cat) state.chartInstances.cat.destroy();
+      const ctx = catCanvas.getContext('2d');
+      state.chartInstances.cat = new window.Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.values(analytics.categories).map((c) => c.label),
+          datasets: [{
+            data: Object.values(analytics.categories).map((c) => c.count),
+            backgroundColor: Object.values(analytics.categories).map((c) => c.color),
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12, padding: 12 } }
           }
-        });
-      } else {
-        // Safe SVG Fallback
-        renderSvgDoughnut(catCanvas, analytics.categories);
-      }
+        }
+      });
     }
 
-    // 2. Bölüm / Departman Çubuk Grafiği
+    // 2. Departman Dağılımı
     const deptCanvas = document.getElementById('chartDepartment');
-    if (deptCanvas) {
-      if (window.Chart) {
-        if (state.chartInstances.dept) state.chartInstances.dept.destroy();
-        const ctx = deptCanvas.getContext('2d');
-        const deptLabels = Object.keys(analytics.deptMap);
-        const deptValues = Object.values(analytics.deptMap);
-
-        state.chartInstances.dept = new window.Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: deptLabels,
-            datasets: [{
-              label: 'Bildirim Sayısı',
-              data: deptValues,
-              backgroundColor: '#10b981',
-              borderRadius: 6
-            }]
+    if (deptCanvas && window.Chart) {
+      if (state.chartInstances.dept) state.chartInstances.dept.destroy();
+      const ctx = deptCanvas.getContext('2d');
+      state.chartInstances.dept = new window.Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(analytics.deptMap),
+          datasets: [{
+            label: 'Bildirim Sayısı',
+            data: Object.values(analytics.deptMap),
+            backgroundColor: '#059669',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } },
+            x: { ticks: { color: textColor, maxRotation: 20 }, grid: { display: false } }
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: { color: textColor, stepSize: 1 },
-                grid: { color: gridColor }
-              },
-              x: {
-                ticks: { color: textColor, maxRotation: 25 },
-                grid: { display: false }
-              }
-            },
-            plugins: {
-              legend: { display: false }
-            }
-          }
-        });
-      } else {
-        renderSvgBars(deptCanvas, analytics.deptMap);
-      }
+          plugins: { legend: { display: false } }
+        }
+      });
     }
 
-    // 3. Vardiya Dağılım Grafiği
+    // 3. Vardiya Dağılımı
     const shiftCanvas = document.getElementById('chartShift');
-    if (shiftCanvas) {
-      if (window.Chart) {
-        if (state.chartInstances.shift) state.chartInstances.shift.destroy();
-        const ctx = shiftCanvas.getContext('2d');
-        state.chartInstances.shift = new window.Chart(ctx, {
-          type: 'polarArea',
-          data: {
-            labels: ['1. Vardiya (Gündüz)', '2. Vardiya (Akşam)', '3. Vardiya (Gece)'],
-            datasets: [{
-              data: [analytics.shifts['1. Vardiya'], analytics.shifts['2. Vardiya'], analytics.shifts['3. Vardiya']],
-              backgroundColor: ['rgba(16, 185, 129, 0.7)', 'rgba(6, 182, 212, 0.7)', 'rgba(99, 102, 241, 0.7)']
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: 'bottom',
-                labels: { color: textColor, boxWidth: 12 }
-              }
-            },
-            scales: {
-              r: {
-                ticks: { display: false },
-                grid: { color: gridColor }
-              }
-            }
-          }
-        });
-      }
+    if (shiftCanvas && window.Chart) {
+      if (state.chartInstances.shift) state.chartInstances.shift.destroy();
+      const ctx = shiftCanvas.getContext('2d');
+      state.chartInstances.shift = new window.Chart(ctx, {
+        type: 'polarArea',
+        data: {
+          labels: ['1. Vardiya', '2. Vardiya', '3. Vardiya'],
+          datasets: [{
+            data: [analytics.shifts['1. Vardiya'], analytics.shifts['2. Vardiya'], analytics.shifts['3. Vardiya']],
+            backgroundColor: ['rgba(5, 150, 105, 0.75)', 'rgba(2, 132, 199, 0.75)', 'rgba(79, 70, 229, 0.75)']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12 } } }
+        }
+      });
     }
   }
 
-  // Çevrimdışı SVG Grafikler (Chart.js CDN yüklenemezse devreye girer)
-  function renderSvgBars(container, dataMap) {
-    const keys = Object.keys(dataMap);
-    const maxVal = Math.max(...Object.values(dataMap), 1);
-    let html = `<div class="safe-bar-chart">`;
-    keys.forEach((k) => {
-      const val = dataMap[k];
-      const pct = Math.round((val / maxVal) * 100);
-      html += `
-        <div class="safe-bar-col">
-          <span class="safe-bar-value">${val}</span>
-          <div class="safe-bar-fill" style="height: ${pct}%;"></div>
-          <span class="safe-bar-label" title="${k}">${k}</span>
-        </div>
-      `;
-    });
-    html += `</div>`;
-    container.innerHTML = html;
-  }
-
-  function renderSvgDoughnut(container, categories) {
-    const total = Object.values(categories).reduce((acc, c) => acc + c.count, 0) || 1;
-    let listHtml = `<div style="padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">`;
-    Object.values(categories).forEach((c) => {
-      const pct = Math.round((c.count / total) * 100);
-      listHtml += `
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem;">
-          <span style="display:flex; align-items:center; gap:0.4rem;">
-            <span style="width:10px; height:10px; border-radius:50%; background:${c.color};"></span>
-            ${c.label}
-          </span>
-          <b>${c.count} (%${pct})</b>
-        </div>
-        <div style="width:100%; height:6px; background:var(--wp-border); border-radius:3px; overflow:hidden;">
-          <div style="width:${pct}%; height:100%; background:${c.color};"></div>
-        </div>
-      `;
-    });
-    listHtml += `</div>`;
-    container.innerHTML = listHtml;
-  }
-
-  // ==================== MAIN UI RENDER ====================
+  // ==================== ANA ARAYÜZ (RENDER UI) ====================
   function renderUI() {
+    enforceLightTheme();
     const appRoot = document.getElementById('safeAppRoot');
     if (!appRoot) return;
 
     const user = state.currentUser;
-    const isAdmin = user && user.role === 'admin';
+    const userIsAdmin = isAdmin();
+    const userCanAnalytics = canViewAnalytics();
 
-    // Üst kullanıcı çubuğu (Header User Bar)
-    let userBarHtml = `
-      <div class="safe-user-bar">
-        <div class="safe-user-info">
-          <div class="safe-avatar" style="${isAdmin ? 'background: linear-gradient(135deg, #6366f1, #8b5cf6);' : ''}">
-            ${user ? (user.initials || user.name.slice(0, 2).toUpperCase()) : 'SF'}
-          </div>
-          <div class="safe-user-details">
-            <h3>${user ? user.name : 'Giriş Yapılmadı'}</h3>
-            <div class="safe-user-meta">
-              <span class="safe-role-badge ${isAdmin ? 'admin' : 'worker'}">
-                ${isAdmin ? '👑 Fabrika Yöneticisi / Admin' : '👷 Fabrika Çalışanı'}
-              </span>
-              <span>•</span>
-              <span>${user ? user.department : 'Sanayi Üretim'}</span>
-              ${user && user.shift ? `<span>•</span> <span>${user.shift}</span>` : ''}
-            </div>
+    // ==================== 1. SIDEBAR NAVBAR ====================
+    const sidebarHtml = `
+      <aside class="safe-sidebar">
+        <!-- Logo & Başlık -->
+        <div class="safe-sidebar-brand">
+          <img src="icon.svg" alt="Safe5" class="safe-sidebar-logo" />
+          <div>
+            <h2 class="safe-brand-title">Safe5</h2>
+            <span class="safe-brand-subtitle">Fabrika İletişim Paneli</span>
           </div>
         </div>
 
-        <div class="safe-user-actions">
-          ${!isAdmin ? `
-            <button type="button" class="safe-btn safe-btn-primary" id="btnOpenFeedbackModal">
-              <span>✍️</span>
-              <span>Geri Bildirim / Takdir Gönder</span>
-            </button>
-          ` : ''}
-
-          <button type="button" class="safe-btn safe-btn-outline" id="btnSwitchProfile">
-            <span>🔄</span>
-            <span>Profil / Rol Değiştir</span>
+        <!-- Yan Sekmeler (Navbar) -->
+        <nav class="safe-nav-menu">
+          <!-- 1. Geri Bildirim Ver (ANASAYFA) -->
+          <button type="button" class="safe-nav-item ${state.activeTab === 'give-feedback' ? 'active' : ''}" data-nav-tab="give-feedback">
+            <div class="safe-nav-left">
+              <span class="safe-nav-icon">✍️</span>
+              <span class="safe-nav-text">Geri Bildirim Ver</span>
+            </div>
+            <span class="safe-nav-badge">Ana Sayfa</span>
           </button>
 
-          ${isAdmin ? `
-            <button type="button" class="safe-btn safe-btn-secondary" id="btnExportCSV">
-              <span>📊</span>
-              <span>CSV Raporu İndir</span>
+          <!-- 2. Geri Bildirimleri İncele (GÖRME EKRANI) -->
+          <button type="button" class="safe-nav-item ${state.activeTab === 'view-feedbacks' ? 'active' : ''}" data-nav-tab="view-feedbacks">
+            <div class="safe-nav-left">
+              <span class="safe-nav-icon">📬</span>
+              <span class="safe-nav-text">Geri Bildirimler</span>
+            </div>
+            <span class="safe-nav-count">${state.feedbacks.length}</span>
+          </button>
+
+          <!-- 3. Veri Analizi (SADECE ANALİZ YETKİSİ OLANLAR VEYA ADMIN) -->
+          ${userCanAnalytics ? `
+            <button type="button" class="safe-nav-item ${state.activeTab === 'analytics' ? 'active' : ''}" data-nav-tab="analytics">
+              <div class="safe-nav-left">
+                <span class="safe-nav-icon">📊</span>
+                <span class="safe-nav-text">Veri Analizi</span>
+              </div>
+              <span class="safe-nav-pill">Yetkili</span>
             </button>
           ` : ''}
+
+          <!-- 4. Kullanıcı Yönetimi (SADECE ADMIN) -->
+          ${userIsAdmin ? `
+            <button type="button" class="safe-nav-item ${state.activeTab === 'user-management' ? 'active' : ''}" data-nav-tab="user-management">
+              <div class="safe-nav-left">
+                <span class="safe-nav-icon">👥</span>
+                <span class="safe-nav-text">Kullanıcı Yönetimi</span>
+              </div>
+              <span class="safe-nav-pill admin">Admin</span>
+            </button>
+          ` : ''}
+        </nav>
+
+        <!-- Yan Menü Altı: Aktif Kullanıcı Kartı & Profil Değiştirici -->
+        <div class="safe-sidebar-user">
+          <div class="safe-user-card">
+            <div class="safe-user-top">
+              <div class="safe-avatar ${userIsAdmin ? 'admin-avatar' : ''}">
+                ${user ? user.initials : 'SF'}
+              </div>
+              <div style="min-width: 0;">
+                <div class="safe-user-name" title="${user ? user.name : ''}">
+                  ${user ? user.name : 'Misafir'}
+                </div>
+                <div class="safe-user-meta">
+                  ${user ? `${user.department} • ${user.title}` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Yetki Rozetleri -->
+            <div class="safe-user-perms">
+              <span class="safe-perm-tag feedback">✓ Geri Bildirim</span>
+              ${userCanAnalytics ? '<span class="safe-perm-tag analytics">✓ Veri Analizi</span>' : ''}
+              ${userIsAdmin ? '<span class="safe-perm-tag admin">👑 Admin</span>' : ''}
+            </div>
+
+            <button type="button" class="safe-btn safe-btn-outline safe-btn-sm" style="width: 100%;" id="btnSwitchProfile">
+              <span>🔄</span>
+              <span>Kullanıcı / Rol Değiştir</span>
+            </button>
+          </div>
         </div>
-      </div>
+      </aside>
     `;
 
-    // İçerik görünümü: Admin Paneli vs Çalışan Görünümü
-    let mainContentHtml = '';
+    // ==================== 2. SAĞ İÇERİK EKRANLARI ====================
+    let screenHtml = '';
 
-    if (isAdmin) {
-      // ADMİN / YÖNETİCİ ANALİTİK GÖRÜNÜMÜ
-      const analytics = computeAnalytics();
-
-      mainContentHtml = `
-        <div class="safe-admin-view">
-          <!-- 1. KPI ÖZET KARTLARI -->
-          <div class="safe-kpi-grid">
-            <div class="safe-kpi-card kpi-kudos">
-              <div class="safe-kpi-header">
-                <span class="safe-kpi-label">Toplam Bildirim</span>
-                <span class="safe-kpi-icon">📢</span>
-              </div>
-              <div class="safe-kpi-value">${analytics.total}</div>
-              <div class="safe-kpi-subtext">Fabrika geneli çalışan etkileşimi</div>
-            </div>
-
-            <div class="safe-kpi-card kpi-people">
-              <div class="safe-kpi-header">
-                <span class="safe-kpi-label">Takdir / Moral Oranı</span>
-                <span class="safe-kpi-icon">⭐</span>
-              </div>
-              <div class="safe-kpi-value">%${analytics.kudosPercent}</div>
-              <div class="safe-kpi-subtext">${analytics.kudosCount} pozitif takdir bildirimi</div>
-            </div>
-
-            <div class="safe-kpi-card kpi-isg">
-              <div class="safe-kpi-header">
-                <span class="safe-kpi-label">İSG & Güvenlik Bildirimi</span>
-                <span class="safe-kpi-icon">🦺</span>
-              </div>
-              <div class="safe-kpi-value">${analytics.isgCount}</div>
-              <div class="safe-kpi-subtext">Kaza önleme & ramak kala uyarısı</div>
-            </div>
-
-            <div class="safe-kpi-card kpi-kaizen">
-              <div class="safe-kpi-header">
-                <span class="safe-kpi-label">Kaizen & 5S Aksiyonu</span>
-                <span class="safe-kpi-icon">💡</span>
-              </div>
-              <div class="safe-kpi-value">${analytics.kaizenCount}</div>
-              <div class="safe-kpi-subtext">${analytics.resolvedKaizens} tanesi hayata geçirildi</div>
-            </div>
-          </div>
-
-          <!-- 2. ANALİTİK GRAFİKLER -->
-          <div class="safe-charts-grid">
-            <!-- Grafik 1: Kategori Dağılımı -->
-            <div class="safe-chart-card">
-              <div class="safe-card-header">
-                <div>
-                  <h3 class="safe-card-title"><span>🎯</span> Geri Bildirim Kategori Dağılımı</h3>
-                  <p class="safe-card-subtitle">İSG, 5S, Kaizen ve Takım Çalışması odakları</p>
-                </div>
-              </div>
-              <div class="safe-chart-container" id="chartCategoryContainer">
-                <canvas id="chartCategory"></canvas>
-              </div>
-            </div>
-
-            <!-- Grafik 2: Departman / Bölüm Performansı -->
-            <div class="safe-chart-card">
-              <div class="safe-card-header">
-                <div>
-                  <h3 class="safe-card-title"><span>🏢</span> Bölüm / Hat Bazlı Bildirim Yoğunluğu</h3>
-                  <p class="safe-card-subtitle">Hangi bölümler birbirini daha çok destekliyor?</p>
-                </div>
-              </div>
-              <div class="safe-chart-container" id="chartDeptContainer">
-                <canvas id="chartDepartment"></canvas>
-              </div>
-            </div>
-
-            <!-- Grafik 3: Vardiya Karşılaştırması -->
-            <div class="safe-chart-card">
-              <div class="safe-card-header">
-                <div>
-                  <h3 class="safe-card-title"><span>⏰</span> Vardiya Bazlı Dağılım</h3>
-                  <p class="safe-card-subtitle">1., 2. ve 3. Vardiya katılım oranları</p>
-                </div>
-              </div>
-              <div class="safe-chart-container" id="chartShiftContainer">
-                <canvas id="chartShift"></canvas>
-              </div>
-            </div>
-
-            <!-- Liderlik & En Çok Takdir Edilenler -->
-            <div class="safe-chart-card">
-              <div class="safe-card-header">
-                <div>
-                  <h3 class="safe-card-title"><span>🏆</span> En Çok Takdir Edilen Çalışanlar</h3>
-                  <p class="safe-card-subtitle">Fabrika içi örnek davranış ve iş birliği liderleri</p>
-                </div>
-              </div>
-              <div class="safe-leader-list">
-                ${analytics.topLeaders.length > 0 ? analytics.topLeaders.map((lead, idx) => `
-                  <div class="safe-leader-item">
-                    <div class="safe-leader-left">
-                      <div class="safe-rank-badge rank-${idx + 1}">${idx + 1}</div>
-                      <div>
-                        <div style="font-weight: 700; color: var(--wp-text);">${lead.name}</div>
-                        <div style="font-size: 0.78rem; color: var(--wp-text-muted);">${lead.department}</div>
-                      </div>
-                    </div>
-                    <div style="font-weight: 800; color: var(--safe5-primary); font-size: 0.95rem;">
-                      ${lead.score} Takdir
-                    </div>
-                  </div>
-                `).join('') : '<p style="color:var(--wp-text-muted); padding:1rem; text-align:center;">Henüz takdir verisi bulunmuyor.</p>'}
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. TÜM BİLDİRİMLER DENETİM TABLOSU & YÖNETİM -->
-          <div class="safe-card">
-            <div class="safe-card-header">
-              <div>
-                <h3 class="safe-card-title"><span>📋</span> Fabrika Geri Bildirim Denetim Kayıtları</h3>
-                <p class="safe-card-subtitle">Detaylı arama, durum güncelleme ve aksiyon takibi</p>
-              </div>
-              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button type="button" class="safe-btn safe-btn-sm safe-btn-secondary" id="btnExportJSON">
-                  <span>💾</span>
-                  <span>JSON Yedek</span>
-                </button>
-                <label class="safe-btn safe-btn-sm safe-btn-outline" style="cursor:pointer; margin:0;">
-                  <span>📥</span>
-                  <span>Yedek Yükle</span>
-                  <input type="file" id="inputImportJSON" accept=".json" style="display:none;" />
-                </label>
-                <button type="button" class="safe-btn safe-btn-sm safe-btn-outline" id="btnResetDemo" style="color:var(--safe5-danger);">
-                  <span>🔄</span>
-                  <span>Demo Sıfırla</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Filtreler Çubuğu -->
-            <div class="safe-filter-bar">
-              <input type="text" class="safe-input" id="adminSearchInput" placeholder="Personel adı veya mesajda ara..." style="max-width: 260px;" value="${state.adminSearchQuery}" />
-              
-              <select class="safe-select" id="adminFilterCategorySelect" style="max-width: 170px;">
-                <option value="all" ${state.adminFilterCategory === 'all' ? 'selected' : ''}>Tüm Kategoriler</option>
-                <option value="isg" ${state.adminFilterCategory === 'isg' ? 'selected' : ''}>🦺 İSG & Güvenlik</option>
-                <option value="5s" ${state.adminFilterCategory === '5s' ? 'selected' : ''}>🧹 5S Düzen</option>
-                <option value="kaizen" ${state.adminFilterCategory === 'kaizen' ? 'selected' : ''}>💡 Kaizen & İyileştirme</option>
-                <option value="teamwork" ${state.adminFilterCategory === 'teamwork' ? 'selected' : ''}>🤝 Takım Ruhu</option>
-              </select>
-
-              <select class="safe-select" id="adminFilterShiftSelect" style="max-width: 150px;">
-                <option value="all" ${state.adminFilterShift === 'all' ? 'selected' : ''}>Tüm Vardiyalar</option>
-                <option value="1" ${state.adminFilterShift === '1' ? 'selected' : ''}>1. Vardiya</option>
-                <option value="2" ${state.adminFilterShift === '2' ? 'selected' : ''}>2. Vardiya</option>
-                <option value="3" ${state.adminFilterShift === '3' ? 'selected' : ''}>3. Vardiya</option>
-              </select>
-
-              <select class="safe-select" id="adminFilterStatusSelect" style="max-width: 150px;">
-                <option value="all" ${state.adminFilterStatus === 'all' ? 'selected' : ''}>Tüm Durumlar</option>
-                <option value="resolved" ${state.adminFilterStatus === 'resolved' ? 'selected' : ''}>Tamamlandı</option>
-                <option value="in_progress" ${state.adminFilterStatus === 'in_progress' ? 'selected' : ''}>Aksiyon Alınıyor</option>
-                <option value="pending" ${state.adminFilterStatus === 'pending' ? 'selected' : ''}>İncelemede</option>
-              </select>
-            </div>
-
-            <!-- Tablo -->
-            <div class="safe-table-container">
-              <table class="safe-table">
-                <thead>
-                  <tr>
-                    <th>Tarih</th>
-                    <th>Gönderen</th>
-                    <th>Alıcı</th>
-                    <th>Tür / Kategori</th>
-                    <th>Mesaj Özeti</th>
-                    <th>Vardiya</th>
-                    <th>Durum / İşlem</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${renderAdminTableRows()}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      `;
-    } else {
-      // ÇALIŞAN (WORKER) GÖRÜNÜMÜ - SADE, DOKUNMATİK VE HIZLI FORM + AKIŞ
-      mainContentHtml = `
-        <div class="safe-worker-layout">
-          <!-- SOL SÜTUN: HIZLI GERİ BİLDİRİM FORMU -->
-          <div class="safe-card">
-            <div class="safe-card-header">
-              <div>
-                <h3 class="safe-card-title"><span>✍️</span> Çalışma Arkadaşına Geri Bildirim Ver</h3>
-                <p class="safe-card-subtitle">10 saniyede takdir et, 5S veya İSG önerini ilet</p>
-              </div>
-            </div>
-
-            <form id="safeFeedbackForm">
-              <!-- Alıcı Çalışan Seçimi -->
-              <div class="safe-form-group">
-                <label class="safe-label">Kime Geri Bildirim Veriyorsun? <span style="color:var(--safe5-primary);">*</span></label>
-                <select class="safe-select" id="inputRecipient" required>
-                  <option value="" disabled selected>-- Çalışma Arkadaşını Seçin --</option>
-                  ${state.employees
-                    .filter((e) => !user || e.id !== user.id)
-                    .map((e) => `<option value="${e.id}">${e.name} — ${e.department} (${e.title})</option>`)
-                    .join('')}
-                </select>
-              </div>
-
-              <!-- Bildirim Türü (3 Ana Tip) -->
-              <div class="safe-form-group">
-                <label class="safe-label">Bildirim Türü</label>
-                <div class="safe-type-switcher">
-                  <button type="button" class="safe-type-btn kudos ${state.selectedType === 'kudos' ? 'active' : ''}" data-type="kudos">
-                    <span>🌟</span> <span>Takdir &amp; Teşekkür</span>
-                  </button>
-                  <button type="button" class="safe-type-btn kaizen ${state.selectedType === 'kaizen' ? 'active' : ''}" data-type="kaizen">
-                    <span>💡</span> <span>Kaizen &amp; Öneri</span>
-                  </button>
-                  <button type="button" class="safe-type-btn isg ${state.selectedType === 'isg' ? 'active' : ''}" data-type="isg">
-                    <span>🦺</span> <span>İSG &amp; Güvenlik</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 5S ve Fabrika Standartları Kategorileri -->
-              <div class="safe-form-group">
-                <label class="safe-label">Fabrika Değeri &amp; 5S İlkesi</label>
-                <div class="safe-category-grid">
-                  <div class="safe-cat-card ${state.selectedCategory === 'isg' ? 'active' : ''}" data-cat="isg">
-                    <span class="safe-cat-icon">🦺</span>
-                    <span class="safe-cat-label">İSG &amp; Emniyet</span>
-                  </div>
-                  <div class="safe-cat-card ${state.selectedCategory === '5s' ? 'active' : ''}" data-cat="5s">
-                    <span class="safe-cat-icon">🧹</span>
-                    <span class="safe-cat-label">5S Tertip &amp; Düzen</span>
-                  </div>
-                  <div class="safe-cat-card ${state.selectedCategory === 'kaizen' ? 'active' : ''}" data-cat="kaizen">
-                    <span class="safe-cat-icon">⚙️</span>
-                    <span class="safe-cat-label">Kaizen İyileştirme</span>
-                  </div>
-                  <div class="safe-cat-card ${state.selectedCategory === 'quality' ? 'active' : ''}" data-cat="quality">
-                    <span class="safe-cat-icon">🎯</span>
-                    <span class="safe-cat-label">Kalite &amp; Özen</span>
-                  </div>
-                  <div class="safe-cat-card ${state.selectedCategory === 'teamwork' ? 'active' : ''}" data-cat="teamwork">
-                    <span class="safe-cat-icon">🤝</span>
-                    <span class="safe-cat-label">Takım Ruhu</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Rozet Seçimi -->
-              <div class="safe-form-group">
-                <label class="safe-label">Takdir Rozeti Ekle</label>
-                <div class="safe-badge-selector">
-                  ${['🏆 Ayın Yıldızı', '🦺 İSG Öncüsü', '💡 Kaizen Ustası', '🤝 Takım Ruhu', '⚙️ Hızlı Çözüm', '🎯 Sıfır Hata'].map((b) => `
-                    <button type="button" class="safe-badge-pill ${state.selectedBadge === b ? 'selected' : ''}" data-badge="${b}">
-                      ${b}
-                    </button>
-                  `).join('')}
-                </div>
-              </div>
-
-              <!-- Mesaj Alanı -->
-              <div class="safe-form-group">
-                <label class="safe-label">Geri Bildirim / Açıklama Notun <span style="color:var(--safe5-primary);">*</span></label>
-                <textarea class="safe-textarea" id="inputMessage" placeholder="Örnek: Pres hattında hidrolik sızıntıyı fark edip anında temizledi, hattın duruşunu önledi..." required></textarea>
-              </div>
-
-              <!-- Anonimlik ve Vardiya Seçenekleri -->
-              <div class="safe-switch-row">
-                <label class="safe-switch-label" style="cursor:pointer;">
-                  <input type="checkbox" id="inputIsAnonymous" ${state.isAnonymous ? 'checked' : ''} style="width:18px; height:18px; accent-color:var(--safe5-primary); cursor:pointer;" />
-                  <span>🕵️‍♂️ Anonim Gönder (İsmim Gizlensin)</span>
-                </label>
-                <span style="font-size: 0.75rem; color: var(--wp-text-muted);">Dürüst &amp; yapıcı kültür</span>
-              </div>
-
-              <div class="safe-form-group">
-                <label class="safe-label">Gerçekleşen Vardiya</label>
-                <select class="safe-select" id="inputShift">
-                  <option value="1. Vardiya" selected>1. Vardiya (Gündüz: 08:00 - 16:00)</option>
-                  <option value="2. Vardiya">2. Vardiya (Akşam: 16:00 - 24:00)</option>
-                  <option value="3. Vardiya">3. Vardiya (Gece: 24:00 - 08:00)</option>
-                  <option value="Genel Gündüz">Genel Mesai (08:30 - 17:30)</option>
-                </select>
-              </div>
-
-              <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width: 100%;">
-                <span>🚀</span>
-                <span>Geri Bildirimi Yayınla</span>
-              </button>
-            </form>
-          </div>
-
-          <!-- SAĞ SÜTUN: FABRİKA TAKDİR DUVARI & KİŞİSEL AKIŞ -->
-          <div class="safe-card">
-            <div class="safe-card-header">
-              <div>
-                <h3 class="safe-card-title"><span>🌟</span> Fabrika Takdir &amp; İyileştirme Duvarı</h3>
-                <p class="safe-card-subtitle">Canlı motivasyon, güvenlik ve teşekkür akışı</p>
-              </div>
-            </div>
-
-            <!-- Sekmeler -->
-            <div class="safe-feed-tabs">
-              <button type="button" class="safe-feed-tab-btn ${state.feedFilter === 'all' ? 'active' : ''}" data-feed-filter="all">
-                🌍 Fabrika Genel Akışı (${state.feedbacks.length})
-              </button>
-              <button type="button" class="safe-feed-tab-btn ${state.feedFilter === 'received' ? 'active' : ''}" data-feed-filter="received">
-                📬 Bana Gelenler (${getFeedCount('received')})
-              </button>
-              <button type="button" class="safe-feed-tab-btn ${state.feedFilter === 'sent' ? 'active' : ''}" data-feed-filter="sent">
-                📤 Gönderdiklerim (${getFeedCount('sent')})
-              </button>
-            </div>
-
-            <!-- Akış Listesi -->
-            <div class="safe-feed-list" id="safeFeedList">
-              ${renderFeedList()}
-            </div>
-          </div>
-        </div>
-      `;
+    if (state.activeTab === 'give-feedback') {
+      // EKRAN 1: GERİ BİLDİRİM VERME (ANASAYFA)
+      screenHtml = renderGiveFeedbackScreen();
+    } else if (state.activeTab === 'view-feedbacks') {
+      // EKRAN 2: GERİ BİLDİRİMLERİ GÖRME (AYRI EKRAN)
+      screenHtml = renderViewFeedbacksScreen();
+    } else if (state.activeTab === 'analytics') {
+      // EKRAN 3: VERİ ANALİZİ EKRANI (YETKİYE GÖRE)
+      screenHtml = renderAnalyticsScreen();
+    } else if (state.activeTab === 'user-management') {
+      // EKRAN 4: KULLANICI & YETKİ YÖNETİMİ (SADECE ADMİN)
+      screenHtml = renderUserManagementScreen();
     }
 
-    // Modal pencereler ve tam HTML birleştirme
+    // Birleşik Düzen
     appRoot.innerHTML = `
-      <div class="safe-container">
-        ${userBarHtml}
-        ${mainContentHtml}
+      <div class="safe-app-layout">
+        ${sidebarHtml}
+        <main class="safe-main-content">
+          ${screenHtml}
+        </main>
       </div>
 
-      <!-- PROFİL & ROL DEĞİŞTİRME MODALI -->
+      <!-- KULLANICI / PROFİL DEĞİŞTİRME MODALI -->
       <div class="safe-modal-backdrop" id="modalSwitchProfile">
         <div class="safe-modal-box">
           <div class="safe-modal-header">
-            <h3 class="safe-modal-title"><span>🔄</span> Profil veya Rol Seçimi</h3>
+            <h3 class="safe-modal-title"><span>🔄</span> Kullanıcı / Rol Değiştir</h3>
             <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
           </div>
-          <p style="font-size:0.88rem; color:var(--wp-text-secondary); margin-bottom:1.25rem;">
-            Fabrika zeminindeki bir çalışan olarak geri bildirim gönderebilir veya yönetici moduna geçerek analiz grafiklerini inceleyebilirsiniz.
+          <p style="font-size:0.88rem; color:var(--safe-text-secondary); margin-bottom:1.25rem;">
+            Farklı yetkilere sahip çalışanlar ve Admin rolü arasında geçiş yaparak ekranları test edebilirsiniz:
           </p>
 
-          <div style="margin-bottom: 1.5rem;">
-            <label class="safe-label">👑 Yönetici (Admin) Modu</label>
-            <div style="background:var(--wp-bg-secondary); border:1px solid var(--wp-border); border-radius:10px; padding:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-              <div>
-                <div style="font-weight:700; color:var(--wp-text);">Fabrika Yönetimi &amp; Analitik</div>
-                <div style="font-size:0.78rem; color:var(--wp-text-muted);">Grafikler, departman metrikleri ve CSV raporlama</div>
-              </div>
-              <button type="button" class="safe-btn safe-btn-admin" id="btnSelectAdmin">
-                <span>Yönetici Olarak Giriş</span>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label class="safe-label">👷 Çalışan Listesinden Seç</label>
-            <div class="safe-worker-picker-grid" style="max-height: 280px;">
-              ${state.employees.map((emp) => `
-                <div class="safe-worker-card ${user && user.id === emp.id ? 'selected' : ''}" data-select-emp="${emp.id}">
-                  <div class="safe-avatar" style="width:36px; height:36px; font-size:0.9rem;">${emp.initials}</div>
-                  <div>
-                    <div class="safe-worker-name">${emp.name}</div>
-                    <div class="safe-worker-role-dept">${emp.department} • ${emp.title}</div>
-                    <div class="safe-worker-shift">${emp.shift}</div>
+          <div style="display:flex; flex-direction:column; gap:0.65rem;">
+            ${state.employees.map((emp) => {
+              const isCurrent = user && user.id === emp.id;
+              const hasAnalyt = Array.isArray(emp.permissions) && emp.permissions.includes('analytics');
+              return `
+                <div class="safe-user-card" style="cursor:pointer; ${isCurrent ? 'border-color:var(--safe-primary); background:var(--safe-primary-light);' : ''}" data-pick-user="${emp.id}">
+                  <div class="safe-user-top" style="margin-bottom:0.4rem;">
+                    <div class="safe-avatar ${emp.role === 'admin' ? 'admin-avatar' : ''}">
+                      ${emp.initials}
+                    </div>
+                    <div style="flex:1;">
+                      <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <span style="font-weight:700; color:var(--safe-text); font-size:0.92rem;">${emp.name}</span>
+                        ${isCurrent ? '<span style="font-size:0.75rem; color:var(--safe-primary); font-weight:700;">(Aktif Hesap)</span>' : ''}
+                      </div>
+                      <div style="font-size:0.78rem; color:var(--safe-text-muted);">${emp.department} • ${emp.title} (${emp.shift})</div>
+                    </div>
+                  </div>
+                  <div class="safe-user-perms" style="margin-bottom:0;">
+                    <span class="safe-perm-tag feedback">Geri Bildirim</span>
+                    ${hasAnalyt ? '<span class="safe-perm-tag analytics">Veri Analizi Yetkili</span>' : '<span style="font-size:0.68rem; color:var(--safe-text-muted); padding:0.15rem 0.45rem;">(Analiz Yetkisi Yok)</span>'}
+                    ${emp.role === 'admin' ? '<span class="safe-perm-tag admin">👑 Admin</span>' : ''}
                   </div>
                 </div>
-              `).join('')}
-            </div>
+              `;
+            }).join('')}
           </div>
+        </div>
+      </div>
+
+      <!-- YENİ KULLANICI EKLEME MODALI (ADMIN) -->
+      <div class="safe-modal-backdrop" id="modalAddUser">
+        <div class="safe-modal-box">
+          <div class="safe-modal-header">
+            <h3 class="safe-modal-title"><span>👤</span> Yeni Kullanıcı / Personel Ekle</h3>
+            <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
+          </div>
+          <form id="formAddUser">
+            <div class="safe-form-group">
+              <label class="safe-label">Ad Soyad <span style="color:var(--safe-primary);">*</span></label>
+              <input type="text" class="safe-input" id="newUserName" placeholder="Örn: Caner Korkmaz" required />
+            </div>
+
+            <div class="safe-form-group">
+              <label class="safe-label">Bölüm / Departman</label>
+              <select class="safe-select" id="newUserDept">
+                <option value="Montaj Hattı">Montaj Hattı</option>
+                <option value="Talaşlı İmalat">Talaşlı İmalat</option>
+                <option value="Kalite Güvence">Kalite Güvence</option>
+                <option value="Bakım & Onarım">Bakım & Onarım</option>
+                <option value="Depo & Lojistik">Depo & Lojistik</option>
+                <option value="Kaynak & Gövde">Kaynak & Gövde</option>
+                <option value="İSG & Çevre">İSG & Çevre</option>
+                <option value="Kaizen & Metot">Kaizen & Metot</option>
+              </select>
+            </div>
+
+            <div class="safe-form-group">
+              <label class="safe-label">Görevi / Ünvanı</label>
+              <input type="text" class="safe-input" id="newUserTitle" placeholder="Örn: Montaj Operatörü, Hat Lideri..." required />
+            </div>
+
+            <div class="safe-form-group">
+              <label class="safe-label">Vardiya</label>
+              <select class="safe-select" id="newUserShift">
+                <option value="1. Vardiya (08:00 - 16:00)">1. Vardiya (08:00 - 16:00)</option>
+                <option value="2. Vardiya (16:00 - 24:00)">2. Vardiya (16:00 - 24:00)</option>
+                <option value="3. Vardiya (24:00 - 08:00)">3. Vardiya (24:00 - 08:00)</option>
+                <option value="Genel Mesai (08:30 - 17:30)">Genel Mesai (08:30 - 17:30)</option>
+              </select>
+            </div>
+
+            <!-- Yetkilendirme Bölümü -->
+            <div class="safe-form-group" style="background:var(--safe-bg-subtle); padding:1rem; border-radius:10px; border:1px solid var(--safe-border);">
+              <label class="safe-label" style="margin-bottom:0.6rem;">Kullanıcı Yetkileri</label>
+              
+              <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.6rem;">
+                <input type="checkbox" checked disabled style="width:18px; height:18px; accent-color:var(--safe-primary);" />
+                <span style="font-size:0.88rem; font-weight:600; color:var(--safe-text);">
+                  ✍️ Geri Bildirim Yetkisi <span style="font-size:0.75rem; color:var(--safe-primary);">(Varsayılan)</span>
+                </span>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:0.6rem;">
+                <input type="checkbox" id="newUserCanAnalytics" style="width:18px; height:18px; accent-color:var(--safe-primary); cursor:pointer;" />
+                <label for="newUserCanAnalytics" style="font-size:0.88rem; font-weight:600; color:var(--safe-text); cursor:pointer;">
+                  📊 Veri Analizi Ekranı Görme Yetkisi
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width:100%;">
+              <span>Kullanıcıyı Kaydet</span>
+            </button>
+          </form>
         </div>
       </div>
     `;
 
-    // Event Dinleyicilerini bağla
     bindEvents();
 
-    // Grafikleri çiz (Admin modundaysa)
-    if (isAdmin) {
+    // Veri Analizi sekmesindeyse grafikleri çiz
+    if (state.activeTab === 'analytics' && userCanAnalytics) {
       setTimeout(() => {
         renderCharts(computeAnalytics());
       }, 50);
     }
   }
 
-  // ==================== ADMIN TABLE ROWS ====================
-  function renderAdminTableRows() {
+  // ==================== EKRAN 1: GERİ BİLDİRİM VERME (ANASAYFA) ====================
+  function renderGiveFeedbackScreen() {
+    const user = state.currentUser;
+
+    return `
+      <div class="safe-page-header">
+        <span class="safe-page-badge primary">✨ Ana Sayfa</span>
+        <h1 class="safe-page-title">Geri Bildirim &amp; Takdir Gönder</h1>
+        <p class="safe-page-subtitle">
+          Çalışma arkadaşınızın güvenli davranışını, 5S tertibini veya başarılı çalışmasını takdir edin.
+        </p>
+      </div>
+
+      <div class="safe-card" style="max-width: 820px;">
+        <form id="safeFeedbackForm">
+          <!-- 1. Alıcı Seçimi -->
+          <div class="safe-form-group">
+            <label class="safe-label">Kime Geri Bildirim Veriyorsun? <span style="color:var(--safe-primary);">*</span></label>
+            <select class="safe-select" id="inputRecipient" required>
+              <option value="" disabled selected>-- Çalışma Arkadaşını Seçin --</option>
+              ${state.employees
+                .filter((e) => !user || e.id !== user.id)
+                .map((e) => `<option value="${e.id}">${e.name} — ${e.department} (${e.title})</option>`)
+                .join('')}
+            </select>
+          </div>
+
+          <!-- 2. Bildirim Türü (3 Ana Tip) -->
+          <div class="safe-form-group">
+            <label class="safe-label">Bildirim Türü</label>
+            <div class="safe-type-switcher">
+              <button type="button" class="safe-type-btn kudos ${state.selectedType === 'kudos' ? 'active' : ''}" data-type="kudos">
+                <span class="safe-type-btn-title"><span>🌟</span> Takdir &amp; Teşekkür</span>
+                <span class="safe-type-btn-desc">Örnek çalışma ve vardiya desteği</span>
+              </button>
+
+              <button type="button" class="safe-type-btn kaizen ${state.selectedType === 'kaizen' ? 'active' : ''}" data-type="kaizen">
+                <span class="safe-type-btn-title"><span>💡</span> Kaizen &amp; Öneri</span>
+                <span class="safe-type-btn-desc">Süreç ve verimlilik iyileştirmesi</span>
+              </button>
+
+              <button type="button" class="safe-type-btn isg ${state.selectedType === 'isg' ? 'active' : ''}" data-type="isg">
+                <span class="safe-type-btn-title"><span>🦺</span> İSG &amp; Güvenlik</span>
+                <span class="safe-type-btn-desc">KKD kullanımı &amp; ramak kala bildirimi</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. 5S ve Fabrika Standartları Değerleri -->
+          <div class="safe-form-group">
+            <label class="safe-label">Fabrika Değeri &amp; 5S İlkesi</label>
+            <div class="safe-category-grid">
+              <div class="safe-cat-card ${state.selectedCategory === 'isg' ? 'active' : ''}" data-cat="isg">
+                <span class="safe-cat-icon">🦺</span>
+                <span class="safe-cat-label">İSG &amp; Emniyet</span>
+              </div>
+              <div class="safe-cat-card ${state.selectedCategory === '5s' ? 'active' : ''}" data-cat="5s">
+                <span class="safe-cat-icon">🧹</span>
+                <span class="safe-cat-label">5S Tertip &amp; Düzen</span>
+              </div>
+              <div class="safe-cat-card ${state.selectedCategory === 'kaizen' ? 'active' : ''}" data-cat="kaizen">
+                <span class="safe-cat-icon">⚙️</span>
+                <span class="safe-cat-label">Kaizen</span>
+              </div>
+              <div class="safe-cat-card ${state.selectedCategory === 'quality' ? 'active' : ''}" data-cat="quality">
+                <span class="safe-cat-icon">🎯</span>
+                <span class="safe-cat-label">Kalite &amp; Özen</span>
+              </div>
+              <div class="safe-cat-card ${state.selectedCategory === 'teamwork' ? 'active' : ''}" data-cat="teamwork">
+                <span class="safe-cat-icon">🤝</span>
+                <span class="safe-cat-label">Takım Ruhu</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Takdir Rozetleri -->
+          <div class="safe-form-group">
+            <label class="safe-label">Özel Takdir Rozeti</label>
+            <div class="safe-badge-pill-list">
+              ${['🏆 Ayın Yıldızı', '🦺 İSG Öncüsü', '💡 Kaizen Ustası', '🤝 Takım Ruhu', '⚙️ Hızlı Çözüm', '🎯 Sıfır Hata'].map((b) => `
+                <button type="button" class="safe-badge-pill ${state.selectedBadge === b ? 'selected' : ''}" data-badge="${b}">
+                  ${b}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- 5. Mesaj Kutusu -->
+          <div class="safe-form-group">
+            <label class="safe-label">Açıklama / Mesaj Notun <span style="color:var(--safe-primary);">*</span></label>
+            <textarea class="safe-textarea" id="inputMessage" placeholder="Örn: 1. hatta hidrolik pres sızıntısını 15 dakikada çözdü ve 5S tertibini uyguladı..." required></textarea>
+          </div>
+
+          <!-- 6. Anonimlik ve Vardiya -->
+          <div class="safe-inline-controls">
+            <label class="safe-switch-label">
+              <input type="checkbox" id="inputIsAnonymous" ${state.isAnonymous ? 'checked' : ''} style="width:20px; height:20px; accent-color:var(--safe-primary); cursor:pointer;" />
+              <div>
+                <div>🕵️‍♂️ Anonim Gönder</div>
+                <div style="font-size:0.75rem; color:var(--safe-text-muted); font-weight:normal;">İsmim gizlensin, sadece mesajım görünsün</div>
+              </div>
+            </label>
+
+            <div>
+              <label class="safe-label" style="font-size:0.8rem; margin-bottom:0.25rem;">Vardiya Bilgisi</label>
+              <select class="safe-select" id="inputShift">
+                <option value="1. Vardiya" selected>1. Vardiya (08:00 - 16:00)</option>
+                <option value="2. Vardiya">2. Vardiya (16:00 - 24:00)</option>
+                <option value="3. Vardiya">3. Vardiya (24:00 - 08:00)</option>
+                <option value="Genel Mesai">Genel Mesai (08:30 - 17:30)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Gönder Butonu -->
+          <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width: 100%;">
+            <span>🚀</span>
+            <span>Geri Bildirimi İlet</span>
+          </button>
+        </form>
+      </div>
+    `;
+  }
+
+  // ==================== EKRAN 2: GERİ BİLDİRİMLERİ İNCELEME (AYRI EKRAN) ====================
+  function renderViewFeedbacksScreen() {
+    const user = state.currentUser;
     let list = [...state.feedbacks];
 
-    if (state.adminFilterCategory !== 'all') {
-      list = list.filter((f) => f.category === state.adminFilterCategory || f.type === state.adminFilterCategory);
+    // Sekme Filtresi (Tümü / Gelenler / Gönderilenler)
+    if (state.feedFilter === 'received' && user) {
+      list = list.filter((f) => f.toId === user.id);
+    } else if (state.feedFilter === 'sent' && user) {
+      list = list.filter((f) => f.fromId === user.id);
     }
 
-    if (state.adminFilterShift !== 'all') {
-      list = list.filter((f) => f.shift && f.shift.includes(state.adminFilterShift));
+    // Tür Filtresi
+    if (state.feedTypeFilter !== 'all') {
+      list = list.filter((f) => f.type === state.feedTypeFilter);
     }
 
-    if (state.adminFilterStatus !== 'all') {
-      list = list.filter((f) => (f.status || 'resolved') === state.adminFilterStatus);
-    }
-
-    if (state.adminSearchQuery.trim()) {
-      const q = state.adminSearchQuery.toLowerCase();
+    // Arama Filtresi
+    if (state.searchQuery.trim()) {
+      const q = state.searchQuery.toLowerCase();
       list = list.filter((f) =>
         f.fromName.toLowerCase().includes(q) ||
         f.toName.toLowerCase().includes(q) ||
@@ -1121,115 +1072,336 @@
       );
     }
 
-    if (list.length === 0) {
-      return `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--wp-text-muted);">Filtreye uygun bildirim bulunamadı.</td></tr>`;
-    }
+    const receivedCount = user ? state.feedbacks.filter((f) => f.toId === user.id).length : 0;
+    const sentCount = user ? state.feedbacks.filter((f) => f.fromId === user.id).length : 0;
 
-    return list.map((f) => {
-      const timeStr = new Date(f.createdAt).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-      const statusLabel = f.status === 'resolved' ? 'Tamamlandı' : f.status === 'in_progress' ? 'Aksiyon Alınıyor' : 'İnceleniyor';
-      const statusClass = f.status === 'resolved' ? 'resolved' : f.status === 'in_progress' ? 'in_progress' : 'pending';
+    return `
+      <div class="safe-page-header">
+        <span class="safe-page-badge indigo">📬 Geri Bildirimler</span>
+        <h1 class="safe-page-title">Fabrika Geri Bildirim Panosu</h1>
+        <p class="safe-page-subtitle">Çalışanların birbirine ilettiği takdir, 5S ve İSG bildirimlerini inceleyin.</p>
+      </div>
 
-      return `
-        <tr>
-          <td style="font-size:0.8rem; color:var(--wp-text-muted); white-space:nowrap;">${timeStr}</td>
-          <td>
-            <b>${f.fromName}</b>
-            ${f.isAnonymous ? '<span style="font-size:0.7rem; color:var(--safe5-secondary); display:block;">(Anonim)</span>' : ''}
-          </td>
-          <td><b>${f.toName}</b></td>
-          <td>
-            <span class="safe-badge ${f.type}">
-              ${f.type === 'kudos' ? '🌟 Takdir' : f.type === 'isg' ? '🦺 İSG' : '💡 Kaizen'}
-            </span>
-            ${f.badge ? `<div style="font-size:0.75rem; margin-top:0.2rem; color:var(--safe5-warning);">${f.badge}</div>` : ''}
-          </td>
-          <td style="max-width: 320px; font-size: 0.85rem;">
-            <div style="line-height:1.4;">${f.message}</div>
-          </td>
-          <td style="font-size:0.8rem; white-space:nowrap;">${f.shift || '1. Vardiya'}</td>
-          <td>
-            <select class="safe-select safe-status-select" data-fb-id="${f.id}" style="padding:0.35rem 0.6rem; font-size:0.78rem; width:auto;">
-              <option value="resolved" ${f.status === 'resolved' ? 'selected' : ''}>✅ Tamamlandı</option>
-              <option value="in_progress" ${f.status === 'in_progress' ? 'selected' : ''}>⚙️ Aksiyon Alındı</option>
-              <option value="pending" ${f.status === 'pending' ? 'selected' : ''}>⏳ İnceleniyor</option>
-            </select>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  // ==================== FEED LIST RENDERING ====================
-  function getFeedCount(type) {
-    if (!state.currentUser) return 0;
-    if (type === 'received') {
-      return state.feedbacks.filter((f) => f.toId === state.currentUser.id).length;
-    }
-    if (type === 'sent') {
-      return state.feedbacks.filter((f) => f.fromId === state.currentUser.id).length;
-    }
-    return state.feedbacks.length;
-  }
-
-  function renderFeedList() {
-    let list = [...state.feedbacks];
-    const user = state.currentUser;
-
-    if (state.feedFilter === 'received' && user) {
-      list = list.filter((f) => f.toId === user.id);
-    } else if (state.feedFilter === 'sent' && user) {
-      list = list.filter((f) => f.fromId === user.id);
-    }
-
-    if (list.length === 0) {
-      return `
-        <div style="text-align:center; padding:3rem 1rem; color:var(--wp-text-muted);">
-          <div style="font-size:2.5rem; margin-bottom:0.75rem;">📭</div>
-          <p style="font-weight:600;">Bu alanda henüz bir geri bildirim bulunmuyor.</p>
-          <p style="font-size:0.82rem; margin-top:0.3rem;">İlk bildirimi sol taraftaki formu kullanarak sen gönder!</p>
+      <!-- Filtreler Çubuğu -->
+      <div class="safe-feed-filter-bar">
+        <div class="safe-feed-tabs">
+          <button type="button" class="safe-feed-tab ${state.feedFilter === 'all' ? 'active' : ''}" data-feed-filter="all">
+            🌍 Tüm Akış (${state.feedbacks.length})
+          </button>
+          <button type="button" class="safe-feed-tab ${state.feedFilter === 'received' ? 'active' : ''}" data-feed-filter="received">
+            📬 Bana Gelenler (${receivedCount})
+          </button>
+          <button type="button" class="safe-feed-tab ${state.feedFilter === 'sent' ? 'active' : ''}" data-feed-filter="sent">
+            📤 Gönderdiklerim (${sentCount})
+          </button>
         </div>
-      `;
-    }
 
-    return list.map((f) => {
-      const timeDiff = getTimeAgo(f.createdAt);
-      const isRecipient = user && user.id === f.toId;
+        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+          <select class="safe-select" id="feedTypeSelect" style="max-width:160px; padding:0.5rem 0.8rem; font-size:0.86rem;">
+            <option value="all" ${state.feedTypeFilter === 'all' ? 'selected' : ''}>Tüm Türler</option>
+            <option value="kudos" ${state.feedTypeFilter === 'kudos' ? 'selected' : ''}>🌟 Takdir &amp; Teşekkür</option>
+            <option value="kaizen" ${state.feedTypeFilter === 'kaizen' ? 'selected' : ''}>💡 Kaizen &amp; Öneri</option>
+            <option value="isg" ${state.feedTypeFilter === 'isg' ? 'selected' : ''}>🦺 İSG &amp; Güvenlik</option>
+          </select>
 
-      return `
-        <div class="safe-feed-item ${isRecipient ? 'highlight-me' : ''}">
-          <div class="safe-feed-item-header">
-            <div class="safe-feed-parties">
-              <span>${f.fromName}</span>
-              <span class="safe-feed-arrow">➔</span>
-              <span style="color:var(--safe5-primary);">${f.toName}</span>
+          <input type="text" class="safe-input" id="feedSearchInput" placeholder="Personel veya mesajda ara..." style="max-width:220px; padding:0.5rem 0.8rem; font-size:0.86rem;" value="${state.searchQuery}" />
+        </div>
+      </div>
+
+      <!-- Kart Listesi -->
+      <div class="safe-feed-list">
+        ${list.length > 0 ? list.map((f) => {
+          const timeDiff = getTimeAgo(f.createdAt);
+          const isRecipient = user && user.id === f.toId;
+
+          return `
+            <div class="safe-feed-card" style="${isRecipient ? 'border-left: 4px solid var(--safe-primary);' : ''}">
+              <div class="safe-feed-card-header">
+                <div class="safe-feed-actors">
+                  <span>${f.fromName}</span>
+                  <span class="safe-feed-arrow">➔</span>
+                  <span style="color:var(--safe-primary);">${f.toName}</span>
+                </div>
+                <div class="safe-feed-date">${timeDiff} • ${f.shift || '1. Vardiya'}</div>
+              </div>
+
+              <div class="safe-feed-tags">
+                <span class="safe-tag ${f.type}">
+                  ${f.type === 'kudos' ? '🌟 Takdir &amp; Teşekkür' : f.type === 'isg' ? '🦺 İSG Bildirimi' : '💡 Kaizen Önerisi'}
+                </span>
+                ${f.badge ? `<span class="safe-tag badge-custom">${f.badge}</span>` : ''}
+                <span class="safe-tag badge-custom">${getCategoryName(f.category)}</span>
+              </div>
+
+              <div class="safe-feed-body">
+                "${f.message}"
+              </div>
+
+              <div class="safe-feed-footer">
+                <span>Tarih: ${new Date(f.createdAt).toLocaleDateString('tr-TR')}</span>
+                <span class="safe-status-pill ${f.status || 'resolved'}">
+                  ${f.status === 'resolved' ? '✓ Tamamlandı' : f.status === 'in_progress' ? '⚙️ Aksiyon Alındı' : '⏳ İnceleniyor'}
+                </span>
+              </div>
             </div>
-            <div class="safe-feed-time">${timeDiff}</div>
+          `;
+        }).join('') : `
+          <div class="safe-card" style="text-align:center; padding:3.5rem 1rem;">
+            <div style="font-size:2.5rem; margin-bottom:0.75rem;">📭</div>
+            <h3 style="color:var(--safe-text); margin-bottom:0.35rem;">Bu filtreye uygun bildirim bulunamadı.</h3>
+            <p style="color:var(--safe-text-muted); font-size:0.88rem;">Sol menüden 'Geri Bildirim Ver' sekmesine giderek yeni bir takdir iletebilirsiniz.</p>
           </div>
-
-          <div class="safe-feed-badges">
-            <span class="safe-badge ${f.type}">
-              ${f.type === 'kudos' ? '🌟 Takdir & Teşekkür' : f.type === 'isg' ? '🦺 İSG Bildirimi' : '💡 Kaizen Önerisi'}
-            </span>
-            ${f.badge ? `<span class="safe-badge" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24;">${f.badge}</span>` : ''}
-            <span class="safe-badge category">${getCategoryName(f.category)}</span>
-          </div>
-
-          <div class="safe-feed-message">
-            "${f.message}"
-          </div>
-
-          <div class="safe-feed-footer">
-            <span>⏰ ${f.shift || '1. Vardiya'}</span>
-            <span class="safe-action-tag ${f.status || 'resolved'}">
-              ${f.status === 'resolved' ? '✓ Tamamlandı' : f.status === 'in_progress' ? '⚙️ Aksiyon Alındı' : '⏳ İnceleniyor'}
-            </span>
-          </div>
-        </div>
-      `;
-    }).join('');
+        `}
+      </div>
+    `;
   }
 
+  // ==================== EKRAN 3: VERİ ANALİZİ EKRANI ====================
+  function renderAnalyticsScreen() {
+    if (!canViewAnalytics()) {
+      return `
+        <div class="safe-lock-box">
+          <div class="safe-lock-icon">🔒</div>
+          <h2 style="font-size:1.35rem; font-weight:800; color:var(--safe-text); margin-bottom:0.5rem;">Yetki Gerekli</h2>
+          <p style="color:var(--safe-text-secondary); font-size:0.92rem; line-height:1.5; margin-bottom:1.5rem;">
+            Bu veri analizi ve grafik ekranını görüntülemek için <b>'Veri Analizi'</b> yetkisine sahip olmanız gerekmektedir.
+          </p>
+          <button type="button" class="safe-btn safe-btn-outline" id="btnSwitchProfile">
+            <span>🔄</span> <span>Yetkili Bir Kullanıcıya Geç</span>
+          </button>
+        </div>
+      `;
+    }
+
+    const analytics = computeAnalytics();
+
+    return `
+      <div class="safe-page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <span class="safe-page-badge primary">📊 Veri Analizi</span>
+          <h1 class="safe-page-title">Fabrika Geri Bildirim Analitikleri</h1>
+          <p class="safe-page-subtitle">Metrikler, kategori oranları, departman ve vardiya analizleri</p>
+        </div>
+
+        <button type="button" class="safe-btn safe-btn-primary" id="btnExportCSV">
+          <span>📥</span>
+          <span>Excel / CSV Raporu İndir</span>
+        </button>
+      </div>
+
+      <!-- KPI KARTLARI -->
+      <div class="safe-kpi-grid">
+        <div class="safe-kpi-card">
+          <div class="safe-kpi-top">
+            <span class="safe-kpi-title">Toplam Bildirim</span>
+            <span class="safe-kpi-icon">📢</span>
+          </div>
+          <div class="safe-kpi-num">${analytics.total}</div>
+          <div class="safe-kpi-note">Fabrika çalışanları arası etkileşim</div>
+        </div>
+
+        <div class="safe-kpi-card kpi-team">
+          <div class="safe-kpi-top">
+            <span class="safe-kpi-title">Takdir / Moral Oranı</span>
+            <span class="safe-kpi-icon">⭐</span>
+          </div>
+          <div class="safe-kpi-num">%${analytics.kudosPercent}</div>
+          <div class="safe-kpi-note">${analytics.kudosCount} adet pozitif takdir</div>
+        </div>
+
+        <div class="safe-kpi-card kpi-isg">
+          <div class="safe-kpi-top">
+            <span class="safe-kpi-title">İSG Bildirimleri</span>
+            <span class="safe-kpi-icon">🦺</span>
+          </div>
+          <div class="safe-kpi-num">${analytics.isgCount}</div>
+          <div class="safe-kpi-note">Kaza önleme &amp; güvenli çalışma</div>
+        </div>
+
+        <div class="safe-kpi-card kpi-kaizen">
+          <div class="safe-kpi-top">
+            <span class="safe-kpi-title">Kaizen Aksiyonları</span>
+            <span class="safe-kpi-icon">💡</span>
+          </div>
+          <div class="safe-kpi-num">${analytics.kaizenCount}</div>
+          <div class="safe-kpi-note">Süreç ve verimlilik önerisi</div>
+        </div>
+      </div>
+
+      <!-- GRAFİKLER -->
+      <div class="safe-charts-grid">
+        <!-- Grafik 1: Kategori Dağılımı -->
+        <div class="safe-chart-card">
+          <div class="safe-card-header" style="margin-bottom:0;">
+            <div>
+              <h3 class="safe-card-title"><span>🎯</span> Kategori Dağılımı</h3>
+              <p class="safe-card-desc">İSG, 5S, Kaizen ve Takım Ruhu odakları</p>
+            </div>
+          </div>
+          <div class="safe-chart-container">
+            <canvas id="chartCategory"></canvas>
+          </div>
+        </div>
+
+        <!-- Grafik 2: Departman Yoğunluğu -->
+        <div class="safe-chart-card">
+          <div class="safe-card-header" style="margin-bottom:0;">
+            <div>
+              <h3 class="safe-card-title"><span>🏢</span> Departman Bazlı Bildirimler</h3>
+              <p class="safe-card-desc">En çok geri bildirim alan hatlar ve birimler</p>
+            </div>
+          </div>
+          <div class="safe-chart-container">
+            <canvas id="chartDepartment"></canvas>
+          </div>
+        </div>
+
+        <!-- Grafik 3: Vardiya Katılımı -->
+        <div class="safe-chart-card">
+          <div class="safe-card-header" style="margin-bottom:0;">
+            <div>
+              <h3 class="safe-card-title"><span>⏰</span> Vardiya Bazlı Dağılım</h3>
+              <p class="safe-card-desc">1., 2. ve 3. Vardiya katılım oranları</p>
+            </div>
+          </div>
+          <div class="safe-chart-container">
+            <canvas id="chartShift"></canvas>
+          </div>
+        </div>
+
+        <!-- Liderlik Panosu -->
+        <div class="safe-chart-card">
+          <div class="safe-card-header" style="margin-bottom:0;">
+            <div>
+              <h3 class="safe-card-title"><span>🏆</span> En Çok Takdir Edilenler</h3>
+              <p class="safe-card-desc">Örnek davranış ve iş birliği liderleri</p>
+            </div>
+          </div>
+          <div class="safe-leader-list">
+            ${analytics.topLeaders.map((lead, idx) => `
+              <div class="safe-leader-item">
+                <div class="safe-leader-left">
+                  <div class="safe-rank-circle r${idx + 1}">${idx + 1}</div>
+                  <div>
+                    <div style="font-weight:700; color:var(--safe-text);">${lead.name}</div>
+                    <div style="font-size:0.78rem; color:var(--safe-text-muted);">${lead.department}</div>
+                  </div>
+                </div>
+                <div style="font-weight:800; color:var(--safe-primary); font-size:0.95rem;">
+                  ${lead.score} Takdir
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ==================== EKRAN 4: KULLANICI & YETKİ YÖNETİMİ (SADECE ADMIN) ====================
+  function renderUserManagementScreen() {
+    if (!isAdmin()) {
+      return `
+        <div class="safe-lock-box">
+          <div class="safe-lock-icon">👑</div>
+          <h2 style="font-size:1.35rem; font-weight:800; color:var(--safe-text); margin-bottom:0.5rem;">Yönetici Yetkisi Gerekli</h2>
+          <p style="color:var(--safe-text-secondary); font-size:0.92rem; line-height:1.5; margin-bottom:1.5rem;">
+            Kullanıcı ekleme, çıkarma ve yetkilendirme işlemleri yalnızca Fabrika Yöneticisi (Admin) tarafından yapılabilir.
+          </p>
+          <button type="button" class="safe-btn safe-btn-outline" id="btnSwitchProfile">
+            <span>🔄</span> <span>Yönetici Hesabına Geç</span>
+          </button>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="safe-page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <span class="safe-page-badge indigo">👑 Yönetici Paneli</span>
+          <h1 class="safe-page-title">Kullanıcı &amp; Yetki Yönetimi</h1>
+          <p class="safe-page-subtitle">Fabrika çalışanlarını yönetin, yeni personel ekleyin ve 'Veri Analizi' yetkilerini düzenleyin.</p>
+        </div>
+
+        <button type="button" class="safe-btn safe-btn-primary" id="btnOpenAddUser">
+          <span>➕</span>
+          <span>Yeni Kullanıcı Ekle</span>
+        </button>
+      </div>
+
+      <div class="safe-table-container">
+        <table class="safe-table">
+          <thead>
+            <tr>
+              <th>Personel</th>
+              <th>Departman &amp; Görev</th>
+              <th>Vardiya</th>
+              <th>Rol</th>
+              <th>Yetkiler (Yetkilendirme)</th>
+              <th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${state.employees.map((emp) => {
+              const hasAnalytics = Array.isArray(emp.permissions) && emp.permissions.includes('analytics');
+              const isSelf = state.currentUser && state.currentUser.id === emp.id;
+
+              return `
+                <tr>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:0.65rem;">
+                      <div class="safe-avatar ${emp.role === 'admin' ? 'admin-avatar' : ''}" style="width:34px; height:34px; font-size:0.82rem;">
+                        ${emp.initials}
+                      </div>
+                      <div>
+                        <div style="font-weight:700; color:var(--safe-text);">${emp.name}</div>
+                        <div style="font-size:0.75rem; color:var(--safe-text-muted);">${emp.id}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div style="font-weight:600;">${emp.department}</div>
+                    <div style="font-size:0.78rem; color:var(--safe-text-muted);">${emp.title}</div>
+                  </td>
+                  <td style="font-size:0.84rem; white-space:nowrap;">${emp.shift}</td>
+                  <td>
+                    <span class="safe-tag ${emp.role === 'admin' ? 'isg' : 'badge-custom'}" style="font-size:0.75rem;">
+                      ${emp.role === 'admin' ? '👑 Admin' : '👷 Çalışan'}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="display:flex; flex-direction:column; gap:0.4rem;">
+                      <!-- Geri Bildirim Yetkisi (Default & Sabit) -->
+                      <span class="safe-perm-tag feedback" title="Tüm çalışanlarda varsayılan olarak aktiftir">
+                        ✓ Geri Bildirim (Default)
+                      </span>
+
+                      <!-- Veri Analizi Yetkisi (Açılıp Kapanabilir) -->
+                      <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer; font-size:0.8rem; user-select:none;">
+                        <input type="checkbox" class="safe-perm-toggle" data-user-id="${emp.id}" data-perm="analytics" ${hasAnalytics ? 'checked' : ''} style="accent-color:var(--safe-primary); width:16px; height:16px; cursor:pointer;" />
+                        <span style="font-weight:${hasAnalytics ? '700' : 'normal'}; color:${hasAnalytics ? 'var(--safe-sky)' : 'var(--safe-text-muted)'};">
+                          📊 Veri Analizi Yetkisi
+                        </span>
+                      </label>
+                    </div>
+                  </td>
+                  <td>
+                    ${!isSelf ? `
+                      <button type="button" class="safe-btn safe-btn-sm safe-btn-danger" data-remove-user="${emp.id}">
+                        <span>🗑️ Sil</span>
+                      </button>
+                    ` : '<span style="font-size:0.75rem; color:var(--safe-text-muted);">(Aktif Yönetici)</span>'}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // ==================== YARDIMCI METOTLAR ====================
   function getCategoryName(cat) {
     const map = {
       isg: '🦺 İSG & Emniyet',
@@ -1250,9 +1422,17 @@
     return `${Math.floor(diffSec / 86400)} gün önce`;
   }
 
-  // ==================== BIND EVENTS ====================
+  // ==================== OLAY DİNLEYİCİLERİ (EVENTS) ====================
   function bindEvents() {
-    // Form Gönderimi
+    // 1. Sidebar Navigasyon Butonları
+    document.querySelectorAll('[data-nav-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.activeTab = btn.getAttribute('data-nav-tab');
+        renderUI();
+      });
+    });
+
+    // 2. Geri Bildirim Formu Gönderimi
     const form = document.getElementById('safeFeedbackForm');
     if (form) {
       form.addEventListener('submit', (e) => {
@@ -1274,11 +1454,16 @@
 
         if (success) {
           form.reset();
+          // Gönderdikten sonra geri bildirimleri görme ekranına geçebilir
+          setTimeout(() => {
+            state.activeTab = 'view-feedbacks';
+            renderUI();
+          }, 800);
         }
       });
     }
 
-    // Tür Seçimi (Kudos / Kaizen / İSG)
+    // 3. Tür ve Kategori Seçicileri
     document.querySelectorAll('.safe-type-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         state.selectedType = btn.getAttribute('data-type');
@@ -1287,7 +1472,6 @@
       });
     });
 
-    // Kategori Seçimi (5S, İSG, vb.)
     document.querySelectorAll('.safe-cat-card').forEach((card) => {
       card.addEventListener('click', () => {
         state.selectedCategory = card.getAttribute('data-cat');
@@ -1296,7 +1480,6 @@
       });
     });
 
-    // Rozet Seçimi
     document.querySelectorAll('.safe-badge-pill').forEach((pill) => {
       pill.addEventListener('click', () => {
         state.selectedBadge = pill.getAttribute('data-badge');
@@ -1305,144 +1488,114 @@
       });
     });
 
-    // Akış Sekmeleri (Genel / Gelen / Gönderilen)
-    document.querySelectorAll('.safe-feed-tab-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        state.feedFilter = btn.getAttribute('data-feed-filter');
+    // 4. Geri Bildirim İnceleme Ekranı Filtreleri
+    document.querySelectorAll('[data-feed-filter]').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        state.feedFilter = tab.getAttribute('data-feed-filter');
         renderUI();
       });
     });
 
-    // Modal Açma / Kapama
+    const feedTypeSelect = document.getElementById('feedTypeSelect');
+    if (feedTypeSelect) {
+      feedTypeSelect.addEventListener('change', (e) => {
+        state.feedTypeFilter = e.target.value;
+        renderUI();
+      });
+    }
+
+    const feedSearchInput = document.getElementById('feedSearchInput');
+    if (feedSearchInput) {
+      feedSearchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        renderUI();
+      });
+    }
+
+    // 5. CSV Rapor İndirme
+    const btnCSV = document.getElementById('btnExportCSV');
+    if (btnCSV) btnCSV.addEventListener('click', exportCSV);
+
+    // 6. Profil / Kullanıcı Değiştirme Modalı
     const modalSwitch = document.getElementById('modalSwitchProfile');
     const btnSwitch = document.getElementById('btnSwitchProfile');
     if (btnSwitch && modalSwitch) {
       btnSwitch.addEventListener('click', () => modalSwitch.classList.add('active'));
     }
 
-    const btnOpenModal = document.getElementById('btnOpenFeedbackModal');
-    if (btnOpenModal) {
-      btnOpenModal.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        const rec = document.getElementById('inputRecipient');
-        if (rec) rec.focus();
+    document.querySelectorAll('[data-pick-user]').forEach((card) => {
+      card.addEventListener('click', () => {
+        const uid = card.getAttribute('data-pick-user');
+        switchUser(uid);
+      });
+    });
+
+    // 7. Yeni Kullanıcı Ekleme Modalı (Admin)
+    const modalAdd = document.getElementById('modalAddUser');
+    const btnOpenAdd = document.getElementById('btnOpenAddUser');
+    if (btnOpenAdd && modalAdd) {
+      btnOpenAdd.addEventListener('click', () => modalAdd.classList.add('active'));
+    }
+
+    const formAdd = document.getElementById('formAddUser');
+    if (formAdd) {
+      formAdd.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('newUserName').value;
+        const dept = document.getElementById('newUserDept').value;
+        const title = document.getElementById('newUserTitle').value;
+        const shift = document.getElementById('newUserShift').value;
+        const canAnalytics = document.getElementById('newUserCanAnalytics').checked;
+
+        const ok = addUser({
+          name,
+          department: dept,
+          title,
+          shift,
+          canAnalytics,
+          role: 'worker'
+        });
+
+        if (ok && modalAdd) {
+          modalAdd.classList.remove('active');
+        }
       });
     }
 
+    // 8. Kullanıcı Silme
+    document.querySelectorAll('[data-remove-user]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const uid = btn.getAttribute('data-remove-user');
+        removeUser(uid);
+      });
+    });
+
+    // 9. Yetki Değiştirme (Analytics Toggle)
+    document.querySelectorAll('.safe-perm-toggle').forEach((chk) => {
+      chk.addEventListener('change', () => {
+        const uid = chk.getAttribute('data-user-id');
+        const perm = chk.getAttribute('data-perm');
+        toggleUserPermission(uid, perm);
+      });
+    });
+
+    // 10. Modalları Kapatma
     document.querySelectorAll('[data-modal-close]').forEach((el) => {
       el.addEventListener('click', () => {
         document.querySelectorAll('.safe-modal-backdrop').forEach((m) => m.classList.remove('active'));
       });
     });
 
-    if (modalSwitch) {
-      modalSwitch.addEventListener('click', (e) => {
-        if (e.target === modalSwitch) modalSwitch.classList.remove('active');
-      });
-    }
-
-    // Modal içinden çalışan seçme
-    document.querySelectorAll('[data-select-emp]').forEach((card) => {
-      card.addEventListener('click', () => {
-        const empId = card.getAttribute('data-select-emp');
-        setRole('worker', empId);
-        if (modalSwitch) modalSwitch.classList.remove('active');
+    document.querySelectorAll('.safe-modal-backdrop').forEach((backdrop) => {
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) backdrop.classList.remove('active');
       });
     });
-
-    // Modal içinden Admin seçme
-    const btnSelectAdmin = document.getElementById('btnSelectAdmin');
-    if (btnSelectAdmin) {
-      btnSelectAdmin.addEventListener('click', () => {
-        setRole('admin');
-        if (modalSwitch) modalSwitch.classList.remove('active');
-      });
-    }
-
-    // Admin Tablo Durum Değiştirme
-    document.querySelectorAll('.safe-status-select').forEach((sel) => {
-      sel.addEventListener('change', (e) => {
-        const fbId = sel.getAttribute('data-fb-id');
-        const newStatus = sel.value;
-        const target = state.feedbacks.find((f) => f.id === fbId);
-        if (target) {
-          target.status = newStatus;
-          saveFeedbacks();
-          showToast(`Durum güncellendi: ${newStatus === 'resolved' ? 'Tamamlandı' : 'Aksiyon Alındı'}`, 'success');
-        }
-      });
-    });
-
-    // Admin Filtreleme Girişleri
-    const searchInput = document.getElementById('adminSearchInput');
-    if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
-        state.adminSearchQuery = e.target.value;
-        const tbody = document.querySelector('.safe-table tbody');
-        if (tbody) tbody.innerHTML = renderAdminTableRows();
-      });
-    }
-
-    const catSelect = document.getElementById('adminFilterCategorySelect');
-    if (catSelect) {
-      catSelect.addEventListener('change', (e) => {
-        state.adminFilterCategory = e.target.value;
-        const tbody = document.querySelector('.safe-table tbody');
-        if (tbody) tbody.innerHTML = renderAdminTableRows();
-      });
-    }
-
-    const shiftSelect = document.getElementById('adminFilterShiftSelect');
-    if (shiftSelect) {
-      shiftSelect.addEventListener('change', (e) => {
-        state.adminFilterShift = e.target.value;
-        const tbody = document.querySelector('.safe-table tbody');
-        if (tbody) tbody.innerHTML = renderAdminTableRows();
-      });
-    }
-
-    const statusSelect = document.getElementById('adminFilterStatusSelect');
-    if (statusSelect) {
-      statusSelect.addEventListener('change', (e) => {
-        state.adminFilterStatus = e.target.value;
-        const tbody = document.querySelector('.safe-table tbody');
-        if (tbody) tbody.innerHTML = renderAdminTableRows();
-      });
-    }
-
-    // CSV Rapor İndirme
-    const btnCSV = document.getElementById('btnExportCSV');
-    if (btnCSV) btnCSV.addEventListener('click', exportCSV);
-
-    // JSON Yedek & Geri Yükleme
-    const btnJSON = document.getElementById('btnExportJSON');
-    if (btnJSON) btnJSON.addEventListener('click', exportJSON);
-
-    const inputJSON = document.getElementById('inputImportJSON');
-    if (inputJSON) {
-      inputJSON.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          importJSON(e.target.files[0]);
-        }
-      });
-    }
-
-    // Demo Sıfırlama
-    const btnReset = document.getElementById('btnResetDemo');
-    if (btnReset) btnReset.addEventListener('click', resetDemoData);
   }
 
-  // ==================== TEMA DEĞİŞİMİNİ DİNLEME ====================
-  // Koyu/Açık tema değiştiğinde grafiklerin de dinamik renklerini güncellemesi için observer
-  const observer = new MutationObserver(() => {
-    if (state.currentUser && state.currentUser.role === 'admin') {
-      renderCharts(computeAnalytics());
-    }
-  });
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
-
-  // ==================== INITIALIZATION ====================
+  // ==================== BAŞLATICI ====================
   document.addEventListener('DOMContentLoaded', () => {
+    enforceLightTheme();
     loadData();
     renderUI();
   });

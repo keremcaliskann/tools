@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" data-theme="dark" class="dark">
+<html lang="tr" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,7 +9,7 @@
   <!-- PWA & Favicon -->
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#10b981" />
+  <meta name="theme-color" content="#059669" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Safe5" />
 
@@ -17,56 +17,51 @@
   <link rel="stylesheet" href="../shared/portal-ui.css" />
   <script src="../shared/portal-ui.js"></script>
 
-  <!-- Uygulama Stilleri -->
+  <!-- Uygulama Stilleri (Yumuşak Açık Tasarım) -->
   <link rel="stylesheet" href="css/styles.css" />
 
-  <!-- Chart.js Analitik Grafikleri (CDN + Dahili Fallback) -->
+  <!-- Chart.js Analitik Grafikleri -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Ana Uygulama Mantığı -->
   <script src="js/app.js" defer></script>
 </head>
-<body>
+<body data-theme="light">
 
-  <!-- Ortak Portal Üst Barı (Katman 2: Tek Özellikli / Bütünleşik Proje) -->
-  <header class="wp-header">
+  <!-- Ortak Portal Üst Barı (Açık Tema Sabit) -->
+  <header class="wp-header" style="background: rgba(255, 255, 255, 0.95); border-bottom: 1px solid #e2e8f0;">
     <div class="wp-header-inner">
       <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
-        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön" style="color: #475569;">
           <span>🏠</span>
           <span>Tüm Araçlar</span>
         </a>
-        <span class="wp-crumb-sep">›</span>
-        <span class="wp-crumb-current">
+        <span class="wp-crumb-sep" style="color: #94a3b8;">›</span>
+        <span class="wp-crumb-current" style="color: #0f172a; font-weight: 700;">
           <span>🛡️</span>
           <span>Safe5 — Fabrika Geri Bildirim &amp; Analitik</span>
         </span>
       </nav>
 
       <div class="wp-header-actions">
-        <div class="wp-trust-pill" title="Tüm veriler tarayıcınızın yerel hafızasında (localStorage) saklanır, hiçbir harici sunucuya iletilmez.">
+        <div class="wp-trust-pill" style="background: rgba(5, 150, 105, 0.1); color: #059669; border: 1px solid rgba(5, 150, 105, 0.25);" title="Tüm veriler tarayıcınızın yerel hafızasında saklanır, hiçbir harici sunucuya iletilmez.">
           <span>🔒</span>
           <span>%100 İstemci Taraflı • Sıfır Sunucu</span>
         </div>
-        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
-          <span class="wp-theme-icon">☀️</span>
-          <span class="wp-theme-label">Açık Tema</span>
-        </button>
       </div>
     </div>
   </header>
 
-  <!-- Uygulama Dinamik Montaj Alanı -->
+  <!-- Uygulama Dinamik Montaj Alanı (Sidebar + Content) -->
   <main id="safeAppRoot">
-    <!-- Sayfa JavaScript yüklendiğinde renderUI() tarafından otomatik doldurulacaktır -->
     <noscript>
-      <div style="padding: 2rem; text-align: center; color: var(--wp-text);">
+      <div style="padding: 2rem; text-align: center; color: #1e293b;">
         Safe5 uygulamasını kullanabilmek için tarayıcınızda JavaScript'in etkin olması gerekmektedir.
       </div>
     </noscript>
   </main>
 
   <!-- Ortak Alt Bilgi (Footer) -->
-  <footer class="wp-footer">
+  <footer class="wp-footer" style="background: #ffffff; border-top: 1px solid #e2e8f0; color: #64748b;">
     <div class="wp-footer-inner">
       <div>Kerem Çalışkan &copy; 2026 | %100 İstemci Taraflı &amp; Sıfır-Sunucu Web Araçları</div>
       <div class="wp-footer-links">
