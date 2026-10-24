@@ -1,7 +1,7 @@
 /**
  * Safe5 — Fabrika Geri Bildirim & Analitik Sistemi
- * TC & Şifre Tabanlı Giriş, Rol Tabanlı Dinamik Yetkilendirme (RBAC)
- * Firebase Canlı Bulut Veritabanı Entegrasyonu & Local-First Mimarisi
+ * Kullanıcı Girişi (admin / admin), Kullanıcı Şifre Değiştirme,
+ * Dinamik Rol Tanımlama (RBAC), Dinamik Departman & Vardiya Yönetimi
  */
 
 (function () {
@@ -16,92 +16,87 @@
 
   // ==================== STORAGE KEYS ====================
   const STORAGE_KEYS = {
-    AUTH_USER: 'safe5_auth_session_v3',
-    USERS: 'safe5_users_v3',
-    ROLES: 'safe5_roles_v3',
-    FEEDBACKS: 'safe5_feedbacks_v3',
-    FIREBASE_CONFIG: 'safe5_firebase_config_v3'
+    AUTH_USER: 'safe5_auth_session_v4',
+    USERS: 'safe5_users_v4',
+    ROLES: 'safe5_roles_v4',
+    DEPARTMENTS: 'safe5_departments_v4',
+    SHIFTS: 'safe5_shifts_v4',
+    FEEDBACKS: 'safe5_feedbacks_v4',
+    FIREBASE_CONFIG: 'safe5_firebase_config_v4'
   };
 
-  // ==================== VARSAYILAN ROLLER (RBAC) ====================
-  // Yetkiler: feedback, analytics, manage_status, manage_users, manage_roles, cloud_config
+  // ==================== TÜM YETKİLER LİSTESİ ====================
+  const ALL_PERMISSIONS = [
+    { key: 'feedback', label: '✍️ Geri Bildirim Ver / Kendi Bildirimlerini Gör' },
+    { key: 'view_all_feed', label: '🌍 Tüm Fabrika Akışını Gör' },
+    { key: 'analytics', label: '📊 Veri Analizi ve Grafikler' },
+    { key: 'manage_status', label: '⚙️ Kaizen / İSG Durum Yönetimi' },
+    { key: 'manage_users', label: '👥 Kullanıcı Yönetimi' },
+    { key: 'manage_roles', label: '🛡️ Rol Tanımlama & Yetki Yönetimi' },
+    { key: 'manage_departments', label: '🏢 Departman Tanımlama' },
+    { key: 'manage_shifts', label: '⏰ Vardiya Tanımlama' }
+  ];
+
+  // ==================== BAŞLANGIÇTA SADECE YÖNETİCİ ROLÜ ====================
   const DEFAULT_ROLES = [
     {
       id: 'admin',
       name: 'Yönetici (Admin)',
-      description: 'Fabrika genel yöneticisi; tüm yetkilere ve yönetim panellerine sahiptir.',
-      permissions: ['feedback', 'analytics', 'manage_status', 'manage_users', 'manage_roles', 'cloud_config'],
+      description: 'Tüm yetkilere sahiptir. Rol, kullanıcı, departman ve vardiya yönetimini yapabilir.',
+      permissions: ['feedback', 'view_all_feed', 'analytics', 'manage_status', 'manage_users', 'manage_roles', 'manage_departments', 'manage_shifts', 'cloud_config'],
       isSystem: true
-    },
-    {
-      id: 'worker',
-      name: 'Çalışan (Operatör)',
-      description: 'Fabrika sahasında çalışan, geri bildirim gönderen ve akışı izleyen personel.',
-      permissions: ['feedback'],
-      isSystem: false
-    },
-    {
-      id: 'supervisor',
-      name: 'Hat Lideri / Formen',
-      description: 'Vardiya ekiplerini yönetir, geri bildirim verir ve Kaizen/İSG durumlarını günceller.',
-      permissions: ['feedback', 'manage_status'],
-      isSystem: false
-    },
-    {
-      id: 'safety_quality',
-      name: 'İSG & Kalite Sorumlusu',
-      description: 'İSG ve kalite süreçlerini denetler, veri analitiği grafiklerini izler ve aksiyonları yönetir.',
-      permissions: ['feedback', 'analytics', 'manage_status'],
-      isSystem: false
     }
   ];
 
-  // ==================== BAŞLANGIÇTA SADECE TEK ADMIN KULLANICI ====================
+  // ==================== BAŞLANGIÇTA SADECE ADMIN KULLANICI (admin / admin) ====================
   const DEFAULT_USERS = [
     {
       id: 'USR-ADMIN',
-      tc: '11111111111',
+      tc: 'admin',
       password: 'admin',
-      name: 'Fabrika Yöneticisi',
+      name: 'Sistem Yöneticisi',
       roleId: 'admin',
       department: 'Fabrika Yönetimi',
-      title: 'Sistem Yöneticisi',
+      title: 'Genel Yönetici',
       shift: 'Genel Mesai (08:30 - 17:30)',
-      initials: 'FY',
+      initials: 'SY',
       createdAt: new Date().toISOString()
     }
   ];
 
-  // ==================== BAŞLANGIÇ GERİ BİLDİRİMLERİ (İLK ÖRNEKLER) ====================
-  const DEFAULT_FEEDBACKS = [
-    {
-      id: 'FB-101',
-      fromTc: '11111111111',
-      fromName: 'Fabrika Yöneticisi',
-      toTc: '11111111111',
-      toName: 'Montaj Hattı Ekibi',
-      type: 'kudos',
-      category: '5s',
-      message: 'Safe5 fabrika geri bildirim ve takdir platformu devreye alındı. Tüm çalışanlarımız 5S, İSG ve Kaizen önerilerini bu sistem üzerinden iletebilir.',
-      shift: '1. Vardiya',
-      isAnonymous: false,
-      status: 'resolved',
-      likes: 1,
-      likedBy: ['11111111111'],
-      createdAt: new Date().toISOString()
-    }
+  // ==================== VARSAYILAN DEPARTMANLAR ====================
+  const DEFAULT_DEPARTMENTS = [
+    { id: 'DEP-1', name: 'Montaj Hattı', code: 'MNT' },
+    { id: 'DEP-2', name: 'Talaşlı İmalat', code: 'CNC' },
+    { id: 'DEP-3', name: 'Kalite Güvence', code: 'KAL' },
+    { id: 'DEP-4', name: 'Bakım & Onarım', code: 'BAK' },
+    { id: 'DEP-5', name: 'Depo & Lojistik', code: 'LOJ' },
+    { id: 'DEP-6', name: 'Kaynak & Gövde', code: 'KAY' },
+    { id: 'DEP-7', name: 'İSG & Çevre', code: 'İSG' },
+    { id: 'DEP-8', name: 'Kaizen & Metot', code: 'KAI' },
+    { id: 'DEP-9', name: 'Fabrika Yönetimi', code: 'YÖN' }
+  ];
+
+  // ==================== VARSAYILAN VARDİYA SAATLERİ ====================
+  const DEFAULT_SHIFTS = [
+    { id: 'SH-1', name: '1. Vardiya (08:00 - 16:00)', startTime: '08:00', endTime: '16:00' },
+    { id: 'SH-2', name: '2. Vardiya (16:00 - 24:00)', startTime: '16:00', endTime: '24:00' },
+    { id: 'SH-3', name: '3. Vardiya (24:00 - 08:00)', startTime: '24:00', endTime: '08:00' },
+    { id: 'SH-4', name: 'Genel Mesai (08:30 - 17:30)', startTime: '08:30', endTime: '17:30' }
   ];
 
   // ==================== UYGULAMA DURUMU (STATE) ====================
   const state = {
-    currentUser: null, // Giriş yapan kullanıcı nesnesi
+    currentUser: null,
     users: [],
     roles: [],
+    departments: [],
+    shifts: [],
     feedbacks: [],
     firebaseConfig: null,
     firestoreDb: null,
-    activeTab: 'give-feedback', // 'give-feedback', 'view-feedbacks', 'analytics', 'user-roles', 'cloud-settings'
-    activeSubTab: 'users', // 'users' veya 'roles' (user-roles ekranında)
+    activeTab: 'give-feedback', // 'give-feedback', 'view-feedbacks', 'analytics', 'management', 'cloud-settings'
+    activeMgmtTab: 'users', // 'users', 'roles', 'departments', 'shifts'
     selectedType: 'kudos',
     selectedCategory: 'isg',
     feedFilter: 'all',
@@ -110,44 +105,47 @@
     chartInstances: {}
   };
 
-  // ==================== VERİ YÜKLEME VE YEREL DEPOLAMA ====================
+  // ==================== VERİ YÜKLEME VE SAKLAMA ====================
   function loadData() {
     try {
       const storedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
       const storedRoles = localStorage.getItem(STORAGE_KEYS.ROLES);
+      const storedDepts = localStorage.getItem(STORAGE_KEYS.DEPARTMENTS);
+      const storedShifts = localStorage.getItem(STORAGE_KEYS.SHIFTS);
       const storedFeedbacks = localStorage.getItem(STORAGE_KEYS.FEEDBACKS);
       const storedAuth = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
       const storedFbConfig = localStorage.getItem(STORAGE_KEYS.FIREBASE_CONFIG);
 
       state.users = storedUsers ? JSON.parse(storedUsers) : JSON.parse(JSON.stringify(DEFAULT_USERS));
       state.roles = storedRoles ? JSON.parse(storedRoles) : JSON.parse(JSON.stringify(DEFAULT_ROLES));
-      state.feedbacks = storedFeedbacks ? JSON.parse(storedFeedbacks) : JSON.parse(JSON.stringify(DEFAULT_FEEDBACKS));
+      state.departments = storedDepts ? JSON.parse(storedDepts) : JSON.parse(JSON.stringify(DEFAULT_DEPARTMENTS));
+      state.shifts = storedShifts ? JSON.parse(storedShifts) : JSON.parse(JSON.stringify(DEFAULT_SHIFTS));
+      state.feedbacks = storedFeedbacks ? JSON.parse(storedFeedbacks) : [];
 
       if (storedFbConfig) {
         state.firebaseConfig = JSON.parse(storedFbConfig);
       }
 
-      // Oturum kontrolü
       if (storedAuth) {
         const authTc = JSON.parse(storedAuth).tc;
         const found = state.users.find((u) => u.tc === authTc);
-        if (found) {
-          state.currentUser = found;
-        }
+        if (found) state.currentUser = found;
       }
 
       if (!storedUsers) saveUsers();
       if (!storedRoles) saveRoles();
+      if (!storedDepts) saveDepartments();
+      if (!storedShifts) saveShifts();
       if (!storedFeedbacks) saveFeedbacks();
     } catch (e) {
-      console.warn('[Safe5] Veri yüklenirken hata:', e);
+      console.warn('[Safe5] Veri yükleme hatası:', e);
       state.users = JSON.parse(JSON.stringify(DEFAULT_USERS));
       state.roles = JSON.parse(JSON.stringify(DEFAULT_ROLES));
-      state.feedbacks = JSON.parse(JSON.stringify(DEFAULT_FEEDBACKS));
-      state.currentUser = null;
+      state.departments = JSON.parse(JSON.stringify(DEFAULT_DEPARTMENTS));
+      state.shifts = JSON.parse(JSON.stringify(DEFAULT_SHIFTS));
+      state.feedbacks = [];
     }
 
-    // Firebase başlatmayı dene
     initFirebaseIfConfigured();
   }
 
@@ -162,6 +160,20 @@
     try {
       localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(state.roles));
       if (state.firestoreDb) syncToCloud('roles', state.roles);
+    } catch (e) {}
+  }
+
+  function saveDepartments() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.DEPARTMENTS, JSON.stringify(state.departments));
+      if (state.firestoreDb) syncToCloud('departments', state.departments);
+    } catch (e) {}
+  }
+
+  function saveShifts() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SHIFTS, JSON.stringify(state.shifts));
+      if (state.firestoreDb) syncToCloud('shifts', state.shifts);
     } catch (e) {}
   }
 
@@ -182,7 +194,7 @@
     } catch (e) {}
   }
 
-  // ==================== FIREBASE BULUT VERİTABANI MOTORU ====================
+  // ==================== FIREBASE BULUT SENKRONİZASYONU ====================
   function initFirebaseIfConfigured() {
     if (!state.firebaseConfig || !window.firebase) return;
     try {
@@ -192,7 +204,6 @@
       state.firestoreDb = window.firebase.firestore();
       console.log('[Safe5] Firebase Firestore canlı bulut veritabanına bağlandı.');
 
-      // Gerçek zamanlı dinleyiciler (Realtime Cloud Listeners)
       listenToCloud('feedbacks', (data) => {
         if (Array.isArray(data)) {
           state.feedbacks = data;
@@ -200,22 +211,32 @@
           if (state.activeTab === 'view-feedbacks') updateFeedListOnly();
         }
       });
-
       listenToCloud('users', (data) => {
         if (Array.isArray(data)) {
           state.users = data;
           localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(data));
         }
       });
-
       listenToCloud('roles', (data) => {
         if (Array.isArray(data)) {
           state.roles = data;
           localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(data));
         }
       });
+      listenToCloud('departments', (data) => {
+        if (Array.isArray(data)) {
+          state.departments = data;
+          localStorage.setItem(STORAGE_KEYS.DEPARTMENTS, JSON.stringify(data));
+        }
+      });
+      listenToCloud('shifts', (data) => {
+        if (Array.isArray(data)) {
+          state.shifts = data;
+          localStorage.setItem(STORAGE_KEYS.SHIFTS, JSON.stringify(data));
+        }
+      });
     } catch (err) {
-      console.warn('[Safe5] Firebase başlatılamadı, Local-First modunda çalışılıyor:', err);
+      console.warn('[Safe5] Firebase bağlantı hatası:', err);
     }
   }
 
@@ -235,15 +256,13 @@
       state.firestoreDb.collection('safe5_data').doc(collectionName).onSnapshot((doc) => {
         if (doc && doc.exists) {
           const data = doc.data();
-          if (data && Array.isArray(data.list)) {
-            onUpdate(data.list);
-          }
+          if (data && Array.isArray(data.list)) onUpdate(data.list);
         }
       });
     } catch (e) {}
   }
 
-  // ==================== BİLDİRİM (TOAST) ====================
+  // ==================== BİLDİRİM TOAST ====================
   function showToast(message, type = 'success') {
     let toast = document.getElementById('safeToast');
     if (!toast) {
@@ -263,7 +282,7 @@
     }, 3200);
   }
 
-  // ==================== DİNAMİK ROL & YETKİ MOTORU (RBAC) ====================
+  // ==================== DİNAMİK YETKİ KONTROLÜ (RBAC) ====================
   function getRole(roleId) {
     return state.roles.find((r) => r.id === roleId) || null;
   }
@@ -280,25 +299,25 @@
     return state.currentUser && state.currentUser.roleId === 'admin';
   }
 
-  // ==================== GİRİŞ & ÇIKIŞ (AUTH) ====================
+  // ==================== GİRİŞ, ÇIKIŞ VE ŞİFRE DEĞİŞTİRME ====================
   function login(tc, password) {
     const cleanTc = String(tc || '').trim();
     const cleanPass = String(password || '').trim();
 
     if (!cleanTc || !cleanPass) {
-      showToast('Lütfen TC / Sicil No ve şifrenizi girin.', 'warning');
+      showToast('Lütfen kullanıcı adı / TC ve şifrenizi girin.', 'warning');
       return false;
     }
 
     const found = state.users.find((u) => u.tc === cleanTc && u.password === cleanPass);
     if (!found) {
-      showToast('Hatalı TC veya şifre girdiniz. Lütfen tekrar deneyin.', 'warning');
+      showToast('Hatalı kullanıcı adı veya şifre girdiniz.', 'warning');
       return false;
     }
 
     state.currentUser = found;
     saveSession();
-    state.activeTab = 'give-feedback'; // Başlangıç ekranı
+    state.activeTab = 'give-feedback';
     showToast(`Hoş geldiniz, ${found.name}!`, 'success');
     renderUI();
     return true;
@@ -311,9 +330,37 @@
     renderUI();
   }
 
-  // ==================== GERİ BİLDİRİM GÖNDERME ====================
+  function changePassword(oldPass, newPass, confirmPass) {
+    if (!state.currentUser) return false;
+
+    if (state.currentUser.password !== oldPass) {
+      showToast('Mevcut şifrenizi hatalı girdiniz.', 'warning');
+      return false;
+    }
+
+    if (!newPass || newPass.trim().length < 3) {
+      showToast('Yeni şifre en az 3 karakter olmalıdır.', 'warning');
+      return false;
+    }
+
+    if (newPass !== confirmPass) {
+      showToast('Yeni şifreler birbiriyle eşleşmiyor.', 'warning');
+      return false;
+    }
+
+    state.currentUser.password = newPass.trim();
+    const targetInList = state.users.find((u) => u.id === state.currentUser.id);
+    if (targetInList) targetInList.password = newPass.trim();
+
+    saveUsers();
+    saveSession();
+    showToast('Şifreniz başarıyla güncellendi!', 'success');
+    return true;
+  }
+
+  // ==================== GERİ BİLDİRİM İŞLEMLERİ ====================
   function submitFeedback(data) {
-    const { toTc, type, category, message, shift, isAnonymous } = data;
+    const { toTc, departmentName, type, category, message, shift, isAnonymous } = data;
 
     if (!toTc) {
       showToast('Lütfen geri bildirim vereceğiniz çalışma arkadaşınızı seçin.', 'warning');
@@ -321,7 +368,7 @@
     }
 
     if (!message || message.trim().length < 5) {
-      showToast('Lütfen en az 5 karakterlik anlamlı bir açıklama girin.', 'warning');
+      showToast('Lütfen en az 5 karakterlik açıklama girin.', 'warning');
       return false;
     }
 
@@ -334,10 +381,11 @@
       fromName: isAnonymous ? 'Anonim Çalışan' : (state.currentUser ? state.currentUser.name : 'Çalışan'),
       toTc: toTc,
       toName: recipientName,
+      departmentName: departmentName || (state.departments[0] ? state.departments[0].name : 'Üretim'),
       type: type || state.selectedType,
       category: category || state.selectedCategory,
       message: message.trim(),
-      shift: shift || '1. Vardiya',
+      shift: shift || (state.shifts[0] ? state.shifts[0].name : '1. Vardiya'),
       isAnonymous: Boolean(isAnonymous),
       status: type === 'kaizen' || type === 'isg' ? 'in_progress' : 'resolved',
       likes: 0,
@@ -352,7 +400,6 @@
     return true;
   }
 
-  // ==================== DURUM & ALKIŞ YÖNETİMİ ====================
   function updateFeedbackStatus(fbId, newStatus) {
     if (!hasPermission(state.currentUser, 'manage_status')) {
       showToast('Durum güncelleme yetkiniz bulunmuyor.', 'warning');
@@ -400,32 +447,29 @@
     updateFeedListOnly();
   }
 
-  // ==================== KULLANICI & ROL YÖNETİM METOTLARI ====================
+  // ==================== KULLANICI YÖNETİMİ ====================
   function addUser(data) {
     if (!hasPermission(state.currentUser, 'manage_users')) {
-      showToast('Kullanıcı ekleme yetkiniz bulunmuyor.', 'warning');
+      showToast('Kullanıcı ekleme yetkiniz yok.', 'warning');
       return false;
     }
 
     const { tc, password, name, department, title, shift, roleId } = data;
 
-    if (!tc || tc.trim().length < 3) {
-      showToast('Lütfen geçerli bir TC / Sicil No girin.', 'warning');
+    if (!tc || !tc.trim()) {
+      showToast('Lütfen kullanıcı adı / TC girin.', 'warning');
       return false;
     }
-
     if (!password || password.trim().length < 3) {
       showToast('Şifre en az 3 karakter olmalıdır.', 'warning');
       return false;
     }
-
-    if (!name || name.trim().length < 3) {
+    if (!name || !name.trim()) {
       showToast('Lütfen geçerli bir ad soyad girin.', 'warning');
       return false;
     }
-
     if (state.users.some((u) => u.tc === tc.trim())) {
-      showToast('Bu TC / Sicil No ile kayıtlı bir kullanıcı zaten mevcut.', 'warning');
+      showToast('Bu kullanıcı adı / TC ile kayıtlı personel zaten var.', 'warning');
       return false;
     }
 
@@ -436,10 +480,10 @@
       tc: tc.trim(),
       password: password.trim(),
       name: name.trim(),
-      roleId: roleId || 'worker',
-      department: department || 'Montaj Hattı',
+      roleId: roleId || (state.roles[0] ? state.roles[0].id : 'admin'),
+      department: department || (state.departments[0] ? state.departments[0].name : 'Üretim'),
       title: title || 'Operatör',
-      shift: shift || '1. Vardiya (08:00 - 16:00)',
+      shift: shift || (state.shifts[0] ? state.shifts[0].name : '1. Vardiya'),
       initials: initials || 'ÇL',
       createdAt: new Date().toISOString()
     };
@@ -453,7 +497,7 @@
 
   function editUser(userId, data) {
     if (!hasPermission(state.currentUser, 'manage_users')) {
-      showToast('Kullanıcı düzenleme yetkiniz bulunmuyor.', 'warning');
+      showToast('Kullanıcı düzenleme yetkiniz yok.', 'warning');
       return false;
     }
 
@@ -461,9 +505,7 @@
     if (!target) return false;
 
     target.name = data.name.trim();
-    if (data.password && data.password.trim()) {
-      target.password = data.password.trim();
-    }
+    if (data.password && data.password.trim()) target.password = data.password.trim();
     target.department = data.department;
     target.title = data.title.trim();
     target.shift = data.shift;
@@ -482,15 +524,13 @@
 
   function removeUser(userId) {
     if (!hasPermission(state.currentUser, 'manage_users')) {
-      showToast('Kullanıcı silme yetkiniz bulunmuyor.', 'warning');
+      showToast('Kullanıcı silme yetkiniz yok.', 'warning');
       return;
     }
-
     if (state.currentUser && state.currentUser.id === userId) {
       showToast('O an aktif olan kendi hesabınızı silemezsiniz.', 'warning');
       return;
     }
-
     const target = state.users.find((u) => u.id === userId);
     if (!target) return;
 
@@ -502,17 +542,69 @@
     }
   }
 
+  // ==================== DİNAMİK ROL TANIMLAMA & YETKİLENDİRME ====================
+  function addRole(name, description, permissions) {
+    if (!hasPermission(state.currentUser, 'manage_roles')) {
+      showToast('Rol tanımlama yetkiniz yok.', 'warning');
+      return false;
+    }
+    if (!name || name.trim().length < 2) {
+      showToast('Lütfen geçerli bir rol adı girin.', 'warning');
+      return false;
+    }
+
+    const id = 'role_' + Date.now().toString(36);
+    const newRole = {
+      id,
+      name: name.trim(),
+      description: description ? description.trim() : '',
+      permissions: Array.isArray(permissions) ? permissions : ['feedback'],
+      isSystem: false
+    };
+
+    state.roles.push(newRole);
+    saveRoles();
+    showToast(`"${newRole.name}" rolü başarıyla oluşturuldu!`, 'success');
+    renderUI();
+    return true;
+  }
+
+  function removeRole(roleId) {
+    if (!hasPermission(state.currentUser, 'manage_roles')) {
+      showToast('Rol silme yetkiniz yok.', 'warning');
+      return;
+    }
+    const target = state.roles.find((r) => r.id === roleId);
+    if (!target) return;
+    if (target.isSystem || target.id === 'admin') {
+      showToast('Sistem yönetici rolü silinemez.', 'warning');
+      return;
+    }
+
+    const assignedCount = state.users.filter((u) => u.roleId === roleId).length;
+    if (assignedCount > 0) {
+      showToast(`Bu role atanmış ${assignedCount} kullanıcı var. Önce kullanıcıların rolünü değiştirin.`, 'warning');
+      return;
+    }
+
+    if (confirm(`"${target.name}" rolünü silmek istediğinize emin misiniz?`)) {
+      state.roles = state.roles.filter((r) => r.id !== roleId);
+      saveRoles();
+      showToast(`"${target.name}" rolü silindi.`, 'success');
+      renderUI();
+    }
+  }
+
   function updateRolePermissions(roleId, permissionKey, isGranted) {
     if (!hasPermission(state.currentUser, 'manage_roles')) {
       showToast('Rol yetkisi değiştirme izniniz yok.', 'warning');
       return;
     }
-
     const role = state.roles.find((r) => r.id === roleId);
     if (!role) return;
 
     if (role.id === 'admin') {
-      showToast('Admin rolünün yetkileri kaldırılamaz.', 'warning');
+      showToast('Yönetici (Admin) rolünün yetkileri kısıtlanamaz.', 'warning');
       return;
     }
 
@@ -529,18 +621,94 @@
     }
 
     saveRoles();
-    showToast(`"${role.name}" rolünün yetkileri güncellendi. Bu roldeki tüm kullanıcıların yetkileri anında yansıdı!`, 'success');
+    showToast(`"${role.name}" rolünün yetkileri güncellendi. Bu roldeki tüm kullanıcılar anında etkilendi!`, 'success');
     renderUI();
   }
 
-  // ==================== CSV VE JSON RAPORLAMA ====================
+  // ==================== DEPARTMAN YÖNETİMİ ====================
+  function addDepartment(name, code) {
+    if (!hasPermission(state.currentUser, 'manage_departments')) {
+      showToast('Departman tanımlama yetkiniz yok.', 'warning');
+      return false;
+    }
+    if (!name || !name.trim()) {
+      showToast('Lütfen geçerli bir departman adı girin.', 'warning');
+      return false;
+    }
+    const newDept = {
+      id: 'DEP-' + Date.now().toString(36).toUpperCase(),
+      name: name.trim(),
+      code: code ? code.trim().toUpperCase() : ''
+    };
+    state.departments.push(newDept);
+    saveDepartments();
+    showToast(`"${newDept.name}" departmanı eklendi!`, 'success');
+    renderUI();
+    return true;
+  }
+
+  function removeDepartment(deptId) {
+    if (!hasPermission(state.currentUser, 'manage_departments')) {
+      showToast('Departman silme yetkiniz yok.', 'warning');
+      return;
+    }
+    const target = state.departments.find((d) => d.id === deptId);
+    if (!target) return;
+
+    if (confirm(`"${target.name}" departmanını silmek istediğinize emin misiniz?`)) {
+      state.departments = state.departments.filter((d) => d.id !== deptId);
+      saveDepartments();
+      showToast(`"${target.name}" silindi.`, 'success');
+      renderUI();
+    }
+  }
+
+  // ==================== VARDİYA YÖNETİMİ ====================
+  function addShift(name, startTime, endTime) {
+    if (!hasPermission(state.currentUser, 'manage_shifts')) {
+      showToast('Vardiya tanımlama yetkiniz yok.', 'warning');
+      return false;
+    }
+    if (!name || !name.trim()) {
+      showToast('Lütfen geçerli bir vardiya adı girin.', 'warning');
+      return false;
+    }
+    const newShift = {
+      id: 'SH-' + Date.now().toString(36).toUpperCase(),
+      name: name.trim(),
+      startTime: startTime || '08:00',
+      endTime: endTime || '16:00'
+    };
+    state.shifts.push(newShift);
+    saveShifts();
+    showToast(`"${newShift.name}" vardiyası eklendi!`, 'success');
+    renderUI();
+    return true;
+  }
+
+  function removeShift(shiftId) {
+    if (!hasPermission(state.currentUser, 'manage_shifts')) {
+      showToast('Vardiya silme yetkiniz yok.', 'warning');
+      return;
+    }
+    const target = state.shifts.find((s) => s.id === shiftId);
+    if (!target) return;
+
+    if (confirm(`"${target.name}" vardiyasını silmek istediğinize emin misiniz?`)) {
+      state.shifts = state.shifts.filter((s) => s.id !== shiftId);
+      saveShifts();
+      showToast(`"${target.name}" silindi.`, 'success');
+      renderUI();
+    }
+  }
+
+  // ==================== CSV VE JSON ====================
   function exportCSV() {
     if (state.feedbacks.length === 0) {
       showToast('Dışa aktarılacak geri bildirim bulunmuyor.', 'warning');
       return;
     }
-
-    const headers = ['ID', 'Tarih', 'Gönderen', 'Alıcı', 'Tür', 'Kategori', 'Vardiya', 'Durum', 'Alkış', 'Mesaj'];
+    const headers = ['ID', 'Tarih', 'Gönderen', 'Alıcı', 'Gerçekleşen Departman', 'Tür', 'Kategori', 'Vardiya', 'Durum', 'Alkış', 'Mesaj'];
     const rows = state.feedbacks.map((f) => {
       const cleanMsg = (f.message || '').replace(/"/g, '""');
       return [
@@ -548,15 +716,15 @@
         new Date(f.createdAt).toLocaleString('tr-TR'),
         f.fromName,
         f.toName,
+        f.departmentName || '',
         f.type,
         f.category,
-        f.shift || '1. Vardiya',
+        f.shift || '',
         f.status || 'resolved',
         f.likes || 0,
         `"${cleanMsg}"`
       ].join(';');
     });
-
     const csvContent = '\uFEFF' + headers.join(';') + '\n' + rows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -571,13 +739,14 @@
   function exportJSON() {
     const backup = {
       appName: 'Safe5',
-      version: '3.0',
+      version: '4.0',
       exportedAt: new Date().toISOString(),
       roles: state.roles,
       users: state.users,
+      departments: state.departments,
+      shifts: state.shifts,
       feedbacks: state.feedbacks
     };
-
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -588,31 +757,7 @@
     showToast('Tüm fabrika veritabanı JSON olarak yedeklendi.', 'success');
   }
 
-  function importJSON(file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (Array.isArray(data.users) && Array.isArray(data.feedbacks)) {
-          state.users = data.users;
-          state.feedbacks = data.feedbacks;
-          if (Array.isArray(data.roles)) state.roles = data.roles;
-          saveUsers();
-          saveRoles();
-          saveFeedbacks();
-          showToast('Fabrika verileri başarıyla geri yüklendi!', 'success');
-          renderUI();
-        } else {
-          showToast('Geçersiz yedek dosyası formatı.', 'warning');
-        }
-      } catch (err) {
-        showToast('Dosya okunurken hata oluştu.', 'warning');
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  // ==================== ANALİTİK HESAPLAMALAR VE GRAFİKLER ====================
+  // ==================== ANALİTİK HESAPLAMA ====================
   function computeAnalytics() {
     const total = state.feedbacks.length;
     const kudosCount = state.feedbacks.filter((f) => f.type === 'kudos').length;
@@ -627,25 +772,22 @@
       quality: { label: 'Kalite', count: 0, color: '#4f46e5' },
       teamwork: { label: 'Takım Ruhu', count: 0, color: '#059669' }
     };
-
     state.feedbacks.forEach((f) => {
       const catKey = f.category || 'teamwork';
       if (categories[catKey]) categories[catKey].count++;
       else categories.teamwork.count++;
     });
 
-    const shifts = { '1. Vardiya': 0, '2. Vardiya': 0, '3. Vardiya': 0 };
-    state.feedbacks.forEach((f) => {
-      if (f.shift && f.shift.includes('2')) shifts['2. Vardiya']++;
-      else if (f.shift && f.shift.includes('3')) shifts['3. Vardiya']++;
-      else shifts['1. Vardiya']++;
-    });
-
     const deptMap = {};
     state.feedbacks.forEach((f) => {
-      const recipient = state.users.find((u) => u.tc === f.toTc);
-      const dept = recipient ? recipient.department : 'Genel';
+      const dept = f.departmentName || 'Genel';
       deptMap[dept] = (deptMap[dept] || 0) + 1;
+    });
+
+    const shiftMap = {};
+    state.feedbacks.forEach((f) => {
+      const sh = f.shift || '1. Vardiya';
+      shiftMap[sh] = (shiftMap[sh] || 0) + 1;
     });
 
     const kudosLeaderboard = {};
@@ -654,13 +796,12 @@
         kudosLeaderboard[f.toName] = (kudosLeaderboard[f.toName] || 0) + 1;
       }
     });
-
     const topLeaders = Object.keys(kudosLeaderboard)
       .map((name) => ({ name, score: kudosLeaderboard[name] }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
 
-    return { total, kudosCount, kudosPercent, isgCount, kaizenCount, categories, shifts, deptMap, topLeaders };
+    return { total, kudosCount, kudosPercent, isgCount, kaizenCount, categories, deptMap, shiftMap, topLeaders };
   }
 
   function renderCharts(analytics) {
@@ -670,8 +811,7 @@
     const catCanvas = document.getElementById('chartCategory');
     if (catCanvas && window.Chart) {
       if (state.chartInstances.cat) state.chartInstances.cat.destroy();
-      const ctx = catCanvas.getContext('2d');
-      state.chartInstances.cat = new window.Chart(ctx, {
+      state.chartInstances.cat = new window.Chart(catCanvas.getContext('2d'), {
         type: 'doughnut',
         data: {
           labels: Object.values(analytics.categories).map((c) => c.label),
@@ -693,13 +833,12 @@
     const deptCanvas = document.getElementById('chartDepartment');
     if (deptCanvas && window.Chart) {
       if (state.chartInstances.dept) state.chartInstances.dept.destroy();
-      const ctx = deptCanvas.getContext('2d');
-      state.chartInstances.dept = new window.Chart(ctx, {
+      state.chartInstances.dept = new window.Chart(deptCanvas.getContext('2d'), {
         type: 'bar',
         data: {
           labels: Object.keys(analytics.deptMap),
           datasets: [{
-            label: 'Bildirim Sayısı',
+            label: 'Gerçekleşen Bildirim Sayısı',
             data: Object.values(analytics.deptMap),
             backgroundColor: '#059669',
             borderRadius: 6
@@ -720,14 +859,13 @@
     const shiftCanvas = document.getElementById('chartShift');
     if (shiftCanvas && window.Chart) {
       if (state.chartInstances.shift) state.chartInstances.shift.destroy();
-      const ctx = shiftCanvas.getContext('2d');
-      state.chartInstances.shift = new window.Chart(ctx, {
+      state.chartInstances.shift = new window.Chart(shiftCanvas.getContext('2d'), {
         type: 'polarArea',
         data: {
-          labels: ['1. Vardiya', '2. Vardiya', '3. Vardiya'],
+          labels: Object.keys(analytics.shiftMap),
           datasets: [{
-            data: [analytics.shifts['1. Vardiya'], analytics.shifts['2. Vardiya'], analytics.shifts['3. Vardiya']],
-            backgroundColor: ['rgba(5, 150, 105, 0.75)', 'rgba(2, 132, 199, 0.75)', 'rgba(79, 70, 229, 0.75)']
+            data: Object.values(analytics.shiftMap),
+            backgroundColor: ['rgba(5, 150, 105, 0.75)', 'rgba(2, 132, 199, 0.75)', 'rgba(79, 70, 229, 0.75)', 'rgba(217, 119, 6, 0.75)']
           }]
         },
         options: {
@@ -739,7 +877,7 @@
     }
   }
 
-  // ==================== HEDEFE YÖNELİK LİSTE GÜNCELLEMESİ (FOCUS LOSS KORUMASI) ====================
+  // ==================== LİSTE GÜNCELLEMESİ (ODAK KORUMALI) ====================
   function updateFeedListOnly() {
     const container = document.getElementById('safeFeedListContainer');
     if (container) {
@@ -755,7 +893,7 @@
     const topBarUserArea = document.getElementById('safeTopBarUserArea');
     if (!appRoot) return;
 
-    // 1. KULLANICI GİRİŞ YAPMAMIŞSA -> GİRİŞ EKRANI (LOGIN SCREEN)
+    // 1. GİRİŞ YAPILMAMIŞSA -> GİRİŞ PORTALI
     if (!state.currentUser) {
       if (topBarUserArea) topBarUserArea.innerHTML = '';
       appRoot.innerHTML = renderLoginScreen();
@@ -767,7 +905,7 @@
     const userRole = getRole(user.roleId);
     const roleName = userRole ? userRole.name : 'Çalışan';
 
-    // Üst Bar Kullanıcı Bilgisi ve Çıkış Butonu
+    // Üst Bar Sağ Tarafı: Profil, Şifre Değiştirme ve Çıkış
     if (topBarUserArea) {
       topBarUserArea.innerHTML = `
         <div class="safe-user-badge-btn">
@@ -778,25 +916,27 @@
           </div>
         </div>
 
-        <button type="button" class="safe-btn safe-btn-sm safe-btn-outline" id="btnLogout" title="Oturumu Kapat">
+        <button type="button" class="safe-btn safe-btn-sm safe-btn-outline" id="btnOpenChangePassword" title="Şifremi Değiştir">
+          <span>🔑</span>
+          <span>Şifre Değiştir</span>
+        </button>
+
+        <button type="button" class="safe-btn safe-btn-sm safe-btn-secondary" id="btnLogout" title="Oturumu Kapat">
           <span>🚪</span>
           <span>Çıkış Yap</span>
         </button>
       `;
     }
 
-    // Yetki Kontrolleri
+    // Yetkiler
     const canFeedback = hasPermission(user, 'feedback');
     const canAnalytics = hasPermission(user, 'analytics');
-    const canManageRolesUsers = hasPermission(user, 'manage_users') || hasPermission(user, 'manage_roles');
-    const canCloudConfig = hasPermission(user, 'cloud_config');
+    const canManageAny = hasPermission(user, 'manage_users') || hasPermission(user, 'manage_roles') || hasPermission(user, 'manage_departments') || hasPermission(user, 'manage_shifts');
 
-    // Eğer aktif sekme kullanıcının yetkisinde değilse izinli ilk sekmeye al
     if (state.activeTab === 'analytics' && !canAnalytics) state.activeTab = 'give-feedback';
-    if (state.activeTab === 'user-roles' && !canManageRolesUsers) state.activeTab = 'give-feedback';
-    if (state.activeTab === 'cloud-settings' && !canCloudConfig) state.activeTab = 'give-feedback';
+    if (state.activeTab === 'management' && !canManageAny) state.activeTab = 'give-feedback';
 
-    // Yan Navbar (Sadece İzin Verilen Ekranlar Görünür!)
+    // Sabit Sol Sidebar
     const sidebarHtml = `
       <aside class="safe-sidebar">
         <nav class="safe-nav-menu">
@@ -828,21 +968,21 @@
             </button>
           ` : ''}
 
-          ${canManageRolesUsers ? `
-            <button type="button" class="safe-nav-item ${state.activeTab === 'user-roles' ? 'active' : ''}" data-nav-tab="user-roles">
+          ${canManageAny ? `
+            <button type="button" class="safe-nav-item ${state.activeTab === 'management' ? 'active' : ''}" data-nav-tab="management">
               <div class="safe-nav-left">
-                <span class="safe-nav-icon">👥</span>
-                <span class="safe-nav-text">Kullanıcı &amp; Rol Yönetimi</span>
+                <span class="safe-nav-icon">⚙️</span>
+                <span class="safe-nav-text">Yönetim Paneli</span>
               </div>
               <span class="safe-nav-pill admin">Yönetici</span>
             </button>
           ` : ''}
 
-          ${canCloudConfig ? `
+          ${isAdminUser() ? `
             <button type="button" class="safe-nav-item ${state.activeTab === 'cloud-settings' ? 'active' : ''}" data-nav-tab="cloud-settings">
               <div class="safe-nav-left">
                 <span class="safe-nav-icon">☁️</span>
-                <span class="safe-nav-text">Bulut Veritabanı (Firebase)</span>
+                <span class="safe-nav-text">Bulut (Firebase)</span>
               </div>
               <span class="safe-nav-pill ${state.firestoreDb ? 'admin' : ''}">
                 ${state.firestoreDb ? '● Canlı' : 'Bağla'}
@@ -851,7 +991,6 @@
           ` : ''}
         </nav>
 
-        <!-- Sidebar Alt Bilgi -->
         <div class="safe-sidebar-user">
           <div class="safe-user-card">
             <div class="safe-user-top">
@@ -864,7 +1003,7 @@
               </div>
             </div>
             <div style="font-size:0.75rem; color:var(--safe-text-muted);">
-              TC: ${user.tc} • ${user.shift}
+              Kullanıcı: ${user.tc} • ${user.shift}
             </div>
           </div>
         </div>
@@ -879,8 +1018,8 @@
       screenHtml = renderViewFeedbacksScreen();
     } else if (state.activeTab === 'analytics') {
       screenHtml = renderAnalyticsScreen();
-    } else if (state.activeTab === 'user-roles') {
-      screenHtml = renderUserAndRoleManagementScreen();
+    } else if (state.activeTab === 'management') {
+      screenHtml = renderManagementScreen();
     } else if (state.activeTab === 'cloud-settings') {
       screenHtml = renderCloudSettingsScreen();
     }
@@ -893,66 +1032,75 @@
         </main>
       </div>
 
-      <!-- KULLANICI EKLEME MODALI -->
+      <!-- ŞİFRE DEĞİŞTİRME MODALI -->
+      <div class="safe-modal-backdrop" id="modalChangePassword">
+        <div class="safe-modal-box" style="max-width: 440px;">
+          <div class="safe-modal-header">
+            <h3 class="safe-modal-title"><span>🔑</span> Şifremi Değiştir</h3>
+            <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
+          </div>
+          <form id="formChangePassword">
+            <div class="safe-form-group">
+              <label class="safe-label">Mevcut Şifre</label>
+              <input type="password" class="safe-input" id="inputOldPassword" required />
+            </div>
+            <div class="safe-form-group">
+              <label class="safe-label">Yeni Şifre</label>
+              <input type="password" class="safe-input" id="inputNewPassword" placeholder="En az 3 karakter" required />
+            </div>
+            <div class="safe-form-group">
+              <label class="safe-label">Yeni Şifre (Tekrar)</label>
+              <input type="password" class="safe-input" id="inputConfirmPassword" required />
+            </div>
+            <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width:100%;">
+              <span>Şifreyi Güncelle</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- YENİ KULLANICI EKLEME MODALI -->
       <div class="safe-modal-backdrop" id="modalAddUser">
         <div class="safe-modal-box">
           <div class="safe-modal-header">
-            <h3 class="safe-modal-title"><span>➕</span> Yeni Çalışan / Kullanıcı Ekle</h3>
+            <h3 class="safe-modal-title"><span>➕</span> Yeni Çalışan Ekle</h3>
             <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
           </div>
           <form id="formAddUser">
             <div class="safe-form-group">
-              <label class="safe-label">TC Kimlik No / Sicil No <span style="color:var(--safe-primary);">*</span></label>
-              <input type="text" class="safe-input" id="newUserTc" placeholder="Örn: 23456789012" required />
+              <label class="safe-label">Kullanıcı Adı / TC Kimlik No <span style="color:var(--safe-primary);">*</span></label>
+              <input type="text" class="safe-input" id="newUserTc" placeholder="Örn: ahmet123 veya TC No" required />
             </div>
-
             <div class="safe-form-group">
               <label class="safe-label">Giriş Şifresi <span style="color:var(--safe-primary);">*</span></label>
               <input type="password" class="safe-input" id="newUserPassword" placeholder="En az 3 karakter" required />
             </div>
-
             <div class="safe-form-group">
               <label class="safe-label">Ad Soyad <span style="color:var(--safe-primary);">*</span></label>
               <input type="text" class="safe-input" id="newUserName" placeholder="Örn: Ahmet Yılmaz" required />
             </div>
-
             <div class="safe-form-group">
-              <label class="safe-label">Rolü (Yetki Grubu) <span style="color:var(--safe-primary);">*</span></label>
+              <label class="safe-label">Atanacak Rol <span style="color:var(--safe-primary);">*</span></label>
               <select class="safe-select" id="newUserRoleId" required>
                 ${state.roles.map((r) => `<option value="${r.id}">${r.name}</option>`).join('')}
               </select>
             </div>
-
             <div class="safe-form-group">
-              <label class="safe-label">Departman / Bölüm</label>
+              <label class="safe-label">Departman</label>
               <select class="safe-select" id="newUserDept">
-                <option value="Montaj Hattı">Montaj Hattı</option>
-                <option value="Talaşlı İmalat">Talaşlı İmalat</option>
-                <option value="Kalite Güvence">Kalite Güvence</option>
-                <option value="Bakım & Onarım">Bakım & Onarım</option>
-                <option value="Depo & Lojistik">Depo & Lojistik</option>
-                <option value="Kaynak & Gövde">Kaynak & Gövde</option>
-                <option value="İSG & Çevre">İSG & Çevre</option>
-                <option value="Kaizen & Metot">Kaizen & Metot</option>
-                <option value="Fabrika Yönetimi">Fabrika Yönetimi</option>
+                ${state.departments.map((d) => `<option value="${d.name}">${d.name}</option>`).join('')}
               </select>
             </div>
-
             <div class="safe-form-group">
               <label class="safe-label">Görevi / Ünvanı</label>
-              <input type="text" class="safe-input" id="newUserTitle" placeholder="Örn: CNC Operatörü, Hat Lideri" required />
+              <input type="text" class="safe-input" id="newUserTitle" placeholder="Örn: CNC Operatörü" required />
             </div>
-
             <div class="safe-form-group">
               <label class="safe-label">Vardiya</label>
               <select class="safe-select" id="newUserShift">
-                <option value="1. Vardiya (08:00 - 16:00)">1. Vardiya (08:00 - 16:00)</option>
-                <option value="2. Vardiya (16:00 - 24:00)">2. Vardiya (16:00 - 24:00)</option>
-                <option value="3. Vardiya (24:00 - 08:00)">3. Vardiya (24:00 - 08:00)</option>
-                <option value="Genel Mesai (08:30 - 17:30)">Genel Mesai (08:30 - 17:30)</option>
+                ${state.shifts.map((s) => `<option value="${s.name}">${s.name}</option>`).join('')}
               </select>
             </div>
-
             <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width:100%;">
               <span>Kullanıcıyı Kaydet</span>
             </button>
@@ -964,7 +1112,7 @@
       <div class="safe-modal-backdrop" id="modalEditUser">
         <div class="safe-modal-box">
           <div class="safe-modal-header">
-            <h3 class="safe-modal-title"><span>✏️</span> Kullanıcı Bilgilerini Düzenle</h3>
+            <h3 class="safe-modal-title"><span>✏️</span> Kullanıcı Düzenle</h3>
             <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
           </div>
           <form id="formEditUser">
@@ -973,51 +1121,120 @@
               <label class="safe-label">Ad Soyad</label>
               <input type="text" class="safe-input" id="editUserName" required />
             </div>
-
             <div class="safe-form-group">
               <label class="safe-label">Yeni Şifre (Boş bırakılırsa değişmez)</label>
               <input type="password" class="safe-input" id="editUserPassword" placeholder="Değiştirmek istemiyorsanız boş bırakın" />
             </div>
-
             <div class="safe-form-group">
               <label class="safe-label">Rolü</label>
               <select class="safe-select" id="editUserRoleId" required>
                 ${state.roles.map((r) => `<option value="${r.id}">${r.name}</option>`).join('')}
               </select>
             </div>
-
             <div class="safe-form-group">
               <label class="safe-label">Departman</label>
               <select class="safe-select" id="editUserDept">
-                <option value="Montaj Hattı">Montaj Hattı</option>
-                <option value="Talaşlı İmalat">Talaşlı İmalat</option>
-                <option value="Kalite Güvence">Kalite Güvence</option>
-                <option value="Bakım & Onarım">Bakım & Onarım</option>
-                <option value="Depo & Lojistik">Depo & Lojistik</option>
-                <option value="Kaynak & Gövde">Kaynak & Gövde</option>
-                <option value="İSG & Çevre">İSG & Çevre</option>
-                <option value="Kaizen & Metot">Kaizen & Metot</option>
-                <option value="Fabrika Yönetimi">Fabrika Yönetimi</option>
+                ${state.departments.map((d) => `<option value="${d.name}">${d.name}</option>`).join('')}
               </select>
             </div>
-
             <div class="safe-form-group">
               <label class="safe-label">Ünvan</label>
               <input type="text" class="safe-input" id="editUserTitle" required />
             </div>
-
             <div class="safe-form-group">
               <label class="safe-label">Vardiya</label>
               <select class="safe-select" id="editUserShift">
-                <option value="1. Vardiya (08:00 - 16:00)">1. Vardiya (08:00 - 16:00)</option>
-                <option value="2. Vardiya (16:00 - 24:00)">2. Vardiya (16:00 - 24:00)</option>
-                <option value="3. Vardiya (24:00 - 08:00)">3. Vardiya (24:00 - 08:00)</option>
-                <option value="Genel Mesai (08:30 - 17:30)">Genel Mesai (08:30 - 17:30)</option>
+                ${state.shifts.map((s) => `<option value="${s.name}">${s.name}</option>`).join('')}
               </select>
             </div>
-
             <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width:100%;">
-              <span>Değişiklikleri Kaydet</span>
+              <span>Kaydet</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- YENİ ROL TANIMLAMA MODALI -->
+      <div class="safe-modal-backdrop" id="modalAddRole">
+        <div class="safe-modal-box">
+          <div class="safe-modal-header">
+            <h3 class="safe-modal-title"><span>🛡️</span> Yeni Rol Tanımla</h3>
+            <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
+          </div>
+          <form id="formAddRole">
+            <div class="safe-form-group">
+              <label class="safe-label">Rol Adı <span style="color:var(--safe-primary);">*</span></label>
+              <input type="text" class="safe-input" id="newRoleName" placeholder="Örn: Hat Lideri / Formen" required />
+            </div>
+            <div class="safe-form-group">
+              <label class="safe-label">Rol Açıklaması</label>
+              <input type="text" class="safe-input" id="newRoleDesc" placeholder="Örn: Vardiya sorumlusu..." />
+            </div>
+            <div class="safe-form-group" style="background:var(--safe-bg-subtle); padding:1rem; border-radius:10px; border:1px solid var(--safe-border);">
+              <label class="safe-label" style="margin-bottom:0.75rem;">Bu Role Verilecek Yetkiler</label>
+              <div style="display:flex; flex-direction:column; gap:0.55rem;">
+                ${ALL_PERMISSIONS.map((perm) => `
+                  <label style="display:flex; align-items:center; gap:0.55rem; font-size:0.86rem; color:var(--safe-text); cursor:pointer;">
+                    <input type="checkbox" class="new-role-perm-chk" value="${perm.key}" ${perm.key === 'feedback' ? 'checked disabled' : ''} style="width:17px; height:17px; accent-color:var(--safe-primary);" />
+                    <span>${perm.label} ${perm.key === 'feedback' ? '<span style="color:var(--safe-primary); font-size:0.72rem;">(Zorunlu)</span>' : ''}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+            <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width:100%;">
+              <span>Rolü Oluştur</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- DEPARTMAN EKLEME MODALI -->
+      <div class="safe-modal-backdrop" id="modalAddDept">
+        <div class="safe-modal-box" style="max-width:440px;">
+          <div class="safe-modal-header">
+            <h3 class="safe-modal-title"><span>🏢</span> Yeni Departman Ekle</h3>
+            <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
+          </div>
+          <form id="formAddDept">
+            <div class="safe-form-group">
+              <label class="safe-label">Departman / Hat Adı <span style="color:var(--safe-primary);">*</span></label>
+              <input type="text" class="safe-input" id="newDeptName" placeholder="Örn: Robotik Kaynak Hattı" required />
+            </div>
+            <div class="safe-form-group">
+              <label class="safe-label">Kısa Kod (İsteğe bağlı)</label>
+              <input type="text" class="safe-input" id="newDeptCode" placeholder="Örn: ROB" />
+            </div>
+            <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width:100%;">
+              <span>Departmanı Ekle</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- VARDİYA EKLEME MODALI -->
+      <div class="safe-modal-backdrop" id="modalAddShift">
+        <div class="safe-modal-box" style="max-width:440px;">
+          <div class="safe-modal-header">
+            <h3 class="safe-modal-title"><span>⏰</span> Yeni Vardiya Ekle</h3>
+            <button type="button" class="safe-modal-close" data-modal-close>&times;</button>
+          </div>
+          <form id="formAddShift">
+            <div class="safe-form-group">
+              <label class="safe-label">Vardiya Adı <span style="color:var(--safe-primary);">*</span></label>
+              <input type="text" class="safe-input" id="newShiftName" placeholder="Örn: 1. Vardiya (08:00 - 16:00)" required />
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+              <div class="safe-form-group">
+                <label class="safe-label">Başlangıç Saati</label>
+                <input type="time" class="safe-input" id="newShiftStart" value="08:00" required />
+              </div>
+              <div class="safe-form-group">
+                <label class="safe-label">Bitiş Saati</label>
+                <input type="time" class="safe-input" id="newShiftEnd" value="16:00" required />
+              </div>
+            </div>
+            <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width:100%;">
+              <span>Vardiyayı Kaydet</span>
             </button>
           </form>
         </div>
@@ -1031,7 +1248,7 @@
     }
   }
 
-  // ==================== GİRİŞ EKRANI (LOGIN SCREEN HTML) ====================
+  // ==================== GİRİŞ EKRANI ====================
   function renderLoginScreen() {
     return `
       <div class="safe-login-view">
@@ -1039,18 +1256,18 @@
           <div class="safe-login-icon-wrap">🛡️</div>
           <h2 class="safe-login-title">Safe5 Fabrika Portalı</h2>
           <p class="safe-login-subtitle">
-            Lütfen personel TC / Sicil numaranız ve şifrenizle giriş yapınız.
+            Lütfen kullanıcı adı / TC kimlik numaranız ve şifrenizle giriş yapınız.
           </p>
 
           <form id="safeLoginForm">
             <div class="safe-form-group" style="text-align:left;">
-              <label class="safe-label">TC Kimlik No / Sicil No</label>
-              <input type="text" class="safe-input" id="loginTc" placeholder="Örn: 11111111111" required autofocus />
+              <label class="safe-label">Kullanıcı Adı / TC Kimlik No</label>
+              <input type="text" class="safe-input" id="loginTc" placeholder="admin" required autofocus />
             </div>
 
             <div class="safe-form-group" style="text-align:left;">
               <label class="safe-label">Giriş Şifresi</label>
-              <input type="password" class="safe-input" id="loginPassword" placeholder="••••••••" required />
+              <input type="password" class="safe-input" id="loginPassword" placeholder="admin" required />
             </div>
 
             <button type="submit" class="safe-btn safe-btn-primary safe-btn-lg" style="width:100%; margin-top:0.5rem;" id="btnLoginSubmit">
@@ -1060,10 +1277,10 @@
           </form>
 
           <div class="safe-login-alert">
-            <div style="font-weight:700; margin-bottom:0.25rem;">👑 Varsayılan Yönetici (Admin) Girişi:</div>
-            <div>TC: <b>11111111111</b> &nbsp;•&nbsp; Şifre: <b>admin</b></div>
+            <div style="font-weight:700; margin-bottom:0.25rem;">👑 İlk Yönetici Girişi:</div>
+            <div>Kullanıcı Adı: <b>admin</b> &nbsp;•&nbsp; Şifre: <b>admin</b></div>
             <div style="font-size:0.75rem; color:var(--safe-text-muted); margin-top:0.35rem;">
-              Admin olarak giriş yaptıktan sonra yeni çalışanlar ekleyebilir ve rollerine yetkiler atayabilirsiniz.
+              Admin olarak giriş yapıp rol, departman, vardiya ve personelleri tanımlayabilirsiniz.
             </div>
           </div>
         </div>
@@ -1071,10 +1288,9 @@
     `;
   }
 
-  // ==================== EKRAN 1: GERİ BİLDİRİM VERME (ANASAYFA) ====================
+  // ==================== EKRAN 1: GERİ BİLDİRİM VERME ====================
   function renderGiveFeedbackScreen() {
     const user = state.currentUser;
-    // Diğer kayıtlı kullanıcılar
     const otherUsers = state.users.filter((u) => u.tc !== user.tc);
 
     return `
@@ -1086,19 +1302,27 @@
 
       <div class="safe-card" style="max-width: 820px;">
         <form id="safeFeedbackForm">
-          <!-- 1. Alıcı Seçimi -->
+          <!-- Alıcı Seçimi -->
           <div class="safe-form-group">
             <label class="safe-label">Kime Geri Bildirim Veriyorsun? <span style="color:var(--safe-primary);">*</span></label>
             <select class="safe-select" id="inputRecipient" required>
               <option value="" disabled selected>-- Çalışma Arkadaşını Seçin --</option>
               ${otherUsers.length > 0
                 ? otherUsers.map((u) => `<option value="${u.tc}">${u.name} — ${u.department} (${u.title})</option>`).join('')
-                : '<option value="" disabled>Henüz başka kayıtlı kullanıcı yok. Admin panelinden kullanıcı ekleyebilirsiniz.</option>'
+                : '<option value="" disabled>Henüz başka kayıtlı kullanıcı yok. Yönetim panelinden kullanıcı ekleyebilirsiniz.</option>'
               }
             </select>
           </div>
 
-          <!-- 2. Bildirim Türü -->
+          <!-- Gerçekleşen Departman (Kullanıcı İsteği) -->
+          <div class="safe-form-group">
+            <label class="safe-label">Gerçekleşen Departman / Bölüm <span style="color:var(--safe-primary);">*</span></label>
+            <select class="safe-select" id="inputDepartment" required>
+              ${state.departments.map((d) => `<option value="${d.name}">${d.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <!-- Bildirim Türü -->
           <div class="safe-form-group">
             <label class="safe-label">Bildirim Türü</label>
             <div class="safe-type-switcher">
@@ -1119,7 +1343,7 @@
             </div>
           </div>
 
-          <!-- 3. Fabrika Değeri & 5S İlkesi -->
+          <!-- 5S İlkesi -->
           <div class="safe-form-group">
             <label class="safe-label">Fabrika Değeri &amp; 5S İlkesi</label>
             <div class="safe-category-grid">
@@ -1146,13 +1370,13 @@
             </div>
           </div>
 
-          <!-- 4. Mesaj Kutusu -->
+          <!-- Mesaj -->
           <div class="safe-form-group">
             <label class="safe-label">Açıklama / Mesaj Notun <span style="color:var(--safe-primary);">*</span></label>
-            <textarea class="safe-textarea" id="inputMessage" placeholder="Örn: 1. hatta hidrolik pres sızıntısını 15 dakikada çözdü ve 5S tertibini uyguladı..." required></textarea>
+            <textarea class="safe-textarea" id="inputMessage" placeholder="Örn: Pres hattında hidrolik sızıntıyı anında temizleyip hat duruşunu önledi..." required></textarea>
           </div>
 
-          <!-- 5. Anonimlik ve Vardiya -->
+          <!-- Anonimlik ve Vardiya -->
           <div class="safe-inline-controls">
             <label class="safe-switch-label">
               <input type="checkbox" id="inputIsAnonymous" style="width:20px; height:20px; accent-color:var(--safe-primary); cursor:pointer;" />
@@ -1163,12 +1387,9 @@
             </label>
 
             <div>
-              <label class="safe-label" style="font-size:0.8rem; margin-bottom:0.25rem;">Vardiya Bilgisi</label>
+              <label class="safe-label" style="font-size:0.8rem; margin-bottom:0.25rem;">Vardiya</label>
               <select class="safe-select" id="inputShift">
-                <option value="1. Vardiya" selected>1. Vardiya (08:00 - 16:00)</option>
-                <option value="2. Vardiya">2. Vardiya (16:00 - 24:00)</option>
-                <option value="3. Vardiya">3. Vardiya (24:00 - 08:00)</option>
-                <option value="Genel Mesai">Genel Mesai (08:30 - 17:30)</option>
+                ${state.shifts.map((s) => `<option value="${s.name}">${s.name}</option>`).join('')}
               </select>
             </div>
           </div>
@@ -1185,6 +1406,13 @@
   // ==================== EKRAN 2: GERİ BİLDİRİMLERİ İNCELEME ====================
   function renderViewFeedbacksScreen() {
     const user = state.currentUser;
+    const canViewAll = hasPermission(user, 'view_all_feed') || isAdminUser();
+
+    // Yetkisi yoksa ve 'all' seçiliyse otomatik 'received' sekmesine al
+    if (!canViewAll && state.feedFilter === 'all') {
+      state.feedFilter = 'received';
+    }
+
     const receivedCount = user ? state.feedbacks.filter((f) => f.toTc === user.tc).length : 0;
     const sentCount = user ? state.feedbacks.filter((f) => f.fromTc === user.tc).length : 0;
 
@@ -1197,9 +1425,11 @@
 
       <div class="safe-feed-filter-bar">
         <div class="safe-feed-tabs">
-          <button type="button" class="safe-feed-tab ${state.feedFilter === 'all' ? 'active' : ''}" data-feed-filter="all">
-            🌍 Tüm Akış (${state.feedbacks.length})
-          </button>
+          ${canViewAll ? `
+            <button type="button" class="safe-feed-tab ${state.feedFilter === 'all' ? 'active' : ''}" data-feed-filter="all">
+              🌍 Tüm Akış (${state.feedbacks.length})
+            </button>
+          ` : ''}
           <button type="button" class="safe-feed-tab ${state.feedFilter === 'received' ? 'active' : ''}" data-feed-filter="received">
             📬 Bana Gelenler (${receivedCount})
           </button>
@@ -1228,8 +1458,13 @@
 
   function renderFeedCardsHtml() {
     const user = state.currentUser;
+    const canViewAll = hasPermission(user, 'view_all_feed') || isAdminUser();
     const canManageStatus = hasPermission(user, 'manage_status') || isAdminUser();
     let list = [...state.feedbacks];
+
+    if (!canViewAll && state.feedFilter === 'all') {
+      state.feedFilter = 'received';
+    }
 
     if (state.feedFilter === 'received' && user) {
       list = list.filter((f) => f.toTc === user.tc);
@@ -1246,6 +1481,7 @@
       list = list.filter((f) =>
         (f.fromName && f.fromName.toLowerCase().includes(q)) ||
         (f.toName && f.toName.toLowerCase().includes(q)) ||
+        (f.departmentName && f.departmentName.toLowerCase().includes(q)) ||
         (f.message && f.message.toLowerCase().includes(q))
       );
     }
@@ -1254,8 +1490,8 @@
       return `
         <div class="safe-card" style="text-align:center; padding:3.5rem 1rem;">
           <div style="font-size:2.5rem; margin-bottom:0.75rem;">📭</div>
-          <h3 style="color:var(--safe-text); margin-bottom:0.35rem;">Bu filtreye uygun bildirim bulunamadı.</h3>
-          <p style="color:var(--safe-text-muted); font-size:0.88rem;">Yeni bir geri bildirim iletmek için 'Geri Bildirim Ver' sekmesini kullanabilirsiniz.</p>
+          <h3 style="color:var(--safe-text); margin-bottom:0.35rem;">Bu alanda henüz bir geri bildirim bulunmuyor.</h3>
+          <p style="color:var(--safe-text-muted); font-size:0.88rem;">Yeni bildirim iletmek için 'Geri Bildirim Ver' sekmesini kullanabilirsiniz.</p>
         </div>
       `;
     }
@@ -1282,6 +1518,7 @@
               ${f.type === 'kudos' ? '🌟 Takdir &amp; Teşekkür' : f.type === 'isg' ? '🦺 İSG Bildirimi' : '💡 Kaizen Önerisi'}
             </span>
             <span class="safe-tag badge-custom">${getCategoryName(f.category)}</span>
+            ${f.departmentName ? `<span class="safe-tag badge-custom">🏢 ${f.departmentName}</span>` : ''}
           </div>
 
           <div class="safe-feed-body">
@@ -1322,7 +1559,7 @@
     }).join('');
   }
 
-  // ==================== EKRAN 3: VERİ ANALİZİ EKRANI ====================
+  // ==================== EKRAN 3: VERİ ANALİZİ ====================
   function renderAnalyticsScreen() {
     const analytics = computeAnalytics();
 
@@ -1331,17 +1568,15 @@
         <div>
           <span class="safe-page-badge primary">📊 Veri Analizi</span>
           <h1 class="safe-page-title">Fabrika Geri Bildirim Analitikleri</h1>
-          <p class="safe-page-subtitle">Metrikler, kategori oranları, departman ve vardiya analizleri</p>
+          <p class="safe-page-subtitle">Kategori, departman ve vardiya bazlı performans metrikleri</p>
         </div>
 
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
           <button type="button" class="safe-btn safe-btn-primary" id="btnExportCSV">
-            <span>📊</span>
-            <span>Excel / CSV İndir</span>
+            <span>📊</span> <span>Excel / CSV İndir</span>
           </button>
           <button type="button" class="safe-btn safe-btn-secondary" id="btnExportJSON">
-            <span>💾</span>
-            <span>JSON Yedek</span>
+            <span>💾</span> <span>JSON Yedek</span>
           </button>
         </div>
       </div>
@@ -1400,8 +1635,8 @@
         <div class="safe-chart-card">
           <div class="safe-card-header" style="margin-bottom:0;">
             <div>
-              <h3 class="safe-card-title"><span>🏢</span> Departman Bazlı Bildirimler</h3>
-              <p class="safe-card-desc">En çok geri bildirim alan birimler</p>
+              <h3 class="safe-card-title"><span>🏢</span> Gerçekleşen Departman Dağılımı</h3>
+              <p class="safe-card-desc">Olayların gerçekleştiği bölümler</p>
             </div>
           </div>
           <div class="safe-chart-container">
@@ -1413,7 +1648,7 @@
           <div class="safe-card-header" style="margin-bottom:0;">
             <div>
               <h3 class="safe-card-title"><span>⏰</span> Vardiya Katılım Dağılımı</h3>
-              <p class="safe-card-desc">1., 2. ve 3. Vardiya oranları</p>
+              <p class="safe-card-desc">Tanımlı vardiyaların katılım oranları</p>
             </div>
           </div>
           <div class="safe-chart-container">
@@ -1446,51 +1681,73 @@
     `;
   }
 
-  // ==================== EKRAN 4: KULLANICI & ROL YÖNETİMİ (RBAC) ====================
-  function renderUserAndRoleManagementScreen() {
+  // ==================== EKRAN 4: YÖNETİM PANELİ (KULLANICI, ROL, DEPARTMAN, VARDİYA) ====================
+  function renderManagementScreen() {
     return `
       <div class="safe-page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
         <div>
-          <span class="safe-page-badge indigo">👥 Yönetim Paneli</span>
-          <h1 class="safe-page-title">Kullanıcı &amp; Rol Yönetimi</h1>
-          <p class="safe-page-subtitle">
-            Kullanıcıları yönetin, rollere yetkiler atayın. Bir rolün yetkisi değiştiğinde o roldeki tüm kullanıcılar anında güncellenir.
-          </p>
+          <span class="safe-page-badge indigo">⚙️ Yönetim Paneli</span>
+          <h1 class="safe-page-title">Fabrika Yönetim &amp; Tanımlama Merkezi</h1>
+          <p class="safe-page-subtitle">Kullanıcıları, dinamik rolleri, fabrika departmanlarını ve vardiya saatlerini tanımlayın.</p>
         </div>
 
-        ${state.activeSubTab === 'users' ? `
-          <button type="button" class="safe-btn safe-btn-primary" id="btnOpenAddUser">
-            <span>➕</span>
-            <span>Yeni Kullanıcı Ekle</span>
-          </button>
-        ` : ''}
+        <div>
+          ${state.activeMgmtTab === 'users' ? `
+            <button type="button" class="safe-btn safe-btn-primary" id="btnOpenAddUser">
+              <span>➕</span> <span>Yeni Kullanıcı Ekle</span>
+            </button>
+          ` : state.activeMgmtTab === 'roles' ? `
+            <button type="button" class="safe-btn safe-btn-primary" id="btnOpenAddRole">
+              <span>➕</span> <span>Yeni Rol Tanımla</span>
+            </button>
+          ` : state.activeMgmtTab === 'departments' ? `
+            <button type="button" class="safe-btn safe-btn-primary" id="btnOpenAddDept">
+              <span>➕</span> <span>Yeni Departman Ekle</span>
+            </button>
+          ` : `
+            <button type="button" class="safe-btn safe-btn-primary" id="btnOpenAddShift">
+              <span>➕</span> <span>Yeni Vardiya Ekle</span>
+            </button>
+          `}
+        </div>
       </div>
 
-      <!-- Alt Sekmeler: Kullanıcılar vs Roller -->
+      <!-- Alt Sekmeler -->
       <div class="safe-tabs-bar">
-        <button type="button" class="safe-tab-btn ${state.activeSubTab === 'users' ? 'active' : ''}" data-sub-tab="users">
-          👥 Çalışanlar &amp; Kullanıcılar (${state.users.length})
+        <button type="button" class="safe-tab-btn ${state.activeMgmtTab === 'users' ? 'active' : ''}" data-mgmt-tab="users">
+          👥 Kullanıcılar (${state.users.length})
         </button>
-        <button type="button" class="safe-tab-btn ${state.activeSubTab === 'roles' ? 'active' : ''}" data-sub-tab="roles">
+        <button type="button" class="safe-tab-btn ${state.activeMgmtTab === 'roles' ? 'active' : ''}" data-mgmt-tab="roles">
           🛡️ Roller &amp; Yetki Matrisi (${state.roles.length})
         </button>
+        <button type="button" class="safe-tab-btn ${state.activeMgmtTab === 'departments' ? 'active' : ''}" data-mgmt-tab="departments">
+          🏢 Departmanlar (${state.departments.length})
+        </button>
+        <button type="button" class="safe-tab-btn ${state.activeMgmtTab === 'shifts' ? 'active' : ''}" data-mgmt-tab="shifts">
+          ⏰ Vardiya Saatleri (${state.shifts.length})
+        </button>
       </div>
 
-      ${state.activeSubTab === 'users' ? renderUsersTable() : renderRolesMatrixTable()}
+      ${state.activeMgmtTab === 'users' ? renderUsersTable()
+        : state.activeMgmtTab === 'roles' ? renderRolesTable()
+        : state.activeMgmtTab === 'departments' ? renderDepartmentsTable()
+        : renderShiftsTable()
+      }
     `;
   }
 
+  // 4.1 Kullanıcılar Tablosu
   function renderUsersTable() {
     return `
       <div class="safe-table-container">
         <table class="safe-table">
           <thead>
             <tr>
-              <th>TC / Sicil No</th>
+              <th>Kullanıcı Adı / TC</th>
               <th>Ad Soyad &amp; Ünvan</th>
               <th>Departman</th>
               <th>Vardiya</th>
-              <th>Atanmış Rol</th>
+              <th>Rolü</th>
               <th>İşlemler</th>
             </tr>
           </thead>
@@ -1534,22 +1791,16 @@
     `;
   }
 
-  function renderRolesMatrixTable() {
-    const permissionCols = [
-      { key: 'feedback', label: '✍️ Geri Bildirim' },
-      { key: 'analytics', label: '📊 Veri Analizi' },
-      { key: 'manage_status', label: '⚙️ Durum Yönetimi' },
-      { key: 'manage_users', label: '👥 Kullanıcı Yönetimi' },
-      { key: 'manage_roles', label: '🛡️ Rol & Yetki Yönetimi' }
-    ];
-
+  // 4.2 Roller & Yetki Matrisi Tablosu
+  function renderRolesTable() {
     return `
       <div class="safe-card" style="margin-bottom:1.5rem; background:var(--safe-indigo-light); border-color:var(--safe-indigo-border);">
         <div style="font-weight:700; color:var(--safe-indigo); font-size:0.9rem; margin-bottom:0.25rem;">
-          💡 Rol Tabanlı Dinamik Yetkilendirme (RBAC):
+          💡 Dinamik Rol &amp; Yetki Sistemi:
         </div>
         <div style="font-size:0.84rem; color:var(--safe-text-secondary); line-height:1.4;">
-          Aşağıdaki matristen bir rolün yetkisini değiştirdiğinizde, o role sahip olan <b>tüm kullanıcıların ekran ve işlem yetkileri anında güncellenir.</b>
+          Aşağıdaki matriste bir rolün yetkisini güncellediğinizde, o role atanmış <b>tüm kullanıcıların ekran ve işlem yetkileri anında güncellenir.</b>
+          Ayrıca üstteki <b>"+ Yeni Rol Tanımla"</b> butonu ile fabrikanıza özel yeni roller oluşturabilirsiniz.
         </div>
       </div>
 
@@ -1558,8 +1809,9 @@
           <thead>
             <tr>
               <th>Rol Adı &amp; Açıklaması</th>
-              <th>Bağlı Çalışan Sayısı</th>
-              ${permissionCols.map((c) => `<th style="text-align:center;">${c.label}</th>`).join('')}
+              <th>Bağlı Personel</th>
+              ${ALL_PERMISSIONS.map((p) => `<th style="text-align:center; font-size:0.78rem;">${p.label}</th>`).join('')}
+              <th>İşlem</th>
             </tr>
           </thead>
           <tbody>
@@ -1574,9 +1826,9 @@
                     <div style="font-size:0.75rem; color:var(--safe-text-muted);">${r.description || ''}</div>
                   </td>
                   <td>
-                    <span style="font-weight:700; color:var(--safe-primary);">${assignedUserCount} personel</span>
+                    <span style="font-weight:700; color:var(--safe-primary);">${assignedUserCount} kişi</span>
                   </td>
-                  ${permissionCols.map((col) => {
+                  ${ALL_PERMISSIONS.map((col) => {
                     const hasPerm = isAdminRole || (Array.isArray(r.permissions) && r.permissions.includes(col.key));
                     const isFeedbackDefault = col.key === 'feedback';
 
@@ -1591,6 +1843,13 @@
                       </td>
                     `;
                   }).join('')}
+                  <td>
+                    ${!isAdminRole ? `
+                      <button type="button" class="safe-btn safe-btn-sm safe-btn-danger" data-remove-role-id="${r.id}" title="Rolü Sil">
+                        <span>🗑️</span>
+                      </button>
+                    ` : '<span style="font-size:0.75rem; color:var(--safe-text-muted);">(Sistem)</span>'}
+                  </td>
                 </tr>
               `;
             }).join('')}
@@ -1600,14 +1859,91 @@
     `;
   }
 
-  // ==================== EKRAN 5: BULUT VERİTABANI (FIREBASE) AYARLARI ====================
+  // 4.3 Departmanlar Tablosu
+  function renderDepartmentsTable() {
+    return `
+      <div class="safe-table-container">
+        <table class="safe-table">
+          <thead>
+            <tr>
+              <th>Departman / Üretim Hattı Adı</th>
+              <th>Kısa Kod</th>
+              <th>Bağlı Personel</th>
+              <th>Toplam Bildirim</th>
+              <th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${state.departments.map((d) => {
+              const userCount = state.users.filter((u) => u.department === d.name).length;
+              const fbCount = state.feedbacks.filter((f) => f.departmentName === d.name).length;
+
+              return `
+                <tr>
+                  <td><div style="font-weight:700; color:var(--safe-text); font-size:0.94rem;">🏢 ${d.name}</div></td>
+                  <td><code style="font-weight:700; color:var(--safe-sky);">${d.code || '-'}</code></td>
+                  <td><span style="font-weight:600;">${userCount} personel</span></td>
+                  <td><span style="font-weight:700; color:var(--safe-primary);">${fbCount} bildirim</span></td>
+                  <td>
+                    <button type="button" class="safe-btn safe-btn-sm safe-btn-danger" data-remove-dept-id="${d.id}" title="Departmanı Sil">
+                      <span>🗑️ Sil</span>
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // 4.4 Vardiyalar Tablosu
+  function renderShiftsTable() {
+    return `
+      <div class="safe-table-container">
+        <table class="safe-table">
+          <thead>
+            <tr>
+              <th>Vardiya Adı</th>
+              <th>Başlangıç Saati</th>
+              <th>Bitiş Saati</th>
+              <th>Atanmış Personel</th>
+              <th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${state.shifts.map((s) => {
+              const userCount = state.users.filter((u) => u.shift === s.name).length;
+
+              return `
+                <tr>
+                  <td><div style="font-weight:700; color:var(--safe-text); font-size:0.94rem;">⏰ ${s.name}</div></td>
+                  <td><b>${s.startTime || '-'}</b></td>
+                  <td><b>${s.endTime || '-'}</b></td>
+                  <td><span style="font-weight:600;">${userCount} personel</span></td>
+                  <td>
+                    <button type="button" class="safe-btn safe-btn-sm safe-btn-danger" data-remove-shift-id="${s.id}" title="Vardiyayı Sil">
+                      <span>🗑️ Sil</span>
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // ==================== EKRAN 5: BULUT VERİTABANI (FIREBASE) ====================
   function renderCloudSettingsScreen() {
     const isConnected = Boolean(state.firestoreDb);
 
     return `
       <div class="safe-page-header">
         <span class="safe-page-badge ${isConnected ? 'primary' : 'indigo'}">
-          ${isConnected ? '● Canlı Bulut Bağlantısı Aktif' : '☁️ Bulut Ayarları'}
+          ${isConnected ? '● Canlı Bulut Aktif' : '☁️ Bulut Ayarları'}
         </span>
         <h1 class="safe-page-title">Canlı Bulut Veritabanı (Firebase Firestore)</h1>
         <p class="safe-page-subtitle">
@@ -1645,7 +1981,7 @@
             </button>
             ${state.firebaseConfig ? `
               <button type="button" class="safe-btn safe-btn-outline" id="btnDisconnectCloud" style="color:var(--safe-rose);">
-                <span>Bağlantıyı Kes (Yerel Moda Dön)</span>
+                <span>Bağlantıyı Kes</span>
               </button>
             ` : ''}
           </div>
@@ -1675,16 +2011,14 @@
     return `${Math.floor(diffSec / 86400)} gün önce`;
   }
 
-  // ==================== KART ETKİLEŞİM DİNLEYİCİLERİ ====================
+  // ==================== KART DİNLENMESİ ====================
   function bindFeedCardEvents() {
     document.querySelectorAll('[data-clap-id]').forEach((btn) => {
       btn.onclick = () => toggleFeedbackLike(btn.getAttribute('data-clap-id'));
     });
-
     document.querySelectorAll('[data-status-fb-id]').forEach((sel) => {
       sel.onchange = (e) => updateFeedbackStatus(sel.getAttribute('data-status-fb-id'), e.target.value);
     });
-
     document.querySelectorAll('[data-delete-fb-id]').forEach((btn) => {
       btn.onclick = () => deleteFeedback(btn.getAttribute('data-delete-fb-id'));
     });
@@ -1705,11 +2039,34 @@
 
   // ==================== GENEL OLAY DİNLEYİCİLERİ ====================
   function bindEvents() {
-    // 1. Çıkış Yap Butonu
+    // 1. Çıkış Yap
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) btnLogout.onclick = logout;
 
-    // 2. Sidebar Navigasyon
+    // 2. Şifre Değiştirme Modalı
+    const modalPassword = document.getElementById('modalChangePassword');
+    const btnOpenPassword = document.getElementById('btnOpenChangePassword');
+    if (btnOpenPassword && modalPassword) {
+      btnOpenPassword.onclick = () => modalPassword.classList.add('active');
+    }
+
+    const formChangePassword = document.getElementById('formChangePassword');
+    if (formChangePassword) {
+      formChangePassword.onsubmit = (e) => {
+        e.preventDefault();
+        const oldP = document.getElementById('inputOldPassword').value;
+        const newP = document.getElementById('inputNewPassword').value;
+        const confP = document.getElementById('inputConfirmPassword').value;
+
+        const ok = changePassword(oldP, newP, confP);
+        if (ok && modalPassword) {
+          modalPassword.classList.remove('active');
+          formChangePassword.reset();
+        }
+      };
+    }
+
+    // 3. Sidebar Navigasyon
     document.querySelectorAll('[data-nav-tab]').forEach((btn) => {
       btn.onclick = () => {
         state.activeTab = btn.getAttribute('data-nav-tab');
@@ -1717,15 +2074,15 @@
       };
     });
 
-    // 3. Alt Sekmeler (Kullanıcılar vs Roller)
-    document.querySelectorAll('[data-sub-tab]').forEach((btn) => {
+    // 4. Yönetim Paneli Alt Sekmeleri (Users, Roles, Departments, Shifts)
+    document.querySelectorAll('[data-mgmt-tab]').forEach((btn) => {
       btn.onclick = () => {
-        state.activeSubTab = btn.getAttribute('data-sub-tab');
+        state.activeMgmtTab = btn.getAttribute('data-mgmt-tab');
         renderUI();
       };
     });
 
-    // 4. Geri Bildirim Formu
+    // 5. Geri Bildirim Formu
     const formFeedback = document.getElementById('safeFeedbackForm');
     if (formFeedback) {
       const btnSubmit = document.getElementById('btnSubmitFeedback');
@@ -1737,12 +2094,14 @@
         }
 
         const toTc = document.getElementById('inputRecipient').value;
+        const dept = document.getElementById('inputDepartment').value;
         const message = document.getElementById('inputMessage').value;
         const shift = document.getElementById('inputShift').value;
         const isAnonymous = document.getElementById('inputIsAnonymous').checked;
 
         const success = submitFeedback({
           toTc,
+          departmentName: dept,
           type: state.selectedType,
           category: state.selectedCategory,
           message,
@@ -1763,7 +2122,7 @@
       };
     }
 
-    // 5. Tür ve Kategori Seçicileri
+    // 6. Tür ve Kategori Seçicileri
     document.querySelectorAll('.safe-type-btn').forEach((btn) => {
       btn.onclick = () => {
         state.selectedType = btn.getAttribute('data-type');
@@ -1780,7 +2139,7 @@
       };
     });
 
-    // 6. Geri Bildirim İnceleme Ekranı Filtreleri (ODAK KAYBI OLMADAN)
+    // 7. Geri Bildirim İnceleme Filtreleri
     document.querySelectorAll('[data-feed-filter]').forEach((tab) => {
       tab.onclick = () => {
         state.feedFilter = tab.getAttribute('data-feed-filter');
@@ -1808,14 +2167,14 @@
 
     bindFeedCardEvents();
 
-    // 7. CSV & JSON Raporlama
+    // 8. CSV & JSON
     const btnCSV = document.getElementById('btnExportCSV');
     if (btnCSV) btnCSV.onclick = exportCSV;
 
     const btnJSON = document.getElementById('btnExportJSON');
     if (btnJSON) btnJSON.onclick = exportJSON;
 
-    // 8. Kullanıcı Ekleme Modalı
+    // 9. Kullanıcı Ekleme / Düzenleme / Silme
     const modalAdd = document.getElementById('modalAddUser');
     const btnOpenAdd = document.getElementById('btnOpenAddUser');
     if (btnOpenAdd && modalAdd) {
@@ -1842,7 +2201,6 @@
       };
     }
 
-    // 9. Kullanıcı Düzenleme Modalı
     const modalEdit = document.getElementById('modalEditUser');
     const formEdit = document.getElementById('formEditUser');
 
@@ -1880,12 +2238,40 @@
       };
     }
 
-    // 10. Kullanıcı Silme
     document.querySelectorAll('[data-remove-user-id]').forEach((btn) => {
       btn.onclick = () => removeUser(btn.getAttribute('data-remove-user-id'));
     });
 
-    // 11. Rol Yetki Matrisi Checkbox'ları (DİNAMİK YETKİ GÜNCELLEME)
+    // 10. Rol Ekleme / Silme / Yetki Güncelleme
+    const modalAddRole = document.getElementById('modalAddRole');
+    const btnOpenAddRole = document.getElementById('btnOpenAddRole');
+    if (btnOpenAddRole && modalAddRole) {
+      btnOpenAddRole.onclick = () => modalAddRole.classList.add('active');
+    }
+
+    const formAddRole = document.getElementById('formAddRole');
+    if (formAddRole) {
+      formAddRole.onsubmit = (e) => {
+        e.preventDefault();
+        const name = document.getElementById('newRoleName').value;
+        const desc = document.getElementById('newRoleDesc').value;
+        const perms = ['feedback'];
+        document.querySelectorAll('.new-role-perm-chk:checked').forEach((chk) => {
+          if (!perms.includes(chk.value)) perms.push(chk.value);
+        });
+
+        const ok = addRole(name, desc, perms);
+        if (ok && modalAddRole) {
+          modalAddRole.classList.remove('active');
+          formAddRole.reset();
+        }
+      };
+    }
+
+    document.querySelectorAll('[data-remove-role-id]').forEach((btn) => {
+      btn.onclick = () => removeRole(btn.getAttribute('data-remove-role-id'));
+    });
+
     document.querySelectorAll('.safe-matrix-perm-chk').forEach((chk) => {
       chk.onchange = (e) => {
         const roleId = chk.getAttribute('data-role-id');
@@ -1894,7 +2280,58 @@
       };
     });
 
-    // 12. Bulut Veritabanı Formu (Firebase Config)
+    // 11. Departman Ekleme / Silme
+    const modalAddDept = document.getElementById('modalAddDept');
+    const btnOpenAddDept = document.getElementById('btnOpenAddDept');
+    if (btnOpenAddDept && modalAddDept) {
+      btnOpenAddDept.onclick = () => modalAddDept.classList.add('active');
+    }
+
+    const formAddDept = document.getElementById('formAddDept');
+    if (formAddDept) {
+      formAddDept.onsubmit = (e) => {
+        e.preventDefault();
+        const name = document.getElementById('newDeptName').value;
+        const code = document.getElementById('newDeptCode').value;
+        const ok = addDepartment(name, code);
+        if (ok && modalAddDept) {
+          modalAddDept.classList.remove('active');
+          formAddDept.reset();
+        }
+      };
+    }
+
+    document.querySelectorAll('[data-remove-dept-id]').forEach((btn) => {
+      btn.onclick = () => removeDepartment(btn.getAttribute('data-remove-dept-id'));
+    });
+
+    // 12. Vardiya Ekleme / Silme
+    const modalAddShift = document.getElementById('modalAddShift');
+    const btnOpenAddShift = document.getElementById('btnOpenAddShift');
+    if (btnOpenAddShift && modalAddShift) {
+      btnOpenAddShift.onclick = () => modalAddShift.classList.add('active');
+    }
+
+    const formAddShift = document.getElementById('formAddShift');
+    if (formAddShift) {
+      formAddShift.onsubmit = (e) => {
+        e.preventDefault();
+        const name = document.getElementById('newShiftName').value;
+        const start = document.getElementById('newShiftStart').value;
+        const end = document.getElementById('newShiftEnd').value;
+        const ok = addShift(name, start, end);
+        if (ok && modalAddShift) {
+          modalAddShift.classList.remove('active');
+          formAddShift.reset();
+        }
+      };
+    }
+
+    document.querySelectorAll('[data-remove-shift-id]').forEach((btn) => {
+      btn.onclick = () => removeShift(btn.getAttribute('data-remove-shift-id'));
+    });
+
+    // 13. Bulut Veritabanı
     const formCloud = document.getElementById('formCloudConfig');
     if (formCloud) {
       formCloud.onsubmit = (e) => {
@@ -1905,10 +2342,10 @@
           state.firebaseConfig = parsed;
           localStorage.setItem(STORAGE_KEYS.FIREBASE_CONFIG, JSON.stringify(parsed));
           initFirebaseIfConfigured();
-          showToast('Firebase yapılandırması kaydedildi ve bulut bağlantısı başlatıldı!', 'success');
+          showToast('Firebase yapılandırması kaydedildi ve bulut senkronizasyonu başlatıldı!', 'success');
           renderUI();
         } catch (err) {
-          showToast('Geçersiz JSON formatı. Lütfen kontrol edip tekrar deneyin.', 'warning');
+          showToast('Geçersiz JSON formatı.', 'warning');
         }
       };
     }
@@ -1916,7 +2353,7 @@
     const btnDisconnect = document.getElementById('btnDisconnectCloud');
     if (btnDisconnect) {
       btnDisconnect.onclick = () => {
-        if (confirm('Bulut bağlantısını kesip yerel moda dönmek istediğinize emin misiniz?')) {
+        if (confirm('Bulut bağlantısını kesmek istediğinize emin misiniz?')) {
           state.firebaseConfig = null;
           state.firestoreDb = null;
           localStorage.removeItem(STORAGE_KEYS.FIREBASE_CONFIG);
@@ -1926,7 +2363,7 @@
       };
     }
 
-    // 13. Modalları Kapatma
+    // 14. Modalları Kapatma
     document.querySelectorAll('[data-modal-close]').forEach((el) => {
       el.onclick = () => {
         document.querySelectorAll('.safe-modal-backdrop').forEach((m) => m.classList.remove('active'));
@@ -1940,7 +2377,7 @@
     });
   }
 
-  // Escape Tuşu ile Modalları Kapatma
+  // Escape tuşuyla modalları kapat
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.safe-modal-backdrop').forEach((m) => m.classList.remove('active'));
