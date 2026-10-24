@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Safe5 — Fabrika Çalışan Geri Bildirim &amp; Analitik Paneli | Workshop</title>
+  <meta name="description" content="Endüstriyel standartlara uygun, 5S, İSG, Kaizen ve Takdir odaklı çalışan geri bildirim platformu ve yönetim analitik paneli." />
+
+  <!-- PWA & Favicon -->
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#10b981" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Safe5" />
+
+  <!-- Shared Workshop UI -->
+  <link rel="stylesheet" href="../shared/portal-ui.css" />
+  <script src="../shared/portal-ui.js"></script>
+
+  <!-- Uygulama Stilleri -->
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Chart.js Analitik Grafikleri (CDN + Dahili Fallback) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Ana Uygulama Mantığı -->
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+
+  <!-- Ortak Portal Üst Barı (Katman 2: Tek Özellikli / Bütünleşik Proje) -->
+  <header class="wp-header">
+    <div class="wp-header-inner">
+      <nav class="wp-breadcrumb" aria-label="Konum Navigasyonu">
+        <a href="../index.html" class="wp-crumb-link" title="Ana Araçlar Portalına Dön">
+          <span>🏠</span>
+          <span>Tüm Araçlar</span>
+        </a>
+        <span class="wp-crumb-sep">›</span>
+        <span class="wp-crumb-current">
+          <span>🛡️</span>
+          <span>Safe5 — Fabrika Geri Bildirim &amp; Analitik</span>
+        </span>
+      </nav>
+
+      <div class="wp-header-actions">
+        <div class="wp-trust-pill" title="Tüm veriler tarayıcınızın yerel hafızasında (localStorage) saklanır, hiçbir harici sunucuya iletilmez.">
+          <span>🔒</span>
+          <span>%100 İstemci Taraflı • Sıfır Sunucu</span>
+        </div>
+        <button type="button" class="wp-theme-btn" data-wp-theme-toggle aria-label="Temayı Değiştir">
+          <span class="wp-theme-icon">☀️</span>
+          <span class="wp-theme-label">Açık Tema</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Uygulama Dinamik Montaj Alanı -->
+  <main id="safeAppRoot">
+    <!-- Sayfa JavaScript yüklendiğinde renderUI() tarafından otomatik doldurulacaktır -->
+    <noscript>
+      <div style="padding: 2rem; text-align: center; color: var(--wp-text);">
+        Safe5 uygulamasını kullanabilmek için tarayıcınızda JavaScript'in etkin olması gerekmektedir.
+      </div>
+    </noscript>
+  </main>
+
+  <!-- Ortak Alt Bilgi (Footer) -->
+  <footer class="wp-footer">
+    <div class="wp-footer-inner">
+      <div>Kerem Çalışkan &copy; 2026 | %100 İstemci Taraflı &amp; Sıfır-Sunucu Web Araçları</div>
+      <div class="wp-footer-links">
+        <a href="../index.html">🏠 Tools Ana Sayfa</a>
+        <a href="./index.html">🛡️ Safe5</a>
+        <a href="../timetoshare/index.html">📺 TimeToShare</a>
+        <a href="../docshield/index.html">🔒 DocShield</a>
+        <a href="../imagestudio/index.html">🖼️ ImageStudio</a>
+        <a href="../bep/index.html">🎓 MEB BEP</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

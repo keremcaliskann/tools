@@ -1,0 +1,1094 @@
+/**
+ * Safe5 — Fabrika Geri Bildirim & Analitik Paneli Stilleri
+ * Endüstriyel standartlara, yüksek kontrast ve dokunmatik kiosk/mobil uyumuna sahip tasarım sistemi.
+ */
+
+:root {
+  --safe5-primary: #10b981;
+  --safe5-primary-hover: #059669;
+  --safe5-secondary: #06b6d4;
+  --safe5-accent: #6366f1;
+  --safe5-warning: #f59e0b;
+  --safe5-danger: #ef4444;
+  --safe5-info: #3b82f6;
+  --safe5-purple: #8b5cf6;
+  
+  --safe5-card-radius: 14px;
+  --safe5-btn-radius: 10px;
+  --safe5-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==================== ANA YAPI VE KONTEYNER ==================== */
+.safe-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3.5rem;
+  width: 100%;
+}
+
+/* ==================== ÜST BİLGİ & ROL / KULLANICI ROZETİ ==================== */
+.safe-user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-border);
+  border-radius: var(--safe5-card-radius);
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap;
+}
+
+.safe-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.safe-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, var(--safe5-primary), var(--safe5-secondary));
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  flex-shrink: 0;
+}
+
+.safe-user-details h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--wp-text);
+  line-height: 1.2;
+}
+
+.safe-user-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--wp-text-muted);
+  margin-top: 0.2rem;
+  flex-wrap: wrap;
+}
+
+.safe-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.safe-role-badge.admin {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.safe-role-badge.worker {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.safe-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* ==================== BUTONLAR ==================== */
+.safe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.15rem;
+  border-radius: var(--safe5-btn-radius);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: var(--safe5-transition);
+  text-decoration: none;
+  line-height: 1.2;
+}
+
+.safe-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.safe-btn-primary {
+  background: var(--safe5-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+
+.safe-btn-primary:hover:not(:disabled) {
+  background: var(--safe5-primary-hover);
+  transform: translateY(-1px);
+}
+
+.safe-btn-outline {
+  background: transparent;
+  color: var(--wp-text);
+  border-color: var(--wp-border);
+}
+
+.safe-btn-outline:hover:not(:disabled) {
+  background: var(--wp-surface-elevated);
+  border-color: var(--wp-text-muted);
+}
+
+.safe-btn-secondary {
+  background: var(--wp-surface-elevated);
+  color: var(--wp-text);
+  border: 1px solid var(--wp-border);
+}
+
+.safe-btn-secondary:hover:not(:disabled) {
+  background: var(--wp-border);
+}
+
+.safe-btn-admin {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
+}
+
+.safe-btn-admin:hover:not(:disabled) {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.safe-btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.safe-btn-lg {
+  padding: 0.85rem 1.6rem;
+  font-size: 1rem;
+}
+
+/* ==================== GİRİŞ & PROFİL SEÇİM EKRANI ==================== */
+.safe-login-view {
+  max-width: 860px;
+  margin: 1.5rem auto;
+  text-align: center;
+}
+
+.safe-hero {
+  margin-bottom: 2rem;
+}
+
+.safe-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--safe5-primary);
+  background: rgba(16, 185, 129, 0.12);
+  margin-bottom: 1rem;
+}
+
+.safe-hero h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+  color: var(--wp-text);
+}
+
+.safe-hero p {
+  color: var(--wp-text-secondary);
+  font-size: 1.05rem;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.safe-login-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.safe-login-tab-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--wp-border);
+  background: var(--wp-surface);
+  color: var(--wp-text-secondary);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: var(--safe5-transition);
+}
+
+.safe-login-tab-btn.active {
+  background: var(--safe5-primary);
+  color: #ffffff;
+  border-color: var(--safe5-primary);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.safe-login-card {
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-border);
+  border-radius: var(--safe5-card-radius);
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.safe-worker-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.safe-worker-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--wp-border);
+  background: var(--wp-bg-secondary);
+  cursor: pointer;
+  transition: var(--safe5-transition);
+  text-align: left;
+}
+
+.safe-worker-card:hover {
+  border-color: var(--safe5-primary);
+  background: var(--wp-surface-elevated);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.safe-worker-card.selected {
+  border-color: var(--safe5-primary);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.safe-worker-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--wp-text);
+  margin-bottom: 0.15rem;
+}
+
+.safe-worker-role-dept {
+  font-size: 0.78rem;
+  color: var(--wp-text-muted);
+}
+
+.safe-worker-shift {
+  display: inline-block;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  background: var(--wp-surface-elevated);
+  color: var(--wp-text-secondary);
+}
+
+.safe-admin-login-box {
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.safe-admin-login-box .safe-icon-lock {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto 1.25rem;
+}
+
+/* ==================== FORM ELEMANLARI ==================== */
+.safe-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.safe-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--wp-text);
+  margin-bottom: 0.45rem;
+}
+
+.safe-label-desc {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--wp-text-muted);
+}
+
+.safe-input,
+.safe-select,
+.safe-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--safe5-btn-radius);
+  border: 1px solid var(--wp-border);
+  background: var(--wp-bg-secondary);
+  color: var(--wp-text);
+  font-size: 0.92rem;
+  font-family: inherit;
+  transition: var(--safe5-transition);
+  outline: none;
+}
+
+.safe-input:focus,
+.safe-select:focus,
+.safe-textarea:focus {
+  border-color: var(--safe5-primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+  background: var(--wp-surface);
+}
+
+.safe-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ==================== ÇALIŞAN ÇALIŞMA ALANI (WORKER VIEW) ==================== */
+.safe-worker-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem;
+}
+
+@media (max-width: 980px) {
+  .safe-worker-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.safe-card {
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-border);
+  border-radius: var(--safe5-card-radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.safe-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.safe-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--wp-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.safe-card-subtitle {
+  font-size: 0.82rem;
+  color: var(--wp-text-muted);
+  margin-top: 0.15rem;
+}
+
+/* Kategori Seçim Butonları (5S & İSG) */
+.safe-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.safe-cat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--wp-border);
+  background: var(--wp-bg-secondary);
+  cursor: pointer;
+  transition: var(--safe5-transition);
+  text-align: center;
+  user-select: none;
+}
+
+.safe-cat-card:hover {
+  background: var(--wp-surface-elevated);
+  border-color: var(--safe5-primary);
+}
+
+.safe-cat-card.active {
+  border-color: var(--safe5-primary);
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--safe5-primary);
+  font-weight: 700;
+}
+
+.safe-cat-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.safe-cat-label {
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+/* Tip Seçici (Takdir vs Öneri vs İSG) */
+.safe-type-switcher {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--wp-bg-secondary);
+  padding: 0.35rem;
+  border-radius: 10px;
+  border: 1px solid var(--wp-border);
+  margin-bottom: 1.25rem;
+}
+
+.safe-type-btn {
+  flex: 1;
+  padding: 0.6rem 0.5rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--wp-text-secondary);
+  font-weight: 600;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: var(--safe5-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.safe-type-btn.active.kudos {
+  background: var(--safe5-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.safe-type-btn.active.kaizen {
+  background: var(--safe5-secondary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.25);
+}
+
+.safe-type-btn.active.isg {
+  background: var(--safe5-warning);
+  color: #1e1b4b;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+
+/* Rozet Seçici */
+.safe-badge-selector {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.safe-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: var(--wp-bg-secondary);
+  border: 1px solid var(--wp-border);
+  color: var(--wp-text-secondary);
+  cursor: pointer;
+  transition: var(--safe5-transition);
+}
+
+.safe-badge-pill:hover {
+  background: var(--wp-surface-elevated);
+}
+
+.safe-badge-pill.selected {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: var(--safe5-warning);
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+/* Anonimlik ve Vardiya Switcher */
+.safe-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: var(--wp-bg-secondary);
+  border: 1px solid var(--wp-border);
+  margin-bottom: 1.25rem;
+  gap: 0.75rem;
+}
+
+.safe-switch-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--wp-text);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* Geri Bildirim Akışı ve Kartları */
+.safe-feed-tabs {
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--wp-border);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.4rem;
+}
+
+.safe-feed-tab-btn {
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--wp-text-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--safe5-transition);
+}
+
+.safe-feed-tab-btn.active {
+  background: var(--wp-surface-elevated);
+  color: var(--wp-text);
+}
+
+.safe-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 650px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.safe-feed-item {
+  background: var(--wp-bg-secondary);
+  border: 1px solid var(--wp-border);
+  border-radius: 12px;
+  padding: 1.15rem;
+  transition: var(--safe5-transition);
+  position: relative;
+}
+
+.safe-feed-item:hover {
+  border-color: var(--safe5-primary);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.safe-feed-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.safe-feed-parties {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--wp-text);
+}
+
+.safe-feed-arrow {
+  color: var(--safe5-primary);
+  font-size: 0.95rem;
+}
+
+.safe-feed-time {
+  font-size: 0.75rem;
+  color: var(--wp-text-muted);
+}
+
+.safe-feed-badges {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.safe-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.safe-badge.kudos {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.safe-badge.kaizen {
+  background: rgba(6, 182, 212, 0.15);
+  color: #22d3ee;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.safe-badge.isg {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.safe-badge.category {
+  background: var(--wp-surface-elevated);
+  color: var(--wp-text-secondary);
+}
+
+.safe-feed-message {
+  font-size: 0.9rem;
+  color: var(--wp-text);
+  line-height: 1.5;
+  background: var(--wp-surface);
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--safe5-primary);
+  margin-bottom: 0.65rem;
+}
+
+.safe-feed-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--wp-text-muted);
+}
+
+.safe-action-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.safe-action-tag.pending {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.safe-action-tag.in_progress {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.safe-action-tag.resolved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+/* ==================== YÖNETİCİ / ADMİN ANALİTİK PANELİ ==================== */
+.safe-admin-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* KPI Kartları */
+.safe-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1.15rem;
+}
+
+.safe-kpi-card {
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-border);
+  border-radius: var(--safe5-card-radius);
+  padding: 1.25rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.safe-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--safe5-primary);
+}
+
+.safe-kpi-card.kpi-kudos::before { background: var(--safe5-primary); }
+.safe-kpi-card.kpi-kaizen::before { background: var(--safe5-secondary); }
+.safe-kpi-card.kpi-isg::before { background: var(--safe5-warning); }
+.safe-kpi-card.kpi-people::before { background: var(--safe5-purple); }
+
+.safe-kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.safe-kpi-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--wp-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.safe-kpi-icon {
+  font-size: 1.4rem;
+}
+
+.safe-kpi-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--wp-text);
+  line-height: 1.1;
+  margin-bottom: 0.35rem;
+}
+
+.safe-kpi-subtext {
+  font-size: 0.78rem;
+  color: var(--wp-text-muted);
+}
+
+/* Grafikler Grid */
+.safe-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .safe-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.safe-chart-card {
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-border);
+  border-radius: var(--safe5-card-radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+}
+
+.safe-chart-container {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  margin-top: 1rem;
+}
+
+/* Özel SVG Çubuk Grafik Fallback */
+.safe-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  height: 220px;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--wp-border);
+}
+
+.safe-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.safe-bar-fill {
+  width: 100%;
+  max-width: 44px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, var(--safe5-primary), var(--safe5-secondary));
+  transition: height 0.6s ease;
+  min-height: 4px;
+}
+
+.safe-bar-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--wp-text);
+  margin-bottom: 0.35rem;
+}
+
+.safe-bar-label {
+  font-size: 0.75rem;
+  color: var(--wp-text-muted);
+  margin-top: 0.5rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* Liderlik Tablosu (Top 5 Kudos) */
+.safe-leader-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.safe-leader-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--wp-bg-secondary);
+  border: 1px solid var(--wp-border);
+}
+
+.safe-leader-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.safe-rank-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--wp-surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--wp-text);
+}
+
+.safe-rank-badge.rank-1 {
+  background: #fbbf24;
+  color: #1e1b4b;
+}
+
+.safe-rank-badge.rank-2 {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+.safe-rank-badge.rank-3 {
+  background: #d97706;
+  color: #ffffff;
+}
+
+/* Yönetici Tablo ve Filtreler */
+.safe-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.safe-table-container {
+  overflow-x: auto;
+  border: 1px solid var(--wp-border);
+  border-radius: var(--safe5-card-radius);
+  background: var(--wp-surface);
+}
+
+.safe-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.safe-table th {
+  background: var(--wp-bg-secondary);
+  padding: 0.85rem 1rem;
+  font-weight: 700;
+  color: var(--wp-text-muted);
+  border-bottom: 1px solid var(--wp-border);
+  white-space: nowrap;
+}
+
+.safe-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--wp-border);
+  color: var(--wp-text);
+}
+
+.safe-table tr:hover td {
+  background: var(--wp-surface-elevated);
+}
+
+/* ==================== MODALLAR VE TOAST BİLDİRİMLERİ ==================== */
+.safe-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.safe-modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.safe-modal-box {
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-border);
+  border-radius: 16px;
+  max-width: 540px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.75rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(20px);
+  transition: transform 0.2s ease;
+}
+
+.safe-modal-backdrop.active .safe-modal-box {
+  transform: translateY(0);
+}
+
+.safe-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.safe-modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--wp-text);
+}
+
+.safe-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--wp-text-muted);
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.safe-modal-close:hover {
+  color: var(--wp-text);
+}
+
+/* Toast Bildirimi */
+.safe-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 0.85rem 1.4rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border-left: 4px solid var(--safe5-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  z-index: 1000;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.safe-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ==================== MOBİL VE KÜÇÜK EKRAN UYUMLULUĞU ==================== */
+@media (max-width: 640px) {
+  .safe-container {
+    padding: 1rem 0.75rem 3rem;
+  }
+  
+  .safe-hero h1 {
+    font-size: 1.7rem;
+  }
+  
+  .safe-login-card,
+  .safe-card,
+  .safe-chart-card {
+    padding: 1.15rem;
+  }
+  
+  .safe-category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

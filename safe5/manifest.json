@@ -1,0 +1,17 @@
+{
+  "name": "Safe5 — Fabrika Çalışan Geri Bildirim & Analitik Paneli",
+  "short_name": "Safe5",
+  "description": "Fabrika çalışanları arasında 5S, İSG, Kaizen ve Takdir odaklı güvenli geri bildirim platformu ve yönetim analitik paneli.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
